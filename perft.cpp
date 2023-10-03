@@ -16,11 +16,9 @@ namespace Chess {
 namespace Perft {
 
 	void go(int depth) {
-
-		int plies_to_search = 1;
-
+		
 		if (GameState::white_to_move) {
-			for (;plies_to_search <= depth; plies_to_search++) {
+			for (int plies_to_search = 1; plies_to_search <= depth; plies_to_search++) {
 				leafnodes = 0;
 				auto start = Util::curr_time_millis();
 				movegen g;
