@@ -113,11 +113,11 @@ namespace Evaluation {
 
 	int king_safety() {
 	
-		int white_kingsq = tzcnt(Board::bitboards[WHITE_KING]);
-		int black_kingsq = tzcnt(Board::bitboards[BLACK_KING]);
+		int white_ksq = tzcnt(Board::bitboards[WHITE_KING]);
+		int black_ksq = tzcnt(Board::bitboards[BLACK_KING]);
 
-		return WHITE_KING_SAFETY(white_kingsq, Board::bitboards[WHITE_PAWN]) -
-		       BLACK_KING_SAFETY(black_kingsq, Board::bitboards[BLACK_PAWN]);
+		return WHITE_KING_SAFETY(white_ksq, Board::bitboards[WHITE_PAWN]) -
+		       BLACK_KING_SAFETY(black_ksq, Board::bitboards[BLACK_PAWN]);
 
 	}
 
