@@ -13,7 +13,8 @@ public:
 
 	int moves[30];
 	int move_count;
-	void init_masks();
+	int friendly_ksq;
+	void init();
 	uint64_t occupied;
 	uint64_t empty;
 	uint64_t checkmask;
