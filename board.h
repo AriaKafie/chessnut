@@ -41,7 +41,7 @@ namespace Board {
 					bitboards[piece_types[from]] ^= 1ull << to;
 					white_pieces ^= 1ull << from;
 					white_pieces ^= 1ull << to;
-					black_pieces &= ~(1ull << to);
+					black_pieces ^= 1ull << to;
 					piece_types[to] = piece_types[from];
 					piece_types[from] = NULLPIECE;
 					GameState::castling_rights &= ((bitboards[WHITE_ROOK] & H1) << 3) | Qkq;
@@ -60,7 +60,7 @@ namespace Board {
 					bitboards[WHITE_QUEEN] ^= 1ull << to;
 					white_pieces ^= 1ull << from;
 					white_pieces ^= 1ull << to;
-					black_pieces &= ~(1ull << to);
+					black_pieces ^= 1ull << to;
 					piece_types[to] = WHITE_QUEEN;
 					piece_types[from] = NULLPIECE;
 					GameState::castling_rights &= ((bitboards[BLACK_ROOK] & H8) >> 55) | KQq;
@@ -166,7 +166,7 @@ namespace Board {
 					bitboards[piece_types[from]] ^= 1ull << to;
 					black_pieces ^= 1ull << from;
 					black_pieces ^= 1ull << to;
-					white_pieces &= ~(1ull << to);
+					white_pieces ^= 1ull << to;
 					piece_types[to] = piece_types[from];
 					piece_types[from] = NULLPIECE;
 					GameState::castling_rights &= ((bitboards[WHITE_ROOK] & H1) << 3) | Qkq;
@@ -185,7 +185,7 @@ namespace Board {
 					bitboards[BLACK_QUEEN] ^= 1ull << to;
 					black_pieces ^= 1ull << from;
 					black_pieces ^= 1ull << to;
-					white_pieces &= ~(1ull << to);
+					white_pieces ^= 1ull << to;
 					piece_types[to] = BLACK_QUEEN;
 					piece_types[from] = NULLPIECE;
 					GameState::castling_rights &= ((bitboards[WHITE_ROOK] & H1) << 3) | Qkq;
@@ -300,7 +300,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					white_pieces ^= 1ull << to;
 					white_pieces ^= 1ull << from;
-					black_pieces ^= (1ull << to);
+					black_pieces ^= 1ull << to;
 					piece_types[from] = piece_types[to];
 					piece_types[to] = capture_type;
 					return;
@@ -314,7 +314,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					white_pieces ^= 1ull << to;
 					white_pieces ^= 1ull << from;
-					black_pieces ^= (1ull << to);
+					black_pieces ^= 1ull << to;
 					piece_types[to] = capture_type;
 					piece_types[from] = WHITE_PAWN;
 					return;
@@ -409,7 +409,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					black_pieces ^= 1ull << to;
 					black_pieces ^= 1ull << from;
-					white_pieces ^= (1ull << to);
+					white_pieces ^= 1ull << to;
 					piece_types[from] = piece_types[to];
 					piece_types[to] = capture_type;
 					return;
@@ -423,7 +423,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					black_pieces ^= 1ull << to;
 					black_pieces ^= 1ull << from;
-					white_pieces ^= (1ull << to);
+					white_pieces ^= 1ull << to;
 					piece_types[to] = capture_type;
 					piece_types[from] = BLACK_PAWN;
 					return;
