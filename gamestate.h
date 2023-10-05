@@ -11,7 +11,7 @@
 //		                      KQkqepindx
 //		00000000000000000000000000000000  <- boardstate
 //		KQkq
-//	00000000 <- uint8_t castling_rights
+//	0000    0000 <- uint8_t castling_rights
 
 namespace Chess {
 
