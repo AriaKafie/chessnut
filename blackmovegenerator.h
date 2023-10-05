@@ -10,9 +10,10 @@ class BlackMoveGenerator {
 public:
 	int moves[90];
 	int move_count;
+	int friendly_ksq;
 	bool generate_enpassant;
 	bool in_double_check;
-	void init_masks();
+	void init();
 	uint64_t checkmask;
 	uint64_t pinH;
 	uint64_t pinV;
@@ -29,8 +30,8 @@ public:
 	uint64_t seen_by_enemy;
 	BlackMoveGenerator(bool generate_enpassant_=true);
 	void generate_moves();
-	bool is_attacked(uint64_t squares);
-	bool incheck();
+	inline bool is_attacked(uint64_t squares);
+	inline bool incheck() { return ~checkmask; }
 	uint64_t squares_controlled_by_white();
 	void generate_BK();
 	void gen_ep();
