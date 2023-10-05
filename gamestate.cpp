@@ -84,6 +84,41 @@ namespace GameState {
 
 	void parse_fen(std::string fen) {
 
+		using namespace Board;
+		#define bb bitboards
+
+		white_pieces = 0ull;
+		black_pieces = 0ull;
+
+		for (int i = 0; i < 64; i++) {
+			piece_types[i] = NULLPIECE;
+			if (i <= 12) bb[i] = 0ull;
+		}
+
+		int square = 63;
+		for (int i = 0; i < fen.length(); i++) {
+			if (fen[i] == ' ') break;
+			if (fen[i] == '/') continue;
+			if (fen[i] < 58) {
+				square -= fen[i] - 48;
+				continue;
+			}
+			uint64_t sqb = 1ull << square;
+			if (fen[i] == 'P')      { bb[WHITE_PAWN]  |= sqb; white_pieces |= sqb; piece_types[square] = WHITE_PAWN;  }
+			else if (fen[i] == 'N') { bb[WHITE_KNIGHT]|= sqb; white_pieces |= sqb; piece_types[square] = WHITE_KNIGHT;}
+			else if (fen[i] == 'B') { bb[WHITE_BISHOP]|= sqb; white_pieces |= sqb; piece_types[square] = WHITE_BISHOP;}
+			else if (fen[i] == 'R') { bb[WHITE_ROOK]  |= sqb; white_pieces |= sqb; piece_types[square] = WHITE_ROOK;  }
+			else if (fen[i] == 'Q') { bb[WHITE_QUEEN] |= sqb; white_pieces |= sqb; piece_types[square] = WHITE_QUEEN; }
+			else if (fen[i] == 'K') { bb[WHITE_KING]  |= sqb; white_pieces |= sqb; piece_types[square] = WHITE_KING;  }
+			else if (fen[i] == 'p') { bb[BLACK_PAWN]  |= sqb; black_pieces |= sqb; piece_types[square] = BLACK_PAWN;  }
+			else if (fen[i] == 'n') { bb[BLACK_KNIGHT]|= sqb; black_pieces |= sqb; piece_types[square] = BLACK_KNIGHT;}
+			else if (fen[i] == 'b') { bb[BLACK_BISHOP]|= sqb; black_pieces |= sqb; piece_types[square] = BLACK_BISHOP;}
+			else if (fen[i] == 'r') { bb[BLACK_ROOK]  |= sqb; black_pieces |= sqb; piece_types[square] = BLACK_ROOK;  }
+			else if (fen[i] == 'q') { bb[BLACK_QUEEN] |= sqb; black_pieces |= sqb; piece_types[square] = BLACK_QUEEN; }
+			else if (fen[i] == 'k') { bb[BLACK_KING]  |= sqb; black_pieces |= sqb; piece_types[square] = BLACK_KING;  }
+			square--;
+		}
+
 		boardstate = 0;
 		castling_rights = 0;
 		fen = fen.substr(fen.find(' ') + 1);
