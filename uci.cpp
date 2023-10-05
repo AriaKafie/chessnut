@@ -219,11 +219,11 @@ namespace UCI {
 
 		input = input.substr(9);
 		if (starts_with(input, "startpos")) {
-			Board::init(START_FEN);
+			GameState::init(START_FEN);
 		}
 		else {
 			if (input.find("moves") == std::string::npos) {
-				Board::init(input.substr(4));
+				GameState::init(input.substr(4));
 				Zobrist::update();
 				GameState::repetition_table.push();
 				return;
@@ -231,7 +231,7 @@ namespace UCI {
 			else {
 				size_t fen_end = input.find("moves") - 1;
 				std::string fen = input.substr(4, fen_end);
-				Board::init(fen);
+				GameState::init(fen);
 			}
 		}
 		Zobrist::update();
