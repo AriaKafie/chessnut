@@ -10,7 +10,6 @@ namespace Chess {
 class WhiteCaptureGenerator {
 
 public:
-
 	int moves[30];
 	int move_count;
 	int friendly_ksq;
