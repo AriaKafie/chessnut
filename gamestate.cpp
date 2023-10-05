@@ -104,7 +104,7 @@ namespace GameState {
 				continue;
 			}
 			uint64_t sqb = 1ull << square;
-			if (fen[i] == 'P')      { bb[WHITE_PAWN]  |= sqb; white_pieces |= sqb; piece_types[square] = WHITE_PAWN;  }
+			if 	(fen[i] == 'P') { bb[WHITE_PAWN]  |= sqb; white_pieces |= sqb; piece_types[square] = WHITE_PAWN;  }
 			else if (fen[i] == 'N') { bb[WHITE_KNIGHT]|= sqb; white_pieces |= sqb; piece_types[square] = WHITE_KNIGHT;}
 			else if (fen[i] == 'B') { bb[WHITE_BISHOP]|= sqb; white_pieces |= sqb; piece_types[square] = WHITE_BISHOP;}
 			else if (fen[i] == 'R') { bb[WHITE_ROOK]  |= sqb; white_pieces |= sqb; piece_types[square] = WHITE_ROOK;  }
