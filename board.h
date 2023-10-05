@@ -20,9 +20,7 @@ namespace Board {
 
 	void make_legal(bool white, int move);
 	void undo_legal(bool white, int move, int capture);
-	void init(std::string fen);
-	void load_fen(std::string fen);
-
+	
 	template<bool white, bool captures_only>
 	inline void makemove(int move) {
 
@@ -302,7 +300,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					white_pieces ^= 1ull << to;
 					white_pieces ^= 1ull << from;
-					black_pieces ^= 1ull << to;
+					black_pieces ^= (1ull << to);
 					piece_types[from] = piece_types[to];
 					piece_types[to] = capture_type;
 					return;
@@ -316,7 +314,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					white_pieces ^= 1ull << to;
 					white_pieces ^= 1ull << from;
-					black_pieces ^= 1ull << to;
+					black_pieces ^= (1ull << to);
 					piece_types[to] = capture_type;
 					piece_types[from] = WHITE_PAWN;
 					return;
@@ -411,7 +409,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					black_pieces ^= 1ull << to;
 					black_pieces ^= 1ull << from;
-					white_pieces ^= 1ull << to;
+					white_pieces ^= (1ull << to);
 					piece_types[from] = piece_types[to];
 					piece_types[to] = capture_type;
 					return;
@@ -425,7 +423,7 @@ namespace Board {
 					bitboards[capture_type] ^= 1ull << to;
 					black_pieces ^= 1ull << to;
 					black_pieces ^= 1ull << from;
-					white_pieces ^= 1ull << to;
+					white_pieces ^= (1ull << to);
 					piece_types[to] = capture_type;
 					piece_types[from] = BLACK_PAWN;
 					return;
