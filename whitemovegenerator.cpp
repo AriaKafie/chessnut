@@ -94,31 +94,31 @@ namespace Chess {
 		}
 		for (uint64_t from_map = Board::bitboards[WHITE_KNIGHT] & not_pinned; from_map; from_map = blsr(from_map)) {
 			int from = tzcnt(from_map);
-			for (uint64_t to_map = Lookup::knight_masks[from] & legal_squares; to_map; to_map = blsr(to_map))
-				moves[move_count++] = from + (tzcnt(to_map) << 6);
+			for (uint64_t to = Lookup::knight_masks[from] & legal_squares; to; to = blsr(to))
+				moves[move_count++] = from + (tzcnt(to) << 6);
 		}
 		for (uint64_t from_map = BishopQueen & not_pinned; from_map; from_map = blsr(from_map)) {
 			int from = tzcnt(from_map);
-			for (uint64_t to_map = BISHOP_ATTACKS(from, occupied) & legal_squares; to_map; to_map = blsr(to_map))
-				moves[move_count++] = from + (tzcnt(to_map) << 6);
+			for (uint64_t to = BISHOP_ATTACKS(from, occupied) & legal_squares; to; to = blsr(to))
+				moves[move_count++] = from + (tzcnt(to) << 6);
 		}
 		for (uint64_t from_map = BishopQueen & ~not_pinned; from_map; from_map = blsr(from_map)) {
 			int from = tzcnt(from_map);
-			for (uint64_t to_map = BISHOP_ATTACKS(from, occupied) & legal_squares & Lookup::pinmask[friendly_ksq][from]; to_map; to_map = blsr(to_map))
-				moves[move_count++] = from + (tzcnt(to_map) << 6);
+			for (uint64_t to = BISHOP_ATTACKS(from, occupied) & legal_squares & Lookup::pinmask[friendly_ksq][from]; to; to = blsr(to))
+				moves[move_count++] = from + (tzcnt(to) << 6);
 		}
 		for (uint64_t from_map = RookQueen & not_pinned; from_map; from_map = blsr(from_map)) {
 			int from = tzcnt(from_map);
-			for (uint64_t to_map = ROOK_ATTACKS(from, occupied) & legal_squares; to_map; to_map = blsr(to_map))
-				moves[move_count++] = from + (tzcnt(to_map) << 6);
+			for (uint64_t to = ROOK_ATTACKS(from, occupied) & legal_squares; to; to = blsr(to))
+				moves[move_count++] = from + (tzcnt(to) << 6);
 		}
 		for (uint64_t from_map = RookQueen & ~not_pinned; from_map; from_map = blsr(from_map)) {
 			int from = tzcnt(from_map);
-			for (uint64_t to_map = ROOK_ATTACKS(from, occupied) & legal_squares & Lookup::pinmask[friendly_ksq][from]; to_map; to_map = blsr(to_map))
-				moves[move_count++] = from + (tzcnt(to_map) << 6);
+			for (uint64_t to = ROOK_ATTACKS(from, occupied) & legal_squares & Lookup::pinmask[friendly_ksq][from]; to; to = blsr(to))
+				moves[move_count++] = from + (tzcnt(to) << 6);
 		}
-		for (uint64_t to_map = Lookup::king_masks[friendly_ksq] & ~(Board::white_pieces | seen_by_enemy); to_map; to_map = blsr(to_map))
-			moves[move_count++] = friendly_ksq + (tzcnt(to_map) << 6);
+		for (uint64_t to = Lookup::king_masks[friendly_ksq] & ~(Board::white_pieces | seen_by_enemy); to; to = blsr(to))
+			moves[move_count++] = friendly_ksq + (tzcnt(to) << 6);
 
 	}
 
@@ -170,20 +170,14 @@ namespace Chess {
 
 	void WhiteMoveGenerator::generate_WK() {
 
-		for (uint64_t to_map = Lookup::king_masks[friendly_ksq] & ~(Board::white_pieces | seen_by_enemy); to_map; to_map = blsr(to_map))
-			moves[move_count++] = friendly_ksq + (tzcnt(to_map) << 6);
+		for (uint64_t to = Lookup::king_masks[friendly_ksq] & ~(Board::white_pieces | seen_by_enemy); to; to = blsr(to))
+			moves[move_count++] = friendly_ksq + (tzcnt(to) << 6);
 
 	}
 
-	bool WhiteMoveGenerator::is_attacked(uint64_t squares) {
+	inline bool WhiteMoveGenerator::is_attacked(uint64_t squares) {
 
 		return squares & seen_by_enemy;
-
-	}
-
-	bool WhiteMoveGenerator::incheck() {
-
-		return ~checkmask;
 
 	}
 
