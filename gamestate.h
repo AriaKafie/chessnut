@@ -11,7 +11,7 @@
 //		                      KQkqepindx
 //		00000000000000000000000000000000  <- boardstate
 //		KQkq
-//		0000 <- uint8_t castling_rights
+//	00000000 <- uint8_t castling_rights
 
 namespace Chess {
 
@@ -35,6 +35,7 @@ namespace GameState {
 	inline bool rights_q() { return castling_rights & 1; }
 
 	void parse_fen(std::string fen);
+	inline void init(std::string fen) { parse_fen(fen); }
 	void update_gamephase();
 	void diagnostic();
 	void update_enpassant(int move);
