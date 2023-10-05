@@ -9,7 +9,6 @@ namespace Chess {
 	class WhiteMoveGenerator {
 
 	public:
-
 		int moves[90];
 		int move_count;
 		int friendly_ksq;
@@ -32,8 +31,8 @@ namespace Chess {
 		uint64_t occupied;
 		uint64_t seen_by_enemy;
 		WhiteMoveGenerator(bool generate_enpassant_=true);
-		bool is_attacked(uint64_t squares);
-		bool incheck();
+		inline bool is_attacked(uint64_t squares);
+		inline bool incheck() { return ~checkmask; }
 		uint64_t squares_controlled_by_black();
 		void generate_WK();
 		void gen_ep();
