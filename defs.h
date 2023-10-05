@@ -4,15 +4,11 @@
 
 #include <intrin.h>
 
-// compiler intrinsics
-
 #define popcnt(x) _mm_popcnt_u64(x)
 #define pext(x,m) _pext_u64(x,m)
 #define tzcnt(x) _tzcnt_u64(x)
 #define lzcnt(x) _lzcnt_u64(x)
 #define blsr(x) _blsr_u64(x)
-
-// hash lookups
 
 #define BISHOP_ATTACKS(square,occupancy) \
 	Lookup::bishop_attacks[Lookup::bishop_hash_offset[square] + _pext_u64(occupancy, Lookup::bishop_masks[square])]
@@ -25,8 +21,6 @@
 	Lookup::white_pawnshield_scores[square][_pext_u64(pawns,Lookup::white_pawnshield[square])]
 #define BLACK_KING_SAFETY(square,pawns) \
 	Lookup::black_pawnshield_scores[square][_pext_u64(pawns,Lookup::black_pawnshield[square])]
-
-// general purpose masks and values
 
 #define promotion_flag 0x1000
 #define ep_flag 0x2000
@@ -73,8 +67,6 @@
 #define kq  3  // 0011
 #define KQ  12 // 1100
 
-// piece types enum
-
 #define WHITE_PAWN   0
 #define WHITE_KNIGHT 1
 #define WHITE_BISHOP 2
@@ -89,16 +81,12 @@
 #define BLACK_KING   11
 #define NULLPIECE    12
 
-// move types enum
-
 #define NULLMOVE     0
 #define STANDARD     0
 #define PROMOTION    1
 #define ENPASSANT    2
 #define SHORTCASTLE  3
 #define LONGCASTLE   4
-
-// white pawn square tables (evaluation)
 
 #define WPsquares_ten 0xff000000000000ull
 #define WPsquares_six 0x180000000000ull
