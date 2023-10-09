@@ -24,13 +24,10 @@ namespace Bench {
 
 	void warmup() {
 
-		for (int i = 0; i < 200000; i++) {
+		for (int i = 1; i < 200000; i++) {
 			for (int j = 1; j < 10000; j++) {
 				int k = i / j;
-				k += k * ((i / 7)+3);
-				if (k == 73) {
-					std::cout << "#";
-				}
+				if (k == 77) std::cout << "#";
 			}
 		}
 
