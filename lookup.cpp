@@ -11,8 +11,6 @@ namespace Lookup {
 
 		init_white_pawnshield_scores();
 		init_black_pawnshield_scores();
-		init_bishop_attacks();
-		init_rook_attacks();
 		init_chebyshev_table();
 		init_checkmasks();
 		init_pinmasks();
@@ -45,7 +43,7 @@ namespace Lookup {
 			for (int count = 0; count < occupancy_permutations; count++) {
 				uint64_t occupancy = generate_occupancy(mask, count);
 				uint64_t magic_index = bishop_hash_offset[square] + pext(occupancy, bishop_masks[square]);
-				bishop_attacks[magic_index] = generate_bishop_map(square, occupancy);
+				//bishop_attacks[magic_index] = generate_bishop_map(square, occupancy);
 			}
 		}
 
@@ -60,7 +58,7 @@ namespace Lookup {
 			for (int count = 0; count < occupancy_permutations; count++) {
 				uint64_t occupancy = generate_occupancy(mask, count);
 				uint64_t magic_index = rook_hash_offset[square] + pext(occupancy, rook_masks[square]);
-				rook_attacks[magic_index] = generate_rook_map(square, occupancy);
+				//rook_attacks[magic_index] = generate_rook_map(square, occupancy);
 			}
 		}
 
