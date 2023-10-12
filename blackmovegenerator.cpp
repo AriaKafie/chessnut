@@ -10,7 +10,8 @@
 
 namespace Chess {
 
-	BlackMoveGenerator::BlackMoveGenerator(bool generate_enpassant_) : generate_enpassant(generate_enpassant_) {
+	BlackMoveGenerator::BlackMoveGenerator(bool generate_enpassant_) : 
+generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), checkmask(0) {
 
 		move_count = 0;
 		init();
@@ -34,11 +35,6 @@ namespace Chess {
 
 	void BlackMoveGenerator::init() {
 
-		pinV = 0;
-		pinFD = 0;
-		pinH = 0;
-		pinBD = 0;
-		checkmask = 0;
 		friendly_ksq = tzcnt(Board::bitboards[BLACK_KING]);
 		checkmask |= Lookup::knight_masks[friendly_ksq] & Board::bitboards[WHITE_KNIGHT];
 		checkmask |= Lookup::white_pawn_checkers[friendly_ksq] & Board::bitboards[WHITE_PAWN];
