@@ -110,7 +110,7 @@ namespace Search {
 		int hashflag = tt_ALPHA;
 
 		if constexpr (maximizing) {
-			int eval;
+			
 			int best_move_yet = 0;
 			int best_eval = MIN_INT;
 			WhiteMoveGenerator g(ply_from_root == 0);
@@ -124,7 +124,7 @@ namespace Search {
 				uint8_t c_rights = GameState::castling_rights;
 
 				Board::makemove<true, false>(g.moves[i]);
-				eval = search<false>(alpha, beta, depth - 1 - depth_reduction[i], ply_from_root + 1);
+				int eval = search<false>(alpha, beta, depth - 1 - depth_reduction[i], ply_from_root + 1);
 				Board::undomove<true, false>(g.moves[i], capture);
 
 				GameState::castling_rights = c_rights;
@@ -147,7 +147,7 @@ namespace Search {
 			return best_eval;
 		}
 		else {
-			int eval;
+			
 			int best_move_yet = 0;
 			int best_eval = MAX_INT;
 			BlackMoveGenerator g(ply_from_root == 0);
@@ -161,7 +161,7 @@ namespace Search {
 				uint8_t c_rights = GameState::castling_rights;
 
 				Board::makemove<false, false>(g.moves[i]);
-				eval = search<true>(alpha, beta, depth - 1 - depth_reduction[i], ply_from_root + 1);
+				int eval = search<true>(alpha, beta, depth - 1 - depth_reduction[i], ply_from_root + 1);
 				Board::undomove<false, false>(g.moves[i], capture);
 
 				GameState::castling_rights = c_rights;
