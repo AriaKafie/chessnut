@@ -11,9 +11,8 @@
 namespace Chess {
 
 	BlackMoveGenerator::BlackMoveGenerator(bool generate_enpassant_) : 
-generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), checkmask(0) {
+generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), checkmask(0), move_count(0) {
 
-		move_count = 0;
 		init();
 		if (checkmask == 0) checkmask = MAX_LONG;
 		legal_squares = checkmask & ~Board::black_pieces;
