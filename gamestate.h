@@ -29,10 +29,10 @@ namespace GameState {
 	inline bool white_human;
 
 	inline uint64_t current_ep_square() { return 1ull << (boardstate & lsb_6); }
-	inline bool rights_K() { return (castling_rights >> 3) & 1; }
-	inline bool rights_Q() { return (castling_rights >> 2) & 1; }
-	inline bool rights_k() { return (castling_rights >> 1) & 1; }
-	inline bool rights_q() { return castling_rights & 1; }
+	inline bool rights_K() { return castling_rights & 0b1000; }
+	inline bool rights_Q() { return castling_rights & 0b0100; }
+	inline bool rights_k() { return castling_rights & 0b0010; }
+	inline bool rights_q() { return castling_rights & 0b0001; }
 
 	void parse_fen(std::string fen);
 	inline void init(std::string fen) { parse_fen(fen); }
