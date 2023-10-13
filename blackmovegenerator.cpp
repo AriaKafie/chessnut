@@ -1,18 +1,19 @@
 
-#include "BlackMoveGenerator.h"
-#include "Board.h"
-#include "UI.h"
-#include "Defs.h"
-#include "Lookup.h"
-#include "GameState.h"
+#include "blackmovegenerator.h"
+#include "board.h"
+#include "ui.h"
+#include "defs.h"
+#include "lookup.h"
+#include "gamestate.h"
 #include <intrin.h>
 #include <iostream>
 
 namespace Chess {
 
-	BlackMoveGenerator::BlackMoveGenerator(bool generate_enpassant_) : 
-generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), checkmask(0), move_count(0) {
+	BlackMoveGenerator::BlackMoveGenerator(bool enable_ep) : 
+		ep_enabled(enable_ep), move_count(0), pinV(0), pinFD(0), pinH(0), pinBD(0), checkmask(0) {
 
+		move_count = 0;
 		init();
 		if (checkmask == 0) checkmask = MAX_LONG;
 		legal_squares = checkmask & ~Board::black_pieces;
@@ -27,7 +28,7 @@ generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), c
 		}
 		generate();
 		gen_castles();
-		if (generate_enpassant) gen_ep();
+		if (ep_enabled) gen_ep();
 		if (Board::bitboards[BLACK_PAWN] & second_rank) gen_promotions();
 
 	}
@@ -41,7 +42,7 @@ generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), c
 		RookQueen = Board::bitboards[BLACK_ROOK] | Board::bitboards[BLACK_QUEEN];
 		occupied = Board::black_pieces | Board::white_pieces;
 		empty = ~occupied;
-		seen_by_enemy = squares_controlled_by_white();
+		seen_by_enemy = squares_seen_by_white();
 		uint64_t checkers = 
 		(BISHOP_ATTACKS(friendly_ksq, Board::white_pieces) & (Board::bitboards[WHITE_QUEEN] | Board::bitboards[WHITE_BISHOP]))
 		| (ROOK_ATTACKS(friendly_ksq, Board::white_pieces) & (Board::bitboards[WHITE_QUEEN] | Board::bitboards[WHITE_ROOK]));
@@ -66,12 +67,12 @@ generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), c
 
 	void BlackMoveGenerator::generate() {
 
-		uint64_t pawns = Board::bitboards[BLACK_PAWN] & not_2_or_a & ~(pin_O | pinBD);
+		uint64_t pawns = Board::bitboards[BLACK_PAWN] & not_2_or_a & (pinFD | not_pinned);
 		for (uint64_t downleft = (pawns >> 7) & Board::white_pieces & checkmask; downleft; downleft = blsr(downleft)) {
 			int to = tzcnt(downleft);
 			moves[move_count++] = to + 7 + (to << 6);
 		}
-		pawns = Board::bitboards[BLACK_PAWN] & not_2_or_h & ~(pin_O | pinFD);
+		pawns = Board::bitboards[BLACK_PAWN] & not_2_or_h & (pinBD | not_pinned);
 		for (uint64_t downright = (pawns >> 9) & Board::white_pieces & checkmask; downright; downright = blsr(downright)) {
 			int to = tzcnt(downright);
 			moves[move_count++] = to + 9 + (to << 6);
@@ -82,7 +83,7 @@ generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), c
 			moves[move_count++] = to + 8 + (to << 6);
 		}
 		uint64_t r = ((sixth_rank & empty) >> 8) & empty;
-		pawns = Board::bitboards[BLACK_PAWN] & ~(pin_D | pinH);
+		pawns = Board::bitboards[BLACK_PAWN] & (pinV | not_pinned);
 		for (uint64_t double_push = (pawns >> 16) & r & checkmask; double_push; double_push = blsr(double_push)) {
 			int to = tzcnt(double_push);
 			moves[move_count++] = to + 16 + (to << 6);
@@ -97,7 +98,7 @@ generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), c
 			for (uint64_t to = BISHOP_ATTACKS(from, occupied) & legal_squares; to; to = blsr(to))
 				moves[move_count++] = from + (tzcnt(to) << 6);
 		}
-		for (uint64_t from_map = BishopQueen & ~not_pinned; from_map; from_map = blsr(from_map)) {
+		for (uint64_t from_map = BishopQueen & pin_D; from_map; from_map = blsr(from_map)) {
 			int from = tzcnt(from_map);
 			for (uint64_t to = BISHOP_ATTACKS(from, occupied) & legal_squares & Lookup::pinmask[friendly_ksq][from]; to; to = blsr(to))
 				moves[move_count++] = from + (tzcnt(to) << 6);
@@ -107,7 +108,7 @@ generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), c
 			for (uint64_t to = ROOK_ATTACKS(from, occupied) & legal_squares; to; to = blsr(to))
 				moves[move_count++] = from + (tzcnt(to) << 6);
 		}
-		for (uint64_t from_map = RookQueen & ~not_pinned; from_map; from_map = blsr(from_map)) {
+		for (uint64_t from_map = RookQueen & pin_O; from_map; from_map = blsr(from_map)) {
 			int from = tzcnt(from_map);
 			for (uint64_t to = ROOK_ATTACKS(from, occupied) & legal_squares & Lookup::pinmask[friendly_ksq][from]; to; to = blsr(to))
 				moves[move_count++] = from + (tzcnt(to) << 6);
@@ -170,13 +171,13 @@ generate_enpassant(generate_enpassant_), pinV(0), pinFD(0), pinH(0), pinBD(0), c
 
 	}
 
-	inline bool BlackMoveGenerator::is_attacked(uint64_t squares) {
+	bool BlackMoveGenerator::is_attacked(uint64_t squares) {
 
 		return squares & seen_by_enemy;
 
 	}
 
-	uint64_t BlackMoveGenerator::squares_controlled_by_white() {
+	uint64_t BlackMoveGenerator::squares_seen_by_white() {
 
 		uint64_t occ_kingless = occupied ^ (1ull << friendly_ksq);
 		uint64_t protected_squares = ((Board::bitboards[WHITE_PAWN] << 9) & NOT_FILE_H) | ((Board::bitboards[WHITE_PAWN] << 7) & NOT_FILE_A);
