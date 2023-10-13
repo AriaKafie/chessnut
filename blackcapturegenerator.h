@@ -10,7 +10,7 @@ namespace Chess {
 class BlackCaptureGenerator {
 
 public:
-	int moves[30];
+	int moves[15];
 	int move_count;
 	int friendly_ksq;
 	void init();
@@ -31,7 +31,7 @@ public:
 	bool in_double_check;
 	BlackCaptureGenerator();
 	void generate_moves();
-	uint64_t squares_controlled_by_white();
+	uint64_t squares_seen_by_white();
 	void generate_BK();
 	void gen_promotions();
 	void generate();
