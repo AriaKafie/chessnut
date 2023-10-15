@@ -29,8 +29,9 @@ namespace Lookup {
 	inline int chebyshev[64][64];
 	inline uint64_t checkmask[64][64];
 	inline uint64_t pinmask[64][64];
-	inline uint64_t rook_attacks[102400];
-	inline uint64_t bishop_attacks[5248];
+					      // perfect hash slider lookups
+	inline uint64_t bishop_attacks[5248]; // bish_atk[bish_hash[square] + _pext_u64(occupancy, bish_mask[square])]
+	inline uint64_t rook_attacks[102400]; // rook_atk[rook_hash[square] + _pext_u64(occupancy, rook_mask[square])]
 	inline int white_pawnshield_scores[64][64];
 	inline int black_pawnshield_scores[64][64];
 
