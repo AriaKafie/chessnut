@@ -1,6 +1,6 @@
 
-#include "Lookup.h"
-#include "Util.h"
+#include "lookup.h"
+#include "util.h"
 #include <cstdint>
 
 namespace Chess {
@@ -9,6 +9,8 @@ namespace Lookup {
 
 	void init() {
 
+		init_rook_attacks();
+		init_bishop_attacks();
 		init_white_pawnshield_scores();
 		init_black_pawnshield_scores();
 		init_chebyshev_table();
@@ -43,7 +45,7 @@ namespace Lookup {
 			for (int count = 0; count < occupancy_permutations; count++) {
 				uint64_t occupancy = generate_occupancy(mask, count);
 				uint64_t magic_index = bishop_hash_offset[square] + pext(occupancy, bishop_masks[square]);
-				//bishop_attacks[magic_index] = generate_bishop_map(square, occupancy);
+				bishop_attacks[magic_index] = generate_bishop_map(square, occupancy);
 			}
 		}
 
@@ -58,7 +60,7 @@ namespace Lookup {
 			for (int count = 0; count < occupancy_permutations; count++) {
 				uint64_t occupancy = generate_occupancy(mask, count);
 				uint64_t magic_index = rook_hash_offset[square] + pext(occupancy, rook_masks[square]);
-				//rook_attacks[magic_index] = generate_rook_map(square, occupancy);
+				rook_attacks[magic_index] = generate_rook_map(square, occupancy);
 			}
 		}
 
@@ -101,9 +103,9 @@ namespace Lookup {
 		// if king on e8/d8, this is generally unsafe
 		if (kingsq == d8) return -40;
 		if (kingsq == e8) return -10;
-		// if king on rank 7->1, it's likely in 
+		// if king on rank 7->1, it's likely in
 		// danger, regardless of pawn structure
-		if (kingsq < h8) return std::max(-50 * (7 - (kingsq / 8)), -200);
+		if (kingsq < h8) return std::max(-10 * (7 - (kingsq / 8)), -200);
 		// if king has less than
 		// 3 pawns protecting it, it is likely in danger
 		if (popcnt(occupancy) < 2) return -90;
@@ -251,7 +253,7 @@ namespace Lookup {
 		if (kingsq == e1) return -10;
 		// if king on rank 2->8, it's likely in 
 		// danger, regardless of pawn structure
-		if (kingsq > a1) return std::max(-50 * (kingsq / 8), -200);
+		if (kingsq > a1) return std::max(-10 * (kingsq / 8), -200);
 		// if king has few pawns
 		// protecting it, it is likely in danger
 		if (popcnt(occupancy) < 2) return -90;
