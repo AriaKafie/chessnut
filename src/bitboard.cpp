@@ -59,7 +59,7 @@ void Bitboards::init() {
 
 		for (Square s2 = H1; s2 <= A8; s2++) {
 			pin_mask[s1][s2] =
-				(fdiag  (s1) & fdiag  (s2))
+                (fdiag  (s1) & fdiag  (s2))
 			  | (bdiag  (s1) & bdiag  (s2))
 			  | (rank_bb(s1) & rank_bb(s2))
 			  | (file_bb(s1) & file_bb(s2));
