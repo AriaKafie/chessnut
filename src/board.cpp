@@ -3,28 +3,26 @@
 #include "util.h"
 #include "gamestate.h"
 #include "zobrist.h"
-#include <iostream>
+#include "book.h"
+#include "search.h"
 
-namespace Chess {
+void Board::make_legal(Move move) {
 
-namespace Board {
-
-	void make_legal(bool white, int move) {
-
-		if (white) makemove<true, false>(move);
-		else	   makemove<false,false>(move);
-		GameState::update(move);
-
-	}
-
-	void undo_legal(bool white, int move, int capture) {
-
-		if (white) undomove<true, false>(move, capture);
-		else	   undomove<false,false>(move, capture);
-		GameState::restore();
-
-	}
+  if (!Search::in_search) Book::update(move);
+  if (GameState::white_to_move)
+    makemove<WHITE, false>(move);
+  else 
+    makemove<BLACK, false>(move);
+  GameState::update(move);
 
 }
+
+void Board::undo_legal(Move move, Piece capture) {
+
+  if (GameState::white_to_move) 
+    undomove<BLACK, false>(move, capture);
+  else 
+    undomove<WHITE, false>(move, capture);
+  GameState::restore();
 
 }
