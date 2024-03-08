@@ -4,43 +4,45 @@
 
 #include <cstdint>
 
-#define tt_FAIL  -1
-#define tt_EXACT  0
-#define tt_ALPHA  1
-#define tt_BETA   2
+//   entries    ~Megabytes
+// 
+//   4194304    67
+//   16777216   268
 
-// 1 entry = ~16 bytes
-// 256 MiB table can store ~16,777,216 entries
+using HashFlag = uint8_t;
 
-namespace Chess {
+enum HashFlags {
+  EXACT,
+  UPPER_BOUND,
+  LOWER_BOUND
+};
+
+constexpr int FAIL = 0x7fffffff;
+constexpr int tablesize = 16777216;
+constexpr int modulo = tablesize - 1;
 
 struct Entry {
-	uint64_t key;
-	uint8_t depth;
-	uint8_t flag;
-	int eval;
-	uint16_t best_move;
-	Entry() : 
-		key(0), depth(0), flag(0), eval(0), best_move(0) {}
-	Entry(uint64_t key_, uint8_t depth_, uint8_t flag_, int eval_,  uint16_t best_move_) :
-		key(key_), depth(depth_), flag(flag_), eval(eval_), best_move(best_move_) {}
+  uint64_t key;
+  uint8_t depth;
+  HashFlag flag;
+  int eval;
+  uint16_t best_move;
+  void set(uint64_t k, uint8_t d, HashFlag f, int e,  uint16_t b) {
+    key = k; depth = d; flag = f; eval = e; best_move = b;
+  }
 };
 
 namespace TranspositionTable {
 
-	inline Entry entries[16777216];
-	inline int tablesize = 16777216;
-	inline int occupancy = 0;
-	inline bool disabled = false;
+  inline int occupancy = 0;
+  inline bool disabled = false;
 
-	int lookup(int depth, int alpha, int beta);
-	void record(uint8_t depth, uint8_t flag, int eval, uint16_t best_move);
-	int lookup_move();
-	void clear();
-	void disable();
-	void enable();
-
-}
+  int lookup(int depth, int alpha, int beta, int ply_from_root);
+  void record(uint8_t depth, HashFlag flag, int eval, uint16_t best_move, int ply_from_root);
+  int lookup_move();
+  void clear();
+  void disable();
+  void enable();
 
 }
 

@@ -4,66 +4,56 @@
 #include "gamestate.h"
 #include <iostream>
 
-namespace Chess {
+Entry entries[tablesize];
 
 namespace TranspositionTable {
 
-	int lookup(int depth, int alpha, int beta) {
+  int lookup(int depth, int alpha, int beta, int ply_from_root) {
 
-		Entry* entry = &entries[Zobrist::key % tablesize];
+    Entry* entry = &entries[Zobrist::key & modulo];
+    int eval = entry->eval;
+    eval -= ply_from_root * (eval > 90000);
+    eval += ply_from_root * (eval < -90000);
 
-		if (entry->key == Zobrist::key) {
-			if (entry->depth >= depth) {
-				if (entry->flag == tt_EXACT)
-					return entry->eval;
-				if ((entry->flag == tt_ALPHA) &&
-					(entry->eval <= alpha))
-					return alpha;
-				if ((entry->flag == tt_BETA) &&
-					(entry->eval >= beta))
-					return beta;
-			}
-		}
+    if (entry->key == Zobrist::key) {
+      if (entry->depth >= depth) {
+        if (entry->flag == EXACT)
+          return eval;
+        if ((entry->flag == UPPER_BOUND) &&
+            (alpha >= eval))
+          return alpha;
+        if ((entry->flag == LOWER_BOUND) &&
+            (beta <= eval))
+          return beta;
+      }
+    }
+    return FAIL;
+  }
 
-		return tt_FAIL;
+  void disable() {
+    disabled = true;
+  }
 
-	}
+  void enable() {
+    disabled = false;
+  }
 
-	void disable() {
+  void record(uint8_t depth, HashFlag flag, int eval, uint16_t best_move, int ply_from_root) {
+    int index = Zobrist::key & modulo;
+    eval += ply_from_root * (eval > 90000);
+    eval -= ply_from_root * (eval < -90000);
+    entries[index].set(Zobrist::key, depth, flag, eval, best_move);
+  }
 
-		disabled = true;
+  int lookup_move() {
+    return entries[Zobrist::key & modulo].best_move;
+  }
 
-	}
+  void clear() {
+    for (int i = 0; i < tablesize; i++) {
+      entries[i].set(0,0,0,0,0);
+    }
+  }
 
-	void enable() {
-
-		disabled = false;
-
-	}
-
-	void record(uint8_t depth, uint8_t flag, int eval, uint16_t best_move) {
-
-		int index = Zobrist::key % tablesize;
-		entries[index] = Entry(Zobrist::key, depth, flag, eval, best_move);
-
-	}
-
-	int lookup_move() {
-
-		return entries[Zobrist::key % tablesize].best_move;
-
-	}
-
-	void clear() {
-
-		occupancy = 0;
-		for (int i = 0; i < tablesize; i++) {
-			entries[i] = Entry();
-		}
-
-	}
-
-}
-
-}
+} // namespace TranspositionTable
 
