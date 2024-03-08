@@ -2,99 +2,91 @@
 #include "bench.h"
 #include "util.h"
 #include "search.h"
-#include "movegenerator.h"
-#include "whitecapturegenerator.h"
-#include "blackcapturegenerator.h"
 #include "repetitiontable.h"
 #include "board.h"
 #include "gamestate.h"
 #include "ui.h"
 #include "evaluation.h"
 #include "transpositiontable.h"
-#include "movesorter.h"
 #include "debug.h"
+#include "moveordering.hpp"
+
 #include <chrono>
 #include <iostream>
+#include <algorithm>
 
-namespace Chess {
+void Bench::count_nodes(int depth) {
 
-namespace Bench {
+  node_count = 0;
+  q_node_count = 0;
+  int node_sum = 0;
+  int q_node_sum = 0;
+  uint64_t total_time = 0;
 
-	void warmup() {
+  for (std::string fen : fens) {
 
-		for (int i = 0; i < 200000; i++) {
-			for (int j = 1; j < 10000; j++) {
-				int k = i / j;
-				k += k * ((i / 7)+3);
-				if (k == 73) {
-					std::cout << "#";
-				}
-			}
-		}
+    node_count = 0;
+    q_node_count = 0;
+    std::cout << fen << "  ";
+    GameState::init(fen);
+    TranspositionTable::clear();
+    Search::in_search = true;
+    Move best_move = NULLMOVE;
+    auto start_time = Util::curr_time_millis();
 
-	}
+    for (int d = 1; d <= depth; d++) {
+      if (GameState::white_to_move) {
 
-	void count_nodes(int depth) {
+        int alpha = MIN_INT;
+        MoveList<WHITE> ml(true);
+        ml.sort(best_move, 0);
 
-		TranspositionTable::clear();
-		node_count = 0;
-		Search::in_search = true;
-		auto start_time = Util::curr_time_millis();
+        for (int i = 0; i < ml.length(); i++) {
+          Piece capture = Board::pieces[to_sq(ml[i])];
+          uint8_t c_rights = GameState::castling_rights;
+          Board::make_legal(ml[i]);
+          int eval = Search::search<false>(alpha, MAX_INT, d - 1 - reduction[i], 0);
+          if ((eval > alpha) && (reduction[i]))
+            eval = Search::search<false>(alpha, MAX_INT, d - 1, 0);
 
-		if (GameState::white_to_move) {
-			WhiteMoveGenerator g;
-			g.generate_moves();
-			for (int i = 0; i < g.move_count; i++) {
-				int capture = Board::piece_types[(g.moves[i] >> 6) & lsb_6];
-				uint8_t c_rights = GameState::castling_rights;
-				Board::make_legal(true, g.moves[i]);
-				int eval = Search::search<false>(MIN_INT, MAX_INT, depth - 1, 0);
-				Board::undo_legal(true, g.moves[i], capture);
-				GameState::castling_rights = c_rights;
-			}
-		}
-		else {
-			BlackMoveGenerator g;
-			g.generate_moves();
-			for (int i = 0; i < g.move_count; i++) {
-				int capture = Board::piece_types[(g.moves[i] >> 6) & lsb_6];
-				uint8_t c_rights = GameState::castling_rights;
-				Board::make_legal(false, g.moves[i]);
-				int eval = Search::search<true>(MIN_INT, MAX_INT, depth - 1, 0);
-				Board::undo_legal(false, g.moves[i], capture);
-				GameState::castling_rights = c_rights;
-			}
-		}
+          if (eval > alpha) {
+            alpha = eval;
+            best_move = ml[i];
+          }
+          Board::undo_legal(ml[i], capture);
+          GameState::castling_rights = c_rights;
+        }
+      }
+      else {
+        int beta = MAX_INT;
+        MoveList<BLACK> ml(true);
+        ml.sort(best_move, 0);
 
-		Search::in_search = false;
-		auto duration_ms = Util::curr_time_millis() - start_time;
-		std::cout << "\n" << node_count << " nodes searched in " << duration_ms << " ms\n";
-		double nodes_d = node_count;
-		double duration_seconds = (double)duration_ms / 1000.0;
-		double knps = (nodes_d / duration_seconds) / 1000.0;
-		std::cout << "kilonodes per second: " << knps << "\n\n";
+        for (int i = 0; i < ml.length(); i++) {
+          Piece capture = Board::pieces[to_sq(ml[i])];
+          uint8_t c_rights = GameState::castling_rights;
+          Board::make_legal(ml[i]);
+          int eval = Search::search<true>(MIN_INT, beta, d - 1 - reduction[i], 0);
+          if ((eval < beta) && (reduction[i]))
+            eval = Search::search<true>(MIN_INT, beta, d - 1, 0);
+          if (eval < beta) {
+            beta = eval;
+            best_move = ml[i];
+          }
+          Board::undo_legal(ml[i], capture);
+          GameState::castling_rights = c_rights;
+        }
+      }
+    }
 
-	}
+    auto duration_ms = Util::curr_time_millis() - start_time;
+    total_time += duration_ms;
 
-	void go(int runs, uint64_t iterations) {
+    Search::in_search = false;
+    std::cout << node_count << " nodes and " << q_node_count << " q_nodes\nsearched in " << duration_ms << " ms\n\n";
+    node_sum += node_count;
+    q_node_sum += q_node_count;
 
-		std::cout << "warming up..\n";
-		warmup();
-		std::cout << "warmup done\n";
-
-		for (int i = 0; i < runs; i++) {
-			auto startTime = Util::curr_time_millis();
-			for (int j = 0; j < iterations; j++) {
-				WhiteMoveGenerator g(false);
-				g.generate_moves();
-			}
-			timesum += Util::curr_time_millis() - startTime;
-			std::cout << timesum / (i+1) << "  [" << i + 1 << "/" << runs << "]\n";
-		}
-		std::cout << "average: " << timesum / runs;
-
-	}
-
-}
-
+  }
+  std::cout << "total nodes: " << node_sum << "\ntotal q_nodes: " << q_node_sum << "\nin: " << total_time << " ms\n";
 }

@@ -2,186 +2,105 @@
 #include "evaluation.h"
 #include "util.h"
 #include "board.h"
-#include "lookup.h"
 #include "gamestate.h"
 
-namespace Chess {
+#define bb(x) Board::bitboards[x]
 
-namespace Evaluation {
+ForceInline int midgame();
+int endgame();
+ForceInline int pawn_advancement();
+ForceInline int king_safety();
+int mopup();
+ForceInline int material_count();
+ForceInline int piece_placement();
+ForceInline int doubled_pawns();
 
-	int evaluate() {
+int static_eval() {
+  return GameState::endgame ? endgame() : midgame();
+}
 
-		return GameState::endgame ? endgame() : midgame();
+ForceInline int midgame() {
+  return material_count() + king_safety() + pawn_advancement() + piece_placement();
+}
 
-	}
+ForceInline int piece_placement() {
+  int score = 0;
+  for (PieceType pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}) {
+    for (Bitboard b = bb(pt); b; pop_lsb(b)) {
+      score += square_score[pt][lsb(b)^63];
+    }
+    for (Bitboard b = bb(pt + B_PAWN); b; pop_lsb(b)) {
+      score -= square_score[pt][lsb(b)];
+    }
+  }
+  return score;
+}
 
-	int positional_value(int move) {
+ForceInline int pawn_advancement() {
+  return 4 * (popcount(bb(W_PAWN) & RANK_567) 
+              -  popcount(bb(B_PAWN) & RANK_234));
+}
 
-		int from = move & lsb_6;
-		int to = (move >> 6) & lsb_6;
-		int movetype = move >> 12;
+ForceInline int king_safety() {
+  Square wksq = lsb(bb(W_KING));
+  Square bksq = lsb(bb(B_KING));
+  return KingSafety<WHITE>(wksq, bb(W_PAWN))
+    - KingSafety<BLACK>(bksq, bb(B_PAWN));
+}
 
-		if (GameState::white_to_move) {
-			if (movetype == SHORTCASTLE || movetype == LONGCASTLE)
-				return 35;
-			from ^= 63;
-			to ^= 63;
-			switch (Board::piece_types[to^63]) {
-				case WHITE_PAWN:
-					return pawn_squares[to] - pawn_squares[from];
-				case WHITE_KNIGHT:
-					return knight_squares[to] - knight_squares[from];
-				case WHITE_BISHOP:
-					return bishop_squares[to] - bishop_squares[from];
-				case WHITE_ROOK:
-					return rook_squares[to] - rook_squares[from];
-				case WHITE_QUEEN:
-					return queen_squares[to] - queen_squares[from];
-				case WHITE_KING:
-					return king_squares[to] - king_squares[from];
-				default:
-					return 0;
-			}
-		}
-		else {
-			if (movetype == SHORTCASTLE || movetype == LONGCASTLE)
-				return -35;
-			switch (Board::piece_types[to]) {
-				case BLACK_PAWN:
-					return pawn_squares[from] - pawn_squares[to];
-				case BLACK_KNIGHT:
-					return knight_squares[from] - knight_squares[to];
-				case BLACK_BISHOP:
-					return bishop_squares[from] - bishop_squares[to];
-				case BLACK_ROOK:
-					return rook_squares[from] - rook_squares[to];
-				case BLACK_QUEEN:
-					return queen_squares[from] - queen_squares[to];
-				case BLACK_KING:
-					return king_squares[from] - king_squares[to];
-				default:
-					return 0;
-			}
-		}
+ForceInline int doubled_pawns() {
+  int score = 0;
+  for (Bitboard file : {FILE_A, FILE_B, FILE_C, FILE_D,
+                        FILE_E, FILE_F, FILE_G, FILE_H}) {
+    score -= std::max(0, popcount(file & bb(W_PAWN)) - 1);
+    score += std::max(0, popcount(file & bb(B_PAWN)) - 1);
+  }
+  return score * 4;
+}
 
-	}
+int endgame() {
 
-	int midgame() {
+  if (GameState::mopup) return mopup();
+                
+  int score = material_count();
 
-		return material_count() + king_safety() + pawn_advancement();
+  score += end_king_squares[lsb(Board::bitboards[W_KING])];
+  score -= end_king_squares[lsb(Board::bitboards[B_KING])];
+  score += 10 * popcount(bb(W_PAWN) & RANK_4);
+  score += 20 * popcount(bb(W_PAWN) & RANK_5);
+  score += 50 * popcount(bb(W_PAWN) & RANK_6);
+  score += 90 * popcount(bb(W_PAWN) & RANK_7);
+  score -= 10 * popcount(bb(B_PAWN) & RANK_5);
+  score -= 20 * popcount(bb(B_PAWN) & RANK_4);
+  score -= 50 * popcount(bb(B_PAWN) & RANK_3);
+  score -= 90 * popcount(bb(B_PAWN) & RANK_2);
 
-	}
-	
-	int pawn_advancement() {
-	
-		return 4 * (popcnt(Board::bitboards[WHITE_PAWN] & RANK_567) - popcnt(Board::bitboards[BLACK_PAWN] & RANK_234));
-	
-	}
-
-	int passed_pawn_score() {
-		
-		uint64_t black_blocker_mask = (Board::bitboards[BLACK_PAWN] >> 8) | (Board::bitboards[BLACK_PAWN] >> 16);
-		black_blocker_mask |= (black_blocker_mask >> 16) | (Board::bitboards[BLACK_PAWN] >> 40);
-		black_blocker_mask |= ((black_blocker_mask >> 1) & NOT_FILE_A) | ((black_blocker_mask << 1) & NOT_FILE_H);
-		uint64_t white_blocker_mask = (Board::bitboards[WHITE_PAWN] << 8) | (Board::bitboards[WHITE_PAWN] << 16);
-		white_blocker_mask |= (white_blocker_mask << 16) | (Board::bitboards[WHITE_PAWN] << 40);
-		white_blocker_mask |= ((white_blocker_mask >> 1) & NOT_FILE_A) | ((white_blocker_mask << 1) & NOT_FILE_H);
-
-		return 8 * (popcnt(Board::bitboards[WHITE_PAWN] & ~black_blocker_mask) - popcnt(Board::bitboards[BLACK_PAWN] & ~white_blocker_mask));
-
-	}
-
-	int bishop_mobility() {
-	
-		int score = 0;
-		uint64_t occupied = Board::white_pieces | Board::black_pieces;
-		uint64_t friendly_bishops;
-
-		if (GameState::white_computer)
-			friendly_bishops = Board::bitboards[WHITE_BISHOP];
-		else
-			friendly_bishops = Board::bitboards[BLACK_BISHOP];
-
-		for (;friendly_bishops; friendly_bishops = blsr(friendly_bishops)) {
-			int square = tzcnt(friendly_bishops);
-			score += popcnt(BISHOP_ATTACKS(square, occupied));
-		}
-
-		return score;
-
-	}
-
-	int king_safety() {
-	
-		int white_kingsq = tzcnt(Board::bitboards[WHITE_KING]);
-		int black_kingsq = tzcnt(Board::bitboards[BLACK_KING]);
-
-		return WHITE_KING_SAFETY(white_kingsq, Board::bitboards[WHITE_PAWN]) -
-		       BLACK_KING_SAFETY(black_kingsq, Board::bitboards[BLACK_PAWN]);
-
-	}
-
-	int pawn_structure_score() {
-
-		int score = 0;
-		score += 10 * popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_ten);
-		score += 6 * popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_six);
-		score += 5 * popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_five);
-		score += 4 * popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_four);
-		score += 2 * popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_two);
-		score += popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_one);
-		score -= popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_n_one);
-		score -= 2 * popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_n_two);
-		score -= 4 * popcnt(Board::bitboards[WHITE_PAWN] & WPsquares_n_four);
-		return score;
-
-	}
-
-	int endgame() {
-
-		if (GameState::mopup) return mopup();
-		
-		int score = material_count();
-
-		score += end_king_squares[tzcnt(Board::bitboards[WHITE_KING])];   // incentivize king activity
-		score -= end_king_squares[tzcnt(Board::bitboards[BLACK_KING])];
-		score += 10 * popcnt(Board::bitboards[WHITE_PAWN] & fourth_rank); // incentivize pawn advancement
-		score += 20 * popcnt(Board::bitboards[WHITE_PAWN] & fifth_rank);
-		score += 50 * popcnt(Board::bitboards[WHITE_PAWN] & sixth_rank);
-		score += 90 * popcnt(Board::bitboards[WHITE_PAWN] & seventh_rank);
-		score -= 10 * popcnt(Board::bitboards[BLACK_PAWN] & fifth_rank);
-		score -= 20 * popcnt(Board::bitboards[BLACK_PAWN] & fourth_rank);
-		score -= 50 * popcnt(Board::bitboards[BLACK_PAWN] & third_rank);
-		score -= 90 * popcnt(Board::bitboards[BLACK_PAWN] & second_rank);
-
-		return score;
-
-	}
-
-	int mopup() {
-
-		int score = 0;
-		if (GameState::white_computer) {
-			score += Lookup::dist_from_center[tzcnt(Board::bitboards[BLACK_KING])] * 10;
-			score += (14 - Lookup::chebyshev[tzcnt(Board::bitboards[WHITE_KING])][tzcnt(Board::bitboards[BLACK_KING])]) * 4;
-			return score + material_count();
-		}
-		score -= Lookup::dist_from_center[tzcnt(Board::bitboards[WHITE_KING])] * 10;
-		score -= (14 - Lookup::chebyshev[tzcnt(Board::bitboards[WHITE_KING])][tzcnt(Board::bitboards[BLACK_KING])]) * 4;
-		return score + material_count();
-
-	}
-
-	int material_count() {
-
-		int score = 100 * (popcnt(Board::bitboards[WHITE_PAWN]) - popcnt(Board::bitboards[BLACK_PAWN]));
-		score += 300 * (popcnt(Board::bitboards[WHITE_KNIGHT] | Board::bitboards[WHITE_BISHOP]) - popcnt(Board::bitboards[BLACK_KNIGHT] | Board::bitboards[BLACK_BISHOP]));
-		score += 500 * (popcnt(Board::bitboards[WHITE_ROOK]) - popcnt(Board::bitboards[BLACK_ROOK]));
-		score += 900 * (popcnt(Board::bitboards[WHITE_QUEEN]) - popcnt(Board::bitboards[BLACK_QUEEN]));
-		return score;
-
-	}
+  return score;
 
 }
 
+int mopup() {
+
+  int score = 0;
+  if (GameState::white_computer) {
+    score += CenterDistance(lsb(Board::bitboards[B_KING])) * 10;
+    score += (14 - Distance(lsb(Board::bitboards[W_KING]),lsb(Board::bitboards[B_KING]))) * 4;
+    return score + material_count();
+  }
+  score -= CenterDistance(lsb(Board::bitboards[W_KING])) * 10;
+  score -= (14 - Distance(lsb(Board::bitboards[W_KING]),lsb(Board::bitboards[B_KING]))) * 4;
+  return score + material_count();
+
 }
+
+ForceInline int material_count() {
+
+  int score = 100 * (popcount(bb(W_PAWN))                  - popcount(bb(B_PAWN)));
+  score    += 300 * (popcount(bb(W_KNIGHT) | bb(W_BISHOP)) - popcount(bb(B_KNIGHT) | bb(B_BISHOP)));
+  score    += 500 * (popcount(bb(W_ROOK))                  - popcount(bb(B_ROOK)));
+  score    += 900 * (popcount(bb(W_QUEEN))                 - popcount(bb(B_QUEEN)));
+  return score;
+
+}
+
+#undef bb
