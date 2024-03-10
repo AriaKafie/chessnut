@@ -28,7 +28,7 @@ template<Color Side>
 CaptureList<Side>::CaptureList() :
   last(moves)
 {
-  constexpr Color Enemy = flip<Side>();
+  constexpr Color Enemy          = !Side;
   constexpr Piece EnemyPawn      = piece<Enemy, PAWN>();
   constexpr Piece EnemyKnight    = piece<Enemy, KNIGHT>();
   constexpr Piece EnemyBishop    = piece<Enemy, BISHOP>();
@@ -151,7 +151,7 @@ template<Color Side>
 MoveList<Side>::MoveList(bool ep_enabled) :
   last(moves)
 {
-  constexpr Color Enemy = flip<Side>();
+  constexpr Color Enemy          = !Side;
   constexpr Piece EnemyPawn      = piece<Enemy, PAWN>();
   constexpr Piece EnemyKnight    = piece<Enemy, KNIGHT>();
   constexpr Piece EnemyBishop    = piece<Enemy, BISHOP>();
