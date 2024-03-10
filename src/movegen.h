@@ -66,8 +66,7 @@ CaptureList<Side>::CaptureList() :
   // checkmask
   checkmask = KnightAttacks(ksq) & bb(EnemyKnight);
   checkmask |= PawnAttacks<Side>(ksq) & bb(EnemyPawn);
-  for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen);
-  checkers; pop_lsb(checkers))
+  for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen); checkers; pop_lsb(checkers))
     checkmask |= CheckRay(ksq, lsb(checkers));
   if (more_than_one(checkmask & DoubleCheck(ksq))) {
     last = make_moves(last, ksq, KingAttacks(ksq) & enemy_unprotected);
@@ -77,8 +76,7 @@ CaptureList<Side>::CaptureList() :
 
   // pinmask
   Bitboard pinned = 0;
-  for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen);
-  pinners; pop_lsb(pinners))
+  for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen); pinners; pop_lsb(pinners))
     pinned |= CheckRay(ksq, lsb(pinners));
 
   // pawns
@@ -186,8 +184,7 @@ MoveList<Side>::MoveList(bool ep_enabled) :
   // checkmask
   checkmask = KnightAttacks(ksq) & bb(EnemyKnight);
   checkmask |= PawnAttacks<Side>(ksq) & bb(EnemyPawn);
-  for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen);
-  checkers; pop_lsb(checkers))
+  for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen); checkers; pop_lsb(checkers))
     checkmask |= CheckRay(ksq, lsb(checkers));
   if (more_than_one(checkmask & DoubleCheck(ksq))) {
     last = make_moves(last, ksq, KingAttacks(ksq) & ~(seen_by_enemy | friends));
@@ -197,8 +194,7 @@ MoveList<Side>::MoveList(bool ep_enabled) :
 
   // pinmask
   Bitboard pinned = 0;
-  for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen);
-  pinners; pop_lsb(pinners))
+  for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen); pinners; pop_lsb(pinners))
     pinned |= CheckRay(ksq, lsb(pinners));
 
   // pawns
