@@ -7,8 +7,6 @@
 #include "gamestate.h"
 #include "board.h"
 
-#define bb(x) Board::bitboards[x]
-
 ForceInline inline Move* make_moves(Move* movelist, Square from, Bitboard to) {
   for (;to; pop_lsb(to))
     *movelist++ = make_move(from, lsb(to));
@@ -24,48 +22,42 @@ ForceInline Move* make_pawn_moves(Move* movelist, Bitboard attacks) {
   return movelist;
 }
 
-template<Color Side>
-CaptureList<Side>::CaptureList() :
+template<Color Us>
+CaptureList<Us>::CaptureList() :
   last(moves)
 {
-  constexpr Color Enemy          = !Side;
-  constexpr Piece EnemyPawn      = piece<Enemy, PAWN>();
-  constexpr Piece EnemyKnight    = piece<Enemy, KNIGHT>();
-  constexpr Piece EnemyBishop    = piece<Enemy, BISHOP>();
-  constexpr Piece EnemyRook      = piece<Enemy, ROOK>();
-  constexpr Piece EnemyQueen     = piece<Enemy, QUEEN>();
-  constexpr Piece EnemyKing      = piece<Enemy, KING>();
-  constexpr Piece FriendlyPawn   = piece<Side,  PAWN>();
-  constexpr Piece FriendlyKnight = piece<Side,  KNIGHT>();
-  constexpr Piece FriendlyBishop = piece<Side,  BISHOP>();
-  constexpr Piece FriendlyRook   = piece<Side,  ROOK>();
-  constexpr Piece FriendlyQueen  = piece<Side,  QUEEN>();
-  constexpr Piece FriendlyKing   = piece<Side,  KING>();
+  constexpr Color Them           = !Us;
+  constexpr Piece EnemyPawn      = make_piece(Them, PAWN);
+  constexpr Piece EnemyKnight    = make_piece(Them, KNIGHT);
+  constexpr Piece EnemyBishop    = make_piece(Them, BISHOP);
+  constexpr Piece EnemyRook      = make_piece(Them, ROOK);
+  constexpr Piece EnemyQueen     = make_piece(Them, QUEEN);
+  constexpr Piece EnemyKing      = make_piece(Them, KING);
+  constexpr Piece FriendlyPawn   = make_piece(Us,   PAWN);
+  constexpr Piece FriendlyKnight = make_piece(Us,   KNIGHT);
+  constexpr Piece FriendlyBishop = make_piece(Us,   BISHOP);
+  constexpr Piece FriendlyRook   = make_piece(Us,   ROOK);
+  constexpr Piece FriendlyQueen  = make_piece(Us,   QUEEN);
+  constexpr Piece FriendlyKing   = make_piece(Us,   KING);
 
-  // init
-  Bitboard friends            = Side == WHITE ? Board::white_pieces : Board::black_pieces;
-  Bitboard enemies            = Side == WHITE ? Board::black_pieces : Board::white_pieces;
-  Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);
-  Bitboard enemy_bishop_queen = bb(EnemyQueen) | bb(EnemyBishop);
+  Bitboard enemy_rook_queen   = bb<Them>() & (bb<QUEEN>() | bb<ROOK>());
+  Bitboard enemy_bishop_queen = bb<Them>() & (bb<QUEEN>() | bb<BISHOP>());
   Square   ksq                = lsb(bb(FriendlyKing));
-  Bitboard occupied           = Board::occupied() ^ square_bb(ksq);
+  Bitboard occupied           = occupied_bb() ^ square_bb(ksq);
 
-  // seen_by_enemy
-  seen_by_enemy = PawnAttacks<Enemy>(bb(EnemyPawn));
-  seen_by_enemy |= KingAttacks(lsb(bb(EnemyKing)));
+  seen_by_enemy = PawnAttacks<Them>(bb(EnemyPawn)) | KingAttacks(lsb(bb(EnemyKing)));
   for (Bitboard b = bb(EnemyKnight); b; pop_lsb(b))
     seen_by_enemy |= KnightAttacks(lsb(b));
   for (Bitboard b = enemy_bishop_queen; b; pop_lsb(b))
     seen_by_enemy |= BishopAttacks(lsb(b), occupied);
   for (Bitboard b = enemy_rook_queen; b; pop_lsb(b))
     seen_by_enemy |= RookAttacks(lsb(b), occupied);
+
   toggle_square(occupied, ksq);
 
-  Bitboard enemy_unprotected = enemies & ~seen_by_enemy;
+  Bitboard enemy_unprotected = andn(enemies, seen_by_enemy);
 
-  // checkmask
-  checkmask = KnightAttacks(ksq) & bb(EnemyKnight);
-  checkmask |= PawnAttacks<Side>(ksq) & bb(EnemyPawn);
+  checkmask = KnightAttacks(ksq) & bb(EnemyKnight) | PawnAttacks<Us>(ksq) & bb(EnemyPawn);
   for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen); checkers; pop_lsb(checkers))
     checkmask |= CheckRay(ksq, lsb(checkers));
   if (more_than_one(checkmask & DoubleCheck(ksq))) {
@@ -74,21 +66,18 @@ CaptureList<Side>::CaptureList() :
   }
   if (checkmask == 0) checkmask = ALL_SQUARES;
 
-  // pinmask
   Bitboard pinned = 0;
   for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen); pinners; pop_lsb(pinners))
     pinned |= CheckRay(ksq, lsb(pinners));
 
-  // pawns
-  constexpr Direction UpRight   = Side == WHITE ? NORTH_EAST : SOUTH_WEST;
-  constexpr Direction UpLeft    = Side == WHITE ? NORTH_WEST : SOUTH_EAST;
-  constexpr Bitboard  Start     = Side == WHITE ? RANK_2     : RANK_7;
-  constexpr Bitboard  Promote   = Side == WHITE ? RANK_7     : RANK_2;
+  constexpr Direction UpRight   = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
+  constexpr Direction UpLeft    = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
+  constexpr Bitboard  Start     = Us == WHITE ? RANK_2     : RANK_7;
+  constexpr Bitboard  Promote   = Us == WHITE ? RANK_7     : RANK_2;
   constexpr Bitboard  NoPromote = ~Promote;
 
   Bitboard not_pinned = ~pinned;
 
-  // promotions
   if (Bitboard promotable = bb(FriendlyPawn) & Promote)
   {
     for (Bitboard b = shift<UpRight>(promotable & (not_pinned | FDiag(ksq))) & enemies & checkmask; b; pop_lsb(b)) {
@@ -101,15 +90,14 @@ CaptureList<Side>::CaptureList() :
     }
   }
 
-  Bitboard empty      = ~occupied;
-  Bitboard pawns      = bb(FriendlyPawn) & NoPromote;
+  Bitboard empty = ~occupied;
+  Bitboard pawns = bb(FriendlyPawn) & NoPromote;
 
   last = make_pawn_moves<UpRight>(last, shift<UpRight>(pawns & (not_pinned | FDiag(ksq))) & enemies & checkmask);
   last = make_pawn_moves<UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | BDiag(ksq))) & enemies & checkmask);
 
-  // knight, bishop, rook, queen, king
-  Bitboard minor_targets = (enemies ^ bb(EnemyPawn) | enemy_unprotected) & checkmask;
-  Bitboard rook_targets  = (bb(EnemyRook) | bb(EnemyQueen) | enemy_unprotected) & checkmask;
+  Bitboard minor_targets = (andn(bb<Them>(), bb<PAWN>()) | enemy_unprotected) & checkmask;
+  Bitboard rook_targets  = ((bb<Them>() & (bb<ROOK>() | bb<QUEEN>())) | enemy_unprotected) & checkmask;
   Bitboard queen_targets = (bb(EnemyQueen) | enemy_unprotected) & checkmask;
 
   for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b)) {
@@ -145,34 +133,30 @@ CaptureList<Side>::CaptureList() :
 
 }
 
-template<Color Side>
-MoveList<Side>::MoveList(bool ep_enabled) :
+template<Color Us>
+MoveList<Us>::MoveList(bool ep_enabled) :
   last(moves)
 {
-  constexpr Color Enemy          = !Side;
-  constexpr Piece EnemyPawn      = piece<Enemy, PAWN>();
-  constexpr Piece EnemyKnight    = piece<Enemy, KNIGHT>();
-  constexpr Piece EnemyBishop    = piece<Enemy, BISHOP>();
-  constexpr Piece EnemyRook      = piece<Enemy, ROOK>();
-  constexpr Piece EnemyQueen     = piece<Enemy, QUEEN>();
-  constexpr Piece EnemyKing      = piece<Enemy, KING>();
-  constexpr Piece FriendlyPawn   = piece<Side,  PAWN>();
-  constexpr Piece FriendlyKnight = piece<Side,  KNIGHT>();
-  constexpr Piece FriendlyBishop = piece<Side,  BISHOP>();
-  constexpr Piece FriendlyRook   = piece<Side,  ROOK>();
-  constexpr Piece FriendlyQueen  = piece<Side,  QUEEN>();
-  constexpr Piece FriendlyKing   = piece<Side,  KING>();
+  constexpr Color Them           = !Us;
+  constexpr Piece EnemyPawn      = make_piece(Them, PAWN);
+  constexpr Piece EnemyKnight    = make_piece(Them, KNIGHT);
+  constexpr Piece EnemyBishop    = make_piece(Them, BISHOP);
+  constexpr Piece EnemyRook      = make_piece(Them, ROOK);
+  constexpr Piece EnemyQueen     = make_piece(Them, QUEEN);
+  constexpr Piece EnemyKing      = make_piece(Them, KING);
+  constexpr Piece FriendlyPawn   = make_piece(Us,   PAWN);
+  constexpr Piece FriendlyKnight = make_piece(Us,   KNIGHT);
+  constexpr Piece FriendlyBishop = make_piece(Us,   BISHOP);
+  constexpr Piece FriendlyRook   = make_piece(Us,   ROOK);
+  constexpr Piece FriendlyQueen  = make_piece(Us,   QUEEN);
+  constexpr Piece FriendlyKing   = make_piece(Us,   KING);
 
-  // init
-  Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);
-  Bitboard enemy_bishop_queen = bb(EnemyQueen) | bb(EnemyBishop);
-  Bitboard friends            = Side == WHITE ? Board::white_pieces : Board::black_pieces;
+  Bitboard enemy_rook_queen   = bb<Them>() & (bb<QUEEN>() | bb<ROOK>());
+  Bitboard enemy_bishop_queen = bb<Them>() & (bb<QUEEN>() | bb<BISHOP>());
   Square   ksq                = lsb(bb(FriendlyKing));
-  Bitboard occupied           = Board::occupied() ^ square_bb(ksq);
+  Bitboard occupied           = occupied_bb() ^ square_bb(ksq);
 
-  // seen_by_enemy
-  seen_by_enemy = PawnAttacks<Enemy>(bb(EnemyPawn));
-  seen_by_enemy |= KingAttacks(lsb(bb(EnemyKing)));
+  seen_by_enemy = PawnAttacks<Enemy>(bb(EnemyPawn)) | KingAttacks(lsb(bb(EnemyKing)));
   for (Bitboard b = bb(EnemyKnight); b; pop_lsb(b))
     seen_by_enemy |= KnightAttacks(lsb(b));
   for (Bitboard b = enemy_bishop_queen; b; pop_lsb(b))
@@ -181,9 +165,7 @@ MoveList<Side>::MoveList(bool ep_enabled) :
     seen_by_enemy |= RookAttacks(lsb(b), occupied);
   toggle_square(occupied, ksq);
 
-  // checkmask
-  checkmask = KnightAttacks(ksq) & bb(EnemyKnight);
-  checkmask |= PawnAttacks<Side>(ksq) & bb(EnemyPawn);
+  checkmask  = KnightAttacks(ksq) & bb(EnemyKnight) | PawnAttacks<Us>(ksq) & bb(EnemyPawn);
   for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen); checkers; pop_lsb(checkers))
     checkmask |= CheckRay(ksq, lsb(checkers));
   if (more_than_one(checkmask & DoubleCheck(ksq))) {
@@ -192,23 +174,20 @@ MoveList<Side>::MoveList(bool ep_enabled) :
   }
   if (checkmask == 0) checkmask = ALL_SQUARES;
 
-  // pinmask
   Bitboard pinned = 0;
   for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen); pinners; pop_lsb(pinners))
     pinned |= CheckRay(ksq, lsb(pinners));
 
-  // pawns
-  constexpr Direction Up        = Side == WHITE ? NORTH      : SOUTH;
-  constexpr Direction Up2       = Side == WHITE ? NORTHNORTH : SOUTHSOUTH;
-  constexpr Direction UpRight   = Side == WHITE ? NORTH_EAST : SOUTH_WEST;
-  constexpr Direction UpLeft    = Side == WHITE ? NORTH_WEST : SOUTH_EAST;
-  constexpr Bitboard  FriendEP  = Side == WHITE ? RANK_3     : RANK_6;
-  constexpr Bitboard  EnemyEP   = Side == WHITE ? RANK_6     : RANK_3;
-  constexpr Bitboard  Start     = Side == WHITE ? RANK_2     : RANK_7;
-  constexpr Bitboard  Promote   = Side == WHITE ? RANK_7     : RANK_2;
+  constexpr Direction Up        = Us == WHITE ? NORTH      : SOUTH;
+  constexpr Direction Up2       = Us == WHITE ? NORTHNORTH : SOUTHSOUTH;
+  constexpr Direction UpRight   = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
+  constexpr Direction UpLeft    = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
+  constexpr Bitboard  FriendEP  = Us == WHITE ? RANK_3     : RANK_6;
+  constexpr Bitboard  EnemyEP   = Us == WHITE ? RANK_6     : RANK_3;
+  constexpr Bitboard  Start     = Us == WHITE ? RANK_2     : RANK_7;
+  constexpr Bitboard  Promote   = Us == WHITE ? RANK_7     : RANK_2;
   constexpr Bitboard  NoPromote = ~Promote;
 
-  Bitboard enemies    = Side == WHITE ? Board::black_pieces : Board::white_pieces;
   Bitboard empty      = ~occupied;
   Bitboard not_pinned = ~pinned;
   Bitboard pawns      = bb(FriendlyPawn) & NoPromote;
@@ -219,7 +198,6 @@ MoveList<Side>::MoveList(bool ep_enabled) :
   last = make_pawn_moves<Up     >(last, shift<Up     >(pawns & (not_pinned | File (ksq))) & empty   & checkmask);
   last = make_pawn_moves<Up2    >(last, shift<Up2    >(pawns & (not_pinned | File (ksq))) & e       & checkmask);
 
-  // promotions
   if (Bitboard promotable = bb(FriendlyPawn) & Promote)
   {
     for (Bitboard b = shift<UpRight>(promotable & (not_pinned | FDiag(ksq))) & enemies & checkmask; b; pop_lsb(b)) {
@@ -236,7 +214,6 @@ MoveList<Side>::MoveList(bool ep_enabled) :
     }
   }
 
-  // en passant
   if (ep_enabled) {
     Bitboard ep_square = EnemyEP & GameState::current_ep_square();
     if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & ep_square) {
@@ -261,10 +238,9 @@ MoveList<Side>::MoveList(bool ep_enabled) :
     }
   }
 
-  // knight, bishop, rook, queen, king
-  Bitboard friendly_rook_queen = bb(FriendlyQueen) | bb(FriendlyRook);
-  Bitboard friendly_bishop_queen = bb(FriendlyQueen) | bb(FriendlyBishop);
-  Bitboard legal = checkmask & ~friends;
+  Bitboard friendly_rook_queen   = bb<Us> & (bb<QUEEN>() | bb<ROOK>());
+  Bitboard friendly_bishop_queen = bb<Us> & (bb<QUEEN>() | bb<BISHOP>());
+  Bitboard legal = andn(checkmask, bb<Us>());
 
   for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b)) {
     Square from = lsb(b);
@@ -291,16 +267,15 @@ MoveList<Side>::MoveList(bool ep_enabled) :
 
   if (~checkmask) return;
 
-  //castling
-  constexpr Bitboard QueenOcc  = Side == WHITE ? square_bb(B1, C1, D1) : square_bb(B8, C8, D8);
-  constexpr Bitboard KingBan   = Side == WHITE ? square_bb(F1, G1)     : square_bb(F8, G8);
-  constexpr Bitboard QueenAtk  = Side == WHITE ? square_bb(C1, D1)     : square_bb(C8, D8);
-  constexpr Bitboard KingHash  = Side == WHITE ? 8                     : 2;
-  constexpr Bitboard QueenHash = Side == WHITE ? 4                     : 1;
-            Bitboard rights_k  = Side == WHITE ? GameState::rights_K() : GameState::rights_k();
-            Bitboard rights_q  = Side == WHITE ? GameState::rights_Q() : GameState::rights_q();
-  constexpr Move     SCASTLE   = Side == WHITE ? W_SCASTLE             : B_SCASTLE;
-  constexpr Move     LCASTLE   = Side == WHITE ? W_LCASTLE             : B_LCASTLE;
+  constexpr Bitboard QueenOcc  = Us == WHITE ? square_bb(B1, C1, D1) : square_bb(B8, C8, D8);
+  constexpr Bitboard KingBan   = Us == WHITE ? square_bb(F1, G1)     : square_bb(F8, G8);
+  constexpr Bitboard QueenAtk  = Us == WHITE ? square_bb(C1, D1)     : square_bb(C8, D8);
+  constexpr Bitboard KingHash  = Us == WHITE ? 8                     : 2;
+  constexpr Bitboard QueenHash = Us == WHITE ? 4                     : 1;
+            Bitboard rights_k  = Us == WHITE ? GameState::rights_K() : GameState::rights_k();
+            Bitboard rights_q  = Us == WHITE ? GameState::rights_Q() : GameState::rights_q();
+  constexpr Move     SCASTLE   = Us == WHITE ? W_SCASTLE             : B_SCASTLE;
+  constexpr Move     LCASTLE   = Us == WHITE ? W_LCASTLE             : B_LCASTLE;
   
   *last = SCASTLE;
   uint64_t key = ((occupied | seen_by_enemy) & KingBan) | rights_k;
@@ -311,6 +286,5 @@ MoveList<Side>::MoveList(bool ep_enabled) :
   
 }
 
-#undef bb
-
 #endif
+
