@@ -2,24 +2,24 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 
 #ifdef _MSC_VER
-#define ForceInline __forceinline
+  #define ForceInline __forceinline
 #elif defined(__clang__)
-#define ForceInline __attribute__((always_inline))
+  #define ForceInline __attribute__((always_inline))
 #endif
 
-using Bitboard  = uint64_t;
-using Square    = int;
-using Move      = int;
-using Piece     = int;
-using PieceType = int;
-using Color     = int;
-using MoveType  = int;
-using Direction = int;
-using Rank      = int;
+typedef uint64_t Bitboard;
+typedef uint32_t Move;
+typedef uint8_t  Piece;
+typedef uint8_t  PieceType;
+typedef int      Square;
+typedef int      Color;
+typedef int      MoveType;
+typedef int      Direction;
+typedef int      Rank;
 
 enum Files {
   FILE1,FILE2,FILE3,FILE4,
@@ -43,24 +43,19 @@ enum Squares {
   SQUARE_NB = 64
 };
 
-enum Pieces {
-  W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
-  B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING,
-  NO_PIECE,
-  PIECE_NB = 13
-};
-
-enum PieceTypes {
-  PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
+enum PieceTypes : uint8_t {
   NO_PIECE_TYPE,
+  PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING,
   PIECE_TYPE_NB = 6
 };
 
-enum Colors {
-  BLACK,
-  WHITE,
-  COLOR_NB = 2
+enum Pieces : uint8_t {
+  NO_PIECE = NO_PIECE_TYPE,
+  W_PAWN = PAWN,     W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
+  B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
 };
+
+enum Colors { WHITE, BLACK, COLOR_NB = 2 };
 
 enum MoveTypes {
   NORMAL,
@@ -87,30 +82,19 @@ inline Rank rank_of(Square s) {
   return s % 8;
 }
 
-template<Color C, PieceType P>
-constexpr Piece piece() {
-  if constexpr (C == WHITE)
-    return P;
-  else
-    return P + B_PAWN;
+constexpr Piece make_piece(Color c, PieceType pt) {
+  return pt + (c << 3);
 }
 
-template<Color C>
-PieceType piece_type(Piece p) {
-  if constexpr (C == WHITE)
-    return p;
-  else
-    return p - B_PAWN;
+constexpr PieceType type_of(Piece p) {
+  return p & 7;
 }
 
-template<Color C>
-constexpr Color flip() {
-  if constexpr (C == WHITE)
-    return BLACK;
-  return WHITE;
+constexpr Color color_of(Piece p) {
+  return p >> 3;
 }
 
-ForceInline inline Move make_move(Square from, Square to) {
+ForceInline constexpr Move make_move(Square from, Square to) {
   return from + (to << 6);
 }
 
@@ -128,7 +112,7 @@ enum Moves {
 };
 
 inline bool is_ok(Square s) {
-  return s >= H1 && s <= A8; 
+  return s >= H1 && s <= A8;
 }
 
 constexpr Square from_sq(Move m) {

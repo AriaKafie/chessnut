@@ -58,7 +58,7 @@ CaptureList<Us>::CaptureList() :
   Bitboard enemy_unprotected = andn(enemies, seen_by_enemy);
 
   checkmask = KnightAttacks(ksq) & bb(EnemyKnight) | PawnAttacks<Us>(ksq) & bb(EnemyPawn);
-  for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen); checkers; pop_lsb(checkers))
+  for (Bitboard checkers = BishopAttacks(ksq, occupied) & enemy_bishop_queen | RookAttacks(ksq, occupied) & enemy_rook_queen; checkers; pop_lsb(checkers))
     checkmask |= CheckRay(ksq, lsb(checkers));
   if (more_than_one(checkmask & DoubleCheck(ksq))) {
     last = make_moves(last, ksq, KingAttacks(ksq) & enemy_unprotected);
@@ -67,7 +67,7 @@ CaptureList<Us>::CaptureList() :
   if (checkmask == 0) checkmask = ALL_SQUARES;
 
   Bitboard pinned = 0;
-  for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen); pinners; pop_lsb(pinners))
+  for (Bitboard pinners = BishopXray(ksq, occupied) & enemy_bishop_queen | RookXray(ksq, occupied) & enemy_rook_queen; pinners; pop_lsb(pinners))
     pinned |= CheckRay(ksq, lsb(pinners));
 
   constexpr Direction UpRight   = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
@@ -166,7 +166,7 @@ MoveList<Us>::MoveList(bool ep_enabled) :
   toggle_square(occupied, ksq);
 
   checkmask  = KnightAttacks(ksq) & bb(EnemyKnight) | PawnAttacks<Us>(ksq) & bb(EnemyPawn);
-  for (Bitboard checkers = (BishopAttacks(ksq, occupied) & enemy_bishop_queen) | (RookAttacks(ksq, occupied) & enemy_rook_queen); checkers; pop_lsb(checkers))
+  for (Bitboard checkers = BishopAttacks(ksq, occupied) & enemy_bishop_queen | RookAttacks(ksq, occupied) & enemy_rook_queen; checkers; pop_lsb(checkers))
     checkmask |= CheckRay(ksq, lsb(checkers));
   if (more_than_one(checkmask & DoubleCheck(ksq))) {
     last = make_moves(last, ksq, KingAttacks(ksq) & ~(seen_by_enemy | friends));
@@ -175,7 +175,7 @@ MoveList<Us>::MoveList(bool ep_enabled) :
   if (checkmask == 0) checkmask = ALL_SQUARES;
 
   Bitboard pinned = 0;
-  for (Bitboard pinners = (BishopXray(ksq, occupied) & enemy_bishop_queen) | (RookXray(ksq, occupied) & enemy_rook_queen); pinners; pop_lsb(pinners))
+  for (Bitboard pinners = BishopXray(ksq, occupied) & enemy_bishop_queen | RookXray(ksq, occupied) & enemy_rook_queen; pinners; pop_lsb(pinners))
     pinned |= CheckRay(ksq, lsb(pinners));
 
   constexpr Direction Up        = Us == WHITE ? NORTH      : SOUTH;
