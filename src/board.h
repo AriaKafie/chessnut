@@ -69,7 +69,7 @@ ForceInline void update_castling_rights() {
   
   if constexpr (Type == NORMAL)
     GameState::castling_rights &=
-      CastlingPext((piece_bb<FriendlyKing>() & FriendlyKingStart) | (piece_bb<FriendlyRook>() & FriendlyRookStart) | piece_bb<EnemyRook>() | EnemyKingStart);
+      CastlingPext(piece_bb<FriendlyKing>() & FriendlyKingStart | piece_bb<FriendlyRook>() & FriendlyRookStart | piece_bb<EnemyRook>() | EnemyKingStart);
 
   else if constexpr (Type == PROMOTION)
     GameState::castling_rights &=
