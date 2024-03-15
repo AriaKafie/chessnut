@@ -90,7 +90,6 @@ CaptureList<Us>::CaptureList() :
     }
   }
 
-  Bitboard empty = ~occupied;
   Bitboard pawns = bb(FriendlyPawn) & NoPromote;
 
   last = make_pawn_moves<UpRight>(last, shift<UpRight>(pawns & (not_pinned | FDiag(ksq))) & enemies & checkmask);
