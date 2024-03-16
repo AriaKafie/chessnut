@@ -22,8 +22,8 @@ ForceInline int midgame() {
 
 ForceInline int piece_placement() {
   int score = 0;
-  for (PieceType pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}) {
-
+  for (PieceType pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}) 
+  {
     for (Bitboard b = bitboards[pt]; b; pop_lsb(b))
       score += square_score<WHITE>(pt, lsb(b));
 
