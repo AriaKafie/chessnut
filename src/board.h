@@ -143,6 +143,8 @@ ForceInline void undo_capture(Move m, Piece captured) {
 template<Color Us>
 void do_move(Move m) {
 
+  Zobrist::push();
+
   constexpr Color Them = !Us;
 
   constexpr Piece Pawn  = make_piece(Us, PAWN);
@@ -255,6 +257,8 @@ void do_move(Move m) {
 template<Color Us>
 void undo_move(Move m, Piece captured) {
 
+  Zobrist::pop();
+
   constexpr Color Them = !Us;
 
   constexpr Piece Pawn  = make_piece(Us, PAWN);
@@ -271,10 +275,6 @@ void undo_move(Move m, Piece captured) {
 
   switch (type_of(m)) {
   case NORMAL:
-    Zobrist::key ^= Zobrist::hash[board[to]][to];
-    Zobrist::key ^= Zobrist::hash[board[to]][from];
-    Zobrist::key ^= Zobrist::hash[captured][to];
-    Zobrist::key ^= Zobrist::BlackToMove;
     bitboards[board[to]] ^= from_to;
     bitboards[Us] ^= from_to;
     bitboards[captured] ^= capture_bb;
@@ -283,10 +283,6 @@ void undo_move(Move m, Piece captured) {
     board[to] = captured;
     return;
   case PROMOTION:
-    Zobrist::key ^= Zobrist::hash[Queen][to];
-    Zobrist::key ^= Zobrist::hash[Pawn][from];
-    Zobrist::key ^= Zobrist::hash[captured][to];
-    Zobrist::key ^= Zobrist::BlackToMove;
     bitboards[Queen] ^= to_bb;
     bitboards[Pawn] ^= square_bb(from);
     bitboards[Us] ^= from_to;
@@ -305,11 +301,6 @@ void undo_move(Move m, Piece captured) {
     constexpr Bitboard king_from_to = square_bb(king_from, king_to);
     constexpr Bitboard rook_from_to = square_bb(rook_from, rook_to);
 
-    Zobrist::key ^= Zobrist::hash[King][king_to];
-    Zobrist::key ^= Zobrist::hash[King][king_from];
-    Zobrist::key ^= Zobrist::hash[Rook][rook_to];
-    Zobrist::key ^= Zobrist::hash[Rook][rook_from];
-    Zobrist::key ^= Zobrist::BlackToMove;
     bitboards[King] ^= king_from_to;
     bitboards[Rook] ^= rook_from_to;
     bitboards[Us] ^= king_from_to ^ rook_from_to;
@@ -329,11 +320,6 @@ void undo_move(Move m, Piece captured) {
     constexpr Bitboard king_from_to = square_bb(king_from, king_to);
     constexpr Bitboard rook_from_to = square_bb(rook_from, rook_to);
 
-    Zobrist::key ^= Zobrist::hash[King][king_to];
-    Zobrist::key ^= Zobrist::hash[King][king_from];
-    Zobrist::key ^= Zobrist::hash[Rook][rook_to];
-    Zobrist::key ^= Zobrist::hash[Rook][rook_from];
-    Zobrist::key ^= Zobrist::BlackToMove;
     bitboards[King] ^= king_from_to;
     bitboards[Rook] ^= rook_from_to;
     bitboards[Us] ^= king_from_to ^ rook_from_to;
@@ -346,10 +332,7 @@ void undo_move(Move m, Piece captured) {
   case ENPASSANT:
     constexpr Piece  EPawn = make_piece(Them, PAWN);
               Square capsq = to + (Us == WHITE ? SOUTH : NORTH);
-    Zobrist::key ^= Zobrist::hash[Pawn][to];
-    Zobrist::key ^= Zobrist::hash[Pawn][from];
-    Zobrist::key ^= Zobrist::hash[EPawn][capsq];
-    Zobrist::key ^= Zobrist::BlackToMove;
+
     bitboards[Pawn] ^= from_to;
     bitboards[Us] ^= from_to;
     bitboards[EPawn] ^= square_bb(capsq);

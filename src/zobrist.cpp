@@ -6,9 +6,14 @@
 
 uint64_t seed = 221564671644;
 
-void Zobrist::init() {
+int stack_pointer;
 
-  key = 0;
+uint64_t key_stack[256];
+
+void Zobrist::push() { key_stack[stack_pointer++] = key; }
+void Zobrist::pop()  { key = key_stack[--stack_pointer]; }
+
+void Zobrist::init() {
 
   std::mt19937_64 rng(seed);
 
@@ -27,12 +32,13 @@ void Zobrist::init() {
 
 }
 
-void Zobrist::update() {
+void Zobrist::set() {
 
   key = 0;
+  stack_pointer = 0;
 
-  for (int square = 0; square < 64; square++)
-    key ^= hash[piece_on(square)][square];
+  for (Square sq = H1; sq <= A8; sq++)
+    key ^= hash[piece_on(sq)][sq];
 
   if (!GameState::white_to_move)
     key ^= BlackToMove;
