@@ -8,7 +8,7 @@
 #include "transpositiontable.h"
 #include "debug.h"
 #include "bench.h"
-#include "moveordering.hpp"
+#include "moveordering.h"
 #include "movegen.h"
 #include "uci.h"
 #include "book.h"
@@ -30,7 +30,7 @@ Move probe_white(uint64_t thinktime) {
   for (int depth = 1; !search_cancelled; depth++) {
 
     for (Move& m : moves)
-      m &= 0x0000ffff;
+      m &= 0xffff;
     alpha = MIN_INT;
     moves.sort(best_move, 0);
 
@@ -42,9 +42,9 @@ Move probe_white(uint64_t thinktime) {
         break;
       }
 
-      Piece capture = Board::pieces[to_sq(moves[i])];
+      Piece captured = piece_on(to_sq(moves[i]));
       uint8_t c_rights = GameState::castling_rights;
-      Board::make_legal(moves[i]);
+      do_legal(moves[i]);
 
       if (GameState::repetition_table.count_last_hash() > 2)
         eval = 0;
@@ -55,7 +55,7 @@ Move probe_white(uint64_t thinktime) {
       if ((eval > alpha) && reduction[i])
         eval = search<false>(alpha, MAX_INT, depth - 1, 0);
 
-      Board::undo_legal(moves[i], capture);
+      undo_legal(moves[i], captured);
       GameState::castling_rights = c_rights;
 
       if (eval > alpha) {
@@ -84,7 +84,7 @@ Move probe_black(uint64_t thinktime) {
   for (int depth = 1; !search_cancelled; depth++) {
 
     for (Move& m : moves)
-      m &= 0x0000ffff;
+      m &= 0xffff;
     beta = MAX_INT;
     moves.sort(best_move, 0);
 
@@ -96,9 +96,9 @@ Move probe_black(uint64_t thinktime) {
         break;
       }
 
-      Piece capture = Board::pieces[to_sq(moves[i])];
+      Piece captured = piece_on(to_sq(moves[i]));
       uint8_t c_rights = GameState::castling_rights;
-      Board::make_legal(moves[i]);
+      do_legal(moves[i]);
 
       if (GameState::repetition_table.count_last_hash() > 2)
         eval = 0;
@@ -110,7 +110,7 @@ Move probe_black(uint64_t thinktime) {
           eval = search<true>(MIN_INT, beta, depth - 1, 0);
       }
 
-      Board::undo_legal(moves[i], capture);
+      undo_legal(moves[i], captured);
       GameState::castling_rights = c_rights;
 
       if (eval < beta) {

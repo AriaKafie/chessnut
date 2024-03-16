@@ -2,22 +2,17 @@
 #ifndef ZOBRIST_H
 #define ZOBRIST_H
 
-#include <cstdint>
+#include "types.h"
 
-namespace Chess {
+#include <cstdint>
 
 namespace Zobrist {
 
-	inline uint32_t current_seed;
-	inline uint64_t key;
-	inline uint64_t hash[13][64];
-	inline uint64_t black_to_move;
-	void init();
-	void update();
-	uint32_t random_u32();
-	uint64_t random_u64();
-
-}
+  inline uint64_t key;
+  inline uint64_t hash[B_KING + 1][SQUARE_NB];
+  inline constexpr uint64_t BlackToMove = 17200288208102703589ull;
+  void init();
+  void update();
 
 }
 

@@ -8,7 +8,7 @@
 #include "defs.h"
 #include "bench.h"
 #include "movegen.h"
-#include "moveordering.hpp"
+#include "moveordering.h"
 #include "ui.h"
 
 #include <cstdint>
@@ -75,10 +75,10 @@ int quiescence_search(int alpha, int beta) {
     if (c.length() == 0) return eval;
     c.sort();
     for (int i = 0; i < c.length(); i++) {
-      Piece capture = Board::pieces[to_sq(c[i])];
-      Board::makemove<WHITE, true>(c[i]);
+      Piece captured = piece_on(to_sq(c[i]));
+      do_capture<WHITE>(c[i]);
       eval = quiescence_search<false>(alpha, beta);
-      Board::undomove<WHITE, true>(c[i], capture);
+      undo_capture<WHITE>(c[i], captured);
       if (eval >= beta)
         return eval;
       best_eval = std::max(eval, best_eval);
@@ -96,10 +96,10 @@ int quiescence_search(int alpha, int beta) {
     if (c.length() == 0) return eval;
     c.sort();
     for (int i = 0; i < c.length(); i++) {
-      Piece capture = Board::pieces[to_sq(c[i])];
-      Board::makemove<BLACK, true>(c[i]);
+      Piece captured = piece_on(to_sq(c[i]));
+      do_capture<BLACK>(c[i]);
       eval = quiescence_search<true>(alpha, beta);
-      Board::undomove<BLACK, true>(c[i], capture);
+      undo_capture<BLACK>(c[i], captured);
       if (eval <= alpha)
         return eval;
       best_eval = std::min(eval, best_eval);
@@ -135,20 +135,20 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
 
     for (int i = 0; i < moves.length(); i++) {
 
-      Piece capture = Board::pieces[to_sq(moves[i])];
+      Piece captured = piece_on(to_sq(moves[i]));
       uint8_t c_rights = GameState::castling_rights;
 
-      Board::makemove<WHITE, false>(moves[i]);
+      do_move<WHITE>(moves[i]);
       int eval = search<false>(alpha, beta, depth - 1 - depth_reduction[i] + extension, ply_from_root + 1);
       if (eval > alpha && (depth_reduction[i]))
         eval = search<false>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
-      Board::undomove<WHITE, false>(moves[i], capture);
+      undo_move<WHITE>(moves[i], captured);
 
       GameState::castling_rights = c_rights;
 
       if (eval >= beta) {
         TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], ply_from_root);
-        if (capture == NO_PIECE)
+        if (!captured)
           killer_moves[ply_from_root].add(moves[i] & 0xffff);
         return eval;
       }
@@ -177,20 +177,20 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
 
     for (int i = 0; i < moves.length(); i++) {
 
-      Piece capture = Board::pieces[to_sq(moves[i])];
+      Piece captured = piece_on(to_sq(moves[i]));
       uint8_t c_rights = GameState::castling_rights;
 
-      Board::makemove<BLACK, false>(moves[i]);
+      do_move<BLACK>(moves[i]);
       int eval = search<true>(alpha, beta, depth - 1 - depth_reduction[i] + extension, ply_from_root + 1);
       if (eval < beta && (depth_reduction[i]))
         eval = search<true>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
-      Board::undomove<BLACK, false>(moves[i], capture);
+      undo_move<BLACK>(moves[i], captured);
 
       GameState::castling_rights = c_rights;
 
       if (eval <= alpha) {
         TranspositionTable::record(depth, UPPER_BOUND, eval, moves[i], ply_from_root);
-        if (capture == NO_PIECE)
+        if (!captured)
           killer_moves[ply_from_root].add(moves[i] & 0xffff);
         return eval;
       }
