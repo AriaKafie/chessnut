@@ -40,8 +40,8 @@ CaptureList<Us>::CaptureList() :
   constexpr Piece FriendlyQueen  = make_piece(Us,   QUEEN);
   constexpr Piece FriendlyKing   = make_piece(Us,   KING);
 
-  Bitboard enemy_rook_queen   = bb<Them>() & (bb<QUEEN>() | bb<ROOK>());
-  Bitboard enemy_bishop_queen = bb<Them>() & (bb<QUEEN>() | bb<BISHOP>());
+  Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);
+  Bitboard enemy_bishop_queen = bb(EnemyQueen) | bb(EnemyBishop);
   Square   ksq                = lsb(bb(FriendlyKing));
   Bitboard occupied           = occupied_bb() ^ square_bb(ksq);
 
@@ -55,7 +55,7 @@ CaptureList<Us>::CaptureList() :
 
   toggle_square(occupied, ksq);
 
-  Bitboard enemy_unprotected = andn(enemies, seen_by_enemy);
+  Bitboard enemy_unprotected = bb(Them) &~ seen_by_enemy;
 
   checkmask = KnightAttacks(ksq) & bb(EnemyKnight) | PawnAttacks<Us>(ksq) & bb(EnemyPawn);
   for (Bitboard checkers = BishopAttacks(ksq, occupied) & enemy_bishop_queen | RookAttacks(ksq, occupied) & enemy_rook_queen; checkers; pop_lsb(checkers))
@@ -80,11 +80,11 @@ CaptureList<Us>::CaptureList() :
 
   if (Bitboard promotable = bb(FriendlyPawn) & Promote)
   {
-    for (Bitboard b = shift<UpRight>(promotable & (not_pinned | FDiag(ksq))) & enemies & checkmask; b; pop_lsb(b)) {
+    for (Bitboard b = shift<UpRight>(promotable & (not_pinned | FDiag(ksq))) & bb(Them) & checkmask; b; pop_lsb(b)) {
       Square to = lsb(b);
       *last++ = make_move<PROMOTION>(to - UpRight, to);
     }
-    for (Bitboard b = shift<UpLeft >(promotable & (not_pinned | BDiag(ksq))) & enemies & checkmask; b; pop_lsb(b)) {
+    for (Bitboard b = shift<UpLeft >(promotable & (not_pinned | BDiag(ksq))) & bb(Them) & checkmask; b; pop_lsb(b)) {
       Square to = lsb(b);
       *last++ = make_move<PROMOTION>(to - UpLeft, to);
     }
@@ -92,11 +92,11 @@ CaptureList<Us>::CaptureList() :
 
   Bitboard pawns = bb(FriendlyPawn) & NoPromote;
 
-  last = make_pawn_moves<UpRight>(last, shift<UpRight>(pawns & (not_pinned | FDiag(ksq))) & enemies & checkmask);
-  last = make_pawn_moves<UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | BDiag(ksq))) & enemies & checkmask);
+  last = make_pawn_moves<UpRight>(last, shift<UpRight>(pawns & (not_pinned | FDiag(ksq))) & bb(Them) & checkmask);
+  last = make_pawn_moves<UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | BDiag(ksq))) & bb(Them) & checkmask);
 
-  Bitboard minor_targets = (andn(bb<Them>(), bb<PAWN>()) | enemy_unprotected) & checkmask;
-  Bitboard rook_targets  = ((bb<Them>() & (bb<ROOK>() | bb<QUEEN>())) | enemy_unprotected) & checkmask;
+  Bitboard minor_targets = (bb(Them) ^ bb(EnemyPawn) | enemy_unprotected) & checkmask;
+  Bitboard rook_targets  = (bb(EnemyRook) | bb(EnemyQueen) | enemy_unprotected) & checkmask;
   Bitboard queen_targets = (bb(EnemyQueen) | enemy_unprotected) & checkmask;
 
   for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b)) {
@@ -150,25 +150,26 @@ MoveList<Us>::MoveList(bool ep_enabled) :
   constexpr Piece FriendlyQueen  = make_piece(Us,   QUEEN);
   constexpr Piece FriendlyKing   = make_piece(Us,   KING);
 
-  Bitboard enemy_rook_queen   = bb<Them>() & (bb<QUEEN>() | bb<ROOK>());
-  Bitboard enemy_bishop_queen = bb<Them>() & (bb<QUEEN>() | bb<BISHOP>());
+  Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);
+  Bitboard enemy_bishop_queen = bb(EnemyQueen) | bb(EnemyBishop);
   Square   ksq                = lsb(bb(FriendlyKing));
   Bitboard occupied           = occupied_bb() ^ square_bb(ksq);
 
-  seen_by_enemy = PawnAttacks<Enemy>(bb(EnemyPawn)) | KingAttacks(lsb(bb(EnemyKing)));
+  seen_by_enemy = PawnAttacks<Them>(bb(EnemyPawn)) | KingAttacks(lsb(bb(EnemyKing)));
   for (Bitboard b = bb(EnemyKnight); b; pop_lsb(b))
     seen_by_enemy |= KnightAttacks(lsb(b));
   for (Bitboard b = enemy_bishop_queen; b; pop_lsb(b))
     seen_by_enemy |= BishopAttacks(lsb(b), occupied);
   for (Bitboard b = enemy_rook_queen; b; pop_lsb(b))
     seen_by_enemy |= RookAttacks(lsb(b), occupied);
+
   toggle_square(occupied, ksq);
 
-  checkmask  = KnightAttacks(ksq) & bb(EnemyKnight) | PawnAttacks<Us>(ksq) & bb(EnemyPawn);
+  checkmask = KnightAttacks(ksq) & bb(EnemyKnight) | PawnAttacks<Us>(ksq) & bb(EnemyPawn);
   for (Bitboard checkers = BishopAttacks(ksq, occupied) & enemy_bishop_queen | RookAttacks(ksq, occupied) & enemy_rook_queen; checkers; pop_lsb(checkers))
     checkmask |= CheckRay(ksq, lsb(checkers));
   if (more_than_one(checkmask & DoubleCheck(ksq))) {
-    last = make_moves(last, ksq, KingAttacks(ksq) & ~(seen_by_enemy | friends));
+    last = make_moves(last, ksq, KingAttacks(ksq) & ~(seen_by_enemy | bb(Us)));
     return;
   }
   if (checkmask == 0) checkmask = ALL_SQUARES;
@@ -192,18 +193,18 @@ MoveList<Us>::MoveList(bool ep_enabled) :
   Bitboard pawns      = bb(FriendlyPawn) & NoPromote;
   Bitboard e          = shift<Up>(FriendEP & empty) & empty;
 
-  last = make_pawn_moves<UpRight>(last, shift<UpRight>(pawns & (not_pinned | FDiag(ksq))) & enemies & checkmask);
-  last = make_pawn_moves<UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | BDiag(ksq))) & enemies & checkmask);
-  last = make_pawn_moves<Up     >(last, shift<Up     >(pawns & (not_pinned | File (ksq))) & empty   & checkmask);
-  last = make_pawn_moves<Up2    >(last, shift<Up2    >(pawns & (not_pinned | File (ksq))) & e       & checkmask);
+  last = make_pawn_moves<UpRight>(last, shift<UpRight>(pawns & (not_pinned | FDiag(ksq))) & bb(Them) & checkmask);
+  last = make_pawn_moves<UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | BDiag(ksq))) & bb(Them) & checkmask);
+  last = make_pawn_moves<Up     >(last, shift<Up     >(pawns & (not_pinned | File (ksq))) & empty    & checkmask);
+  last = make_pawn_moves<Up2    >(last, shift<Up2    >(pawns & (not_pinned | File (ksq))) & e        & checkmask);
 
   if (Bitboard promotable = bb(FriendlyPawn) & Promote)
   {
-    for (Bitboard b = shift<UpRight>(promotable & (not_pinned | FDiag(ksq))) & enemies & checkmask; b; pop_lsb(b)) {
+    for (Bitboard b = shift<UpRight>(promotable & (not_pinned | FDiag(ksq))) & bb(Them) & checkmask; b; pop_lsb(b)) {
       Square to = lsb(b);
       *last++ = make_move<PROMOTION>(to - UpRight, to);
     }
-    for (Bitboard b = shift<UpLeft >(promotable & (not_pinned | BDiag(ksq))) & enemies & checkmask; b; pop_lsb(b)) {
+    for (Bitboard b = shift<UpLeft >(promotable & (not_pinned | BDiag(ksq))) & bb(Them) & checkmask; b; pop_lsb(b)) {
       Square to = lsb(b);
       *last++ = make_move<PROMOTION>(to - UpLeft, to);
     }
@@ -237,9 +238,9 @@ MoveList<Us>::MoveList(bool ep_enabled) :
     }
   }
 
-  Bitboard friendly_rook_queen   = bb<Us> & (bb<QUEEN>() | bb<ROOK>());
-  Bitboard friendly_bishop_queen = bb<Us> & (bb<QUEEN>() | bb<BISHOP>());
-  Bitboard legal = andn(checkmask, bb<Us>());
+  Bitboard friendly_rook_queen   = bb(FriendlyQueen) | bb(FriendlyRook);
+  Bitboard friendly_bishop_queen = bb(FriendlyQueen) | bb(FriendlyBishop);
+  Bitboard legal = checkmask &~ bb(Us);
 
   for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b)) {
     Square from = lsb(b);
@@ -262,7 +263,7 @@ MoveList<Us>::MoveList(bool ep_enabled) :
     last = make_moves(last, from, RookAttacks(from, occupied) & legal & PinMask(ksq, from));
   }
 
-  last = make_moves(last, ksq, KingAttacks(ksq) & ~(seen_by_enemy | friends));
+  last = make_moves(last, ksq, KingAttacks(ksq) & ~(seen_by_enemy | bb(Us)));
 
   if (~checkmask) return;
 
@@ -286,4 +287,3 @@ MoveList<Us>::MoveList(bool ep_enabled) :
 }
 
 #endif
-

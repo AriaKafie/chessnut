@@ -3,8 +3,8 @@
 #define MOVEORDERING_H
 
 #include "board.h"
-#include "evaluation.h"
 #include "movelist.h"
+#include "evaluation.h"
 
 struct Killer {
 
@@ -26,11 +26,11 @@ struct Killer {
 
 inline Killer killer_moves[256];
 
-constexpr int MAX_SCORE             = 0xffff0000;
-constexpr int WINNING_CAPTURE_BONUS = 8000;
-constexpr int LOSING_CAPTURE_BONUS  = 2000;
-constexpr int KILLER_BONUS          = 4000;
-constexpr int SEEN_BY_PAWN_PENALTY  = -50;
+constexpr uint32_t MAX_SCORE             = 0xffff0000;
+constexpr uint32_t WINNING_CAPTURE_BONUS = 8000;
+constexpr uint32_t LOSING_CAPTURE_BONUS  = 2000;
+constexpr uint32_t KILLER_BONUS          = 4000;
+constexpr uint32_t SEEN_BY_PAWN_PENALTY  = -50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
@@ -52,19 +52,19 @@ void CaptureList<Us>::sort() {
 
   constexpr Color Them      = !Us;
   constexpr Piece EnemyPawn = make_piece(Them, PAWN);
-            
+  
   Bitboard seen_by_pawn = PawnAttacks<Them>(bb(EnemyPawn));
             
   for (Move& m : *this) {
     
-    int score = 1000;
+    uint32_t score = 1000;
     
-    Square to = to_sq(m);
-    PieceType capture = piece_type_on(to);
+    Square    to       = to_sq(m);
+    PieceType captured = piece_type_on(to);
     
     if (square_bb(to) & seen_by_pawn)
       score -= 500;
-    score += piece_weight(capture) << 1;
+    score += piece_weight(captured) << 1;
 
     m += score << 16;
       
@@ -76,7 +76,7 @@ void CaptureList<Us>::sort() {
 
 template<Color Us>
 int MoveList<Us>::partition(int low, int high) {
-  int pivot = score_of(moves[high]);
+  uint32_t pivot = score_of(moves[high]);
   int i = low - 1;
   for (int j = low; j < high; j++) {
     if (score_of(moves[j]) >= pivot) {
@@ -102,7 +102,7 @@ void MoveList<Us>::sort(Move pv, int ply) {
 
   constexpr Color Them      = !Us;
   constexpr Piece EnemyPawn = make_piece(Them, PAWN);
-
+  
   Bitboard seen_by_pawn = PawnAttacks<Them>(bb(EnemyPawn));
               
   for (Move& m : *this) {
@@ -112,7 +112,7 @@ void MoveList<Us>::sort(Move pv, int ply) {
       continue;
     }
     
-    int score = 1000;
+    uint32_t score = 1000;
     
     Square    from     = from_sq(m);
     Square    to       = to_sq(m);

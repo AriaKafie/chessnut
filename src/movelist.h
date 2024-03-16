@@ -1,5 +1,4 @@
 
-
 #ifndef MOVELIST_H
 #define MOVELIST_H
 
@@ -8,7 +7,7 @@
 constexpr int MAX_MOVES  = 128;
 constexpr int MAX_CMOVES = 16;
 
-template<Color Side>
+template<Color Us>
 class MoveList {
 
 public:
@@ -32,7 +31,7 @@ private:
 
 };
 
-template<Color Side>
+template<Color Us>
 class CaptureList {
 
 public:
@@ -55,3 +54,4 @@ private:
 };
 
 #endif
+
