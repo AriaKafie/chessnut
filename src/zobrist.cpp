@@ -24,11 +24,7 @@ void Zobrist::init() {
       hash[pc][sq] = rng();
   }
 
-  if (!GameState::white_to_move)
-    key ^= BlackToMove;
-
-  for (Square sq = H1; sq <= A8; sq++)
-    key ^= hash[piece_on(sq)][sq];
+  set();
 
 }
 
