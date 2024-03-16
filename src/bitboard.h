@@ -110,9 +110,7 @@ inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
 }
 
 inline Bitboard file_bb(Square s) {
-  return is_ok(s)
-    ? FILE_H << (s % 8)
-    : 0ull;
+  return is_ok(s) ? FILE_H << (s % 8) : 0ull;
 }
 
 inline Bitboard rank_bb(Square s) {
@@ -231,9 +229,7 @@ int KingSafety(Square ksq, Bitboard occ) {
 }
 
 inline uint8_t CastlingPext(Bitboard occupied) {
-  constexpr Bitboard mask 
-    = square_bb(A8, E8, H8)
-    | square_bb(A1, E1, H1);
+  constexpr Bitboard mask = square_bb(A1, E1, H1, A8, E8, H8);
   return castling_pext[pext(occupied, mask)];
 }
 

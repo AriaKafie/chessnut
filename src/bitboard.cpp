@@ -81,36 +81,34 @@ void Bitboards::init() {
 #undef bdiag
 #undef md
 
-  Bitboard msk = square_bb(H1, E1, A1)
-               | square_bb(H8, E8, A8);
-  constexpr uint8_t clearK = 0b0111;
-  constexpr uint8_t clearQ = 0b1011;
-  constexpr uint8_t cleark = 0b1101;
-  constexpr uint8_t clearq = 0b1110;
+  uint8_t clearK = 0b0111;
+  uint8_t clearQ = 0b1011;
+  uint8_t cleark = 0b1101;
+  uint8_t clearq = 0b1110;
 
-  int permutations = 1 << popcount(msk);
+  Bitboard msk = square_bb(A1, E1, H1, A8, E8, H8);
 
-  for (int p = 0; p < permutations; p++) {
+  for (int p = 0; p < 1 << popcount(msk); p++) {
 
-    uint64_t occ = generate_occupancy(msk, p);
+    Bitboard occ = generate_occupancy(msk, p);
     uint8_t rights_mask = 0b1111;
 
-    if ((occ & square_bb(H1)) == 0) rights_mask &= clearK;
-    if ((occ & square_bb(E1)) == 0) rights_mask &= clearK & clearQ;
-    if ((occ & square_bb(A1)) == 0) rights_mask &= clearQ;
-    if ((occ & square_bb(H8)) == 0) rights_mask &= cleark;
-    if ((occ & square_bb(E8)) == 0) rights_mask &= cleark & clearq;
-    if ((occ & square_bb(A8)) == 0) rights_mask &= clearq;
+    if (!(occ & square_bb(H1))) rights_mask &= clearK;
+    if (!(occ & square_bb(E1))) rights_mask &= clearK & clearQ;
+    if (!(occ & square_bb(A1))) rights_mask &= clearQ;
+    if (!(occ & square_bb(H8))) rights_mask &= cleark;
+    if (!(occ & square_bb(E8))) rights_mask &= cleark & clearq;
+    if (!(occ & square_bb(A8))) rights_mask &= clearq;
 
     castling_pext[pext(occ, msk)] = rights_mask;
   }
 
   for (Square sq = H1; sq <= A8; sq++) {
-    for (int i = 0; i < (1 << popcount(white_kingshield[sq])); i++) {
+    for (int i = 0; i < 1 << popcount(white_kingshield[sq]); i++) {
       Bitboard occ = generate_occupancy(white_kingshield[sq], i);
       white_kingshield_scores[sq][pext(occ, white_kingshield[sq])] = score_kingshield(sq, occ, WHITE);
     }
-    for (int i = 0; i < (1 << popcount(black_kingshield[sq])); i++) {
+    for (int i = 0; i < 1 << popcount(black_kingshield[sq]); i++) {
       Bitboard occ = generate_occupancy(black_kingshield[sq], i);
       black_kingshield_scores[sq][pext(occ, black_kingshield[sq])] = score_kingshield(sq, occ, BLACK);
     }
