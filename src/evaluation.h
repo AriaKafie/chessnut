@@ -6,14 +6,15 @@
 
 int static_eval();
 
-constexpr int piece_weight[PIECE_NB] = {
-  100, 300, 300, 500, 900, 1500, 0, 0, 0, 0, 0, 0, 0
-};
+constexpr int piece_weight_table[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 
-constexpr int square_score[PIECE_TYPE_NB][SQUARE_NB] = {
-  // scored from black's perspective (0->63 : H1->A8)
+constexpr int piece_weight(PieceType pt) { return piece_weight_table[pt]; }
+
+constexpr int square_score_table[PIECE_TYPE_NB][SQUARE_NB] = 
+{
+// scored from black's pov (promotion = 0-7) with a maximizer perspective (retarded)
   { // pawn
-    0,  0,  0,  0,  0,  0,  0,  0,
+    50, 50, 50, 50, 50, 50, 50, 50,
     50, 50, 50, 50, 50, 50, 50, 50,
     10, 10, 20, 30, 30, 20, 10, 10,
     5,  5, 10, 25, 25, 10,  5,  5,
@@ -73,6 +74,14 @@ constexpr int square_score[PIECE_TYPE_NB][SQUARE_NB] = {
     0, 0, 0, 0,  0,  0, 0, 0,
   }
 };
+
+template<Color Perspective>
+constexpr int square_score(PieceType pt, Square sq) {
+  if constexpr (Perspective == WHITE)
+    return square_score_table[pt - 2][sq ^ 63];
+  else
+    return square_score_table[pt - 2][sq];
+}
 
 constexpr int end_king_squares[] = {
   -10,-8,-6,-4,-4,-6,-8,-10,

@@ -131,8 +131,8 @@ constexpr MoveType type_of(Move m) {
   return m & 0x7000;
 }
 
-constexpr int score_of(Move m) {
+constexpr uint32_t score_of(Move m) {
   return m & 0xffff0000;
 }
 
-#endif
+#endif*/
