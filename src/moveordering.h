@@ -60,11 +60,13 @@ void CaptureList<Us>::sort() {
     uint32_t score = 1000;
     
     Square    to       = to_sq(m);
+    Square    from     = from_sq(m);
+    PieceType from_pt  = piece_type_on(from);
     PieceType captured = piece_type_on(to);
     
     if (square_bb(to) & seen_by_pawn)
       score -= 500;
-    score += piece_weight(captured) << 1;
+    score += piece_weight(captured) - piece_weight(from_pt) * bool(square_bb(to) & seen_by_enemy);
 
     m += score << 16;
       
