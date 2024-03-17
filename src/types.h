@@ -11,6 +11,8 @@
   #define ForceInline __attribute__((always_inline))
 #endif
 
+#define SQUARE_LOOP(sq) for (Square sq = H1; sq <= A8; sq++)
+
 typedef uint64_t Bitboard;
 typedef uint32_t Move;
 typedef uint8_t  Piece;
