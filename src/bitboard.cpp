@@ -28,10 +28,10 @@ void Bitboards::init() {
 
     for (Square s2 = H1; s2 <= A8; s2++) {
       pin_mask[s1][s2] =
-          (fdiag  (s1) & fdiag  (s2))
-        | (bdiag  (s1) & bdiag  (s2))
-        | (rank_bb(s1) & rank_bb(s2))
-        | (file_bb(s1) & file_bb(s2));
+          fdiag  (s1) & fdiag  (s2)
+        | bdiag  (s1) & bdiag  (s2)
+        | rank_bb(s1) & rank_bb(s2)
+        | file_bb(s1) & file_bb(s2);
     }
 
     for (Square ksq = H1; ksq <= A8; ksq++) {
@@ -196,8 +196,8 @@ void init_magics() {
 
     for (Square sq = H1; sq <= A8; sq++) {
       base[sq] = permutation_sum;
-      Bitboard edges = ((FILE_A | FILE_H) & ~file_bb(sq))
-        | ((RANK_1 | RANK_8) & ~rank_bb(sq));
+      Bitboard edges = (FILE_A | FILE_H) & ~file_bb(sq)
+                     | (RANK_1 | RANK_8) & ~rank_bb(sq);
       Bitboard mask = sliding_attacks(pt, sq, 0) & ~edges;
       masks[sq] = mask;
       int permutations = 1 << popcount(mask);
