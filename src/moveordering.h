@@ -34,7 +34,6 @@ constexpr uint32_t SEEN_BY_PAWN_PENALTY  = -50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
-  
   for (int i = 1; i < length(); i++) {
     Move key = moves[i];
     int j = i - 1;
@@ -44,7 +43,6 @@ void CaptureList<Us>::insertion_sort() {
     }
     moves[j + 1] = key;
   }
-
 }
 
 template<Color Us>
@@ -59,8 +57,8 @@ void CaptureList<Us>::sort() {
     
     uint32_t score = 1000;
     
-    Square    to       = to_sq(m);
     Square    from     = from_sq(m);
+    Square    to       = to_sq(m);
     PieceType from_pt  = piece_type_on(from);
     PieceType captured = piece_type_on(to);
     
