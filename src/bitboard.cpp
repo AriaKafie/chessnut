@@ -12,8 +12,8 @@ void Bitboards::init() {
 
   init_magics();
 
-#define fdiag(s) (square_bb(s) | (BishopAttacks(s, 0) & (mask(s, NORTH_EAST) | mask(s, SOUTH_WEST))))
-#define bdiag(s) (square_bb(s) | (BishopAttacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST))))
+#define fdiag(s) (square_bb(s) | BishopAttacks(s, 0) & (mask(s, NORTH_EAST) | mask(s, SOUTH_WEST)))
+#define bdiag(s) (square_bb(s) | BishopAttacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST)))
 
 #define md(a, b) (rank_distance(a, b) + file_distance(a, b))
 
@@ -36,14 +36,12 @@ void Bitboards::init() {
       check_ray[ksq][s1] = 0ull;
       for (Direction d : {NORTH_EAST, SOUTH_EAST,
                           SOUTH_WEST, NORTH_WEST}) {
-        Bitboard bishop_ray =
-          BishopAttacks(ksq, square_bb(s1)) & mask(ksq, d);
+        Bitboard bishop_ray = BishopAttacks(ksq, square_bb(s1)) & mask(ksq, d);
         if (bishop_ray & square_bb(s1))
           check_ray[ksq][s1] = bishop_ray;
       }
       for (Direction d : {NORTH, EAST, SOUTH, WEST}) {
-        Bitboard rook_ray =
-          RookAttacks(ksq, square_bb(s1)) & mask(ksq, d);
+        Bitboard rook_ray = RookAttacks(ksq, square_bb(s1)) & mask(ksq, d);
         if (rook_ray & square_bb(s1))
           check_ray[ksq][s1] = rook_ray;
       }
