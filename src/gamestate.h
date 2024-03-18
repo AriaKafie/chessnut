@@ -20,6 +20,18 @@ namespace GameState {
 
   extern uint8_t castling_rights;
 
+  template<Color Perspective>
+  uint8_t kingside_rights() {
+    constexpr uint8_t msk = Perspective == WHITE ? 0b1000 : 0b0010;  
+    return castling_rights & msk;
+  }
+
+  template<Color Perspective>
+  uint8_t queenside_rights() {
+    constexpr uint8_t msk = Perspective == WHITE ? 0b0100 : 0b0001;
+    return castling_rights & msk;
+  }
+
   inline RepetitionTable repetition_table;
   inline int boardstate;
   inline int boardstate_save;
