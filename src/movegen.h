@@ -281,7 +281,7 @@ MoveList<Us>::MoveList(bool ep_enabled) :
   uint64_t key = ((occupied | seen_by_enemy) & KingBan) | rights_k;
   last += key == KingHash;
   *last = LCASTLE;
-  key = (occupied & QueenOcc) | (seen_by_enemy & QueenAtk) | rights_q;
+  key = occupied & QueenOcc | seen_by_enemy & QueenAtk | rights_q;
   last += key == QueenHash;
   
 }
