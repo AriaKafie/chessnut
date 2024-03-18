@@ -55,7 +55,7 @@ void CaptureList<Us>::sort() {
             
   for (Move& m : *this) {
     
-    uint32_t score = 1000;
+    uint32_t score = 0x7fff;
     
     Square    from     = from_sq(m);
     Square    to       = to_sq(m);
