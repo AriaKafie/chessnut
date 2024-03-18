@@ -121,12 +121,12 @@ inline Bitboard rank_bb(Square s) {
 
 inline Bitboard mask(Square s, Direction d) {
   switch (d) 
-    {
+  {
     case NORTH_EAST: return mask(s, NORTH) & mask(s, EAST);
     case SOUTH_EAST: return mask(s, SOUTH) & mask(s, EAST);
     case SOUTH_WEST: return mask(s, SOUTH) & mask(s, WEST);
     case NORTH_WEST: return mask(s, NORTH) & mask(s, WEST);
-    }
+  }
   if (d == NORTH || d == SOUTH) {
     Bitboard m = 0;
     while (is_ok(s += d))
