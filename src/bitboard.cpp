@@ -33,9 +33,7 @@ void Bitboards::init() {
     }
 
     for (Square ksq = H1; ksq <= A8; ksq++) {
-      check_ray[ksq][s1] = 0ull;
-      for (Direction d : {NORTH_EAST, SOUTH_EAST,
-                          SOUTH_WEST, NORTH_WEST}) {
+      for (Direction d : {NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST}) {
         Bitboard bishop_ray = BishopAttacks(ksq, square_bb(s1)) & mask(ksq, d);
         if (bishop_ray & square_bb(s1))
           check_ray[ksq][s1] = bishop_ray;
