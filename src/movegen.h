@@ -222,20 +222,18 @@ MoveList<Us>::MoveList(bool ep_enabled) :
       *last++ = make_move<ENPASSANT>(to - UpRight, to);
       Bitboard ep_toggle = b | shift<-UpRight>(b) | shift<-Up>(b);
       Bitboard o = occupied ^ ep_toggle;
-      Bitboard slider_checks = 
-        (BishopAttacks(ksq, o) & enemy_bishop_queen)
-        | (RookAttacks(ksq, o) & enemy_rook_queen);
-      if (slider_checks) last--;
+      Bitboard slider_checks = BishopAttacks(ksq, o) & enemy_bishop_queen | RookAttacks(ksq, o) & enemy_rook_queen;
+      if (slider_checks)
+        last--;
     }
-    if (Bitboard b = shift<UpLeft>(bb(FriendlyPawn)) & ep_square)  {
+    if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & ep_square) {
       Square to = lsb(b);
       *last++ = make_move<ENPASSANT>(to - UpLeft, to);
       Bitboard ep_toggle = b | shift<-UpLeft>(b) | shift<-Up>(b);
       Bitboard o = occupied ^ ep_toggle;
-      Bitboard slider_checks = 
-        (BishopAttacks(ksq, o) & enemy_bishop_queen)
-        | (RookAttacks(ksq, o) & enemy_rook_queen);
-      if (slider_checks) last--;
+      Bitboard slider_checks = BishopAttacks(ksq, o) & enemy_bishop_queen | RookAttacks(ksq, o) & enemy_rook_queen;
+      if (slider_checks)
+        last--;
     }
   }
 
