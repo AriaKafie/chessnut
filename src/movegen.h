@@ -267,22 +267,23 @@ MoveList<Us>::MoveList(bool ep_enabled) :
 
   if (~checkmask) return;
 
-  constexpr Bitboard QueenOcc  = Us == WHITE ? square_bb(B1, C1, D1) : square_bb(B8, C8, D8);
-  constexpr Bitboard KingBan   = Us == WHITE ? square_bb(F1, G1)     : square_bb(F8, G8);
-  constexpr Bitboard QueenAtk  = Us == WHITE ? square_bb(C1, D1)     : square_bb(C8, D8);
-  constexpr Bitboard KingHash  = Us == WHITE ? 8                     : 2;
-  constexpr Bitboard QueenHash = Us == WHITE ? 4                     : 1;
-            Bitboard rights_k  = Us == WHITE ? GameState::rights_K() : GameState::rights_k();
-            Bitboard rights_q  = Us == WHITE ? GameState::rights_Q() : GameState::rights_q();
-  constexpr Move     SCASTLE   = Us == WHITE ? W_SCASTLE             : B_SCASTLE;
-  constexpr Move     LCASTLE   = Us == WHITE ? W_LCASTLE             : B_LCASTLE;
-  
+  constexpr Bitboard KingBan  = Us == WHITE ? square_bb(F1, G1)     : square_bb(F8, G8);
+  constexpr Bitboard QueenOcc = Us == WHITE ? square_bb(B1, C1, D1) : square_bb(B8, C8, D8);
+  constexpr Bitboard QueenAtk = Us == WHITE ? square_bb(C1, D1)     : square_bb(C8, D8);
+  constexpr Bitboard KingKey  = Us == WHITE ? 0b1000                : 0b0010;
+  constexpr Bitboard QueenKey = Us == WHITE ? 0b0100                : 0b0001;
+  constexpr Move     SCASTLE  = Us == WHITE ? W_SCASTLE             : B_SCASTLE;
+  constexpr Move     LCASTLE  = Us == WHITE ? W_LCASTLE             : B_LCASTLE;
+            
+  uint64_t hash;
+
   *last = SCASTLE;
-  uint64_t key = (occupied | seen_by_enemy) & KingBan | rights_k;
-  last += key == KingHash;
+  hash = (occupied | seen_by_enemy) & KingBan | GameState::kingside_rights<Us>();
+  last += !(hash ^ KingKey);
+
   *last = LCASTLE;
-  key = occupied & QueenOcc | seen_by_enemy & QueenAtk | rights_q;
-  last += key == QueenHash;
+  hash = occupied & QueenOcc | seen_by_enemy & QueenAtk | GameState::queenside_rights<Us>();
+  last += !(hash ^ QueenKey);
   
 }
 
