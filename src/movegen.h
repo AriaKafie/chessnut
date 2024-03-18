@@ -214,8 +214,7 @@ MoveList<Us>::MoveList(bool ep_enabled) :
     }
   }
 
-  if (ep_enabled)
-  {
+  if (ep_enabled) {
     Bitboard ep_square = EnemyEP & GameState::current_ep_square();
     if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & ep_square) {
       Square to = lsb(b);
