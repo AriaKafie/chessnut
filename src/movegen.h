@@ -278,7 +278,7 @@ MoveList<Us>::MoveList(bool ep_enabled) :
   constexpr Move     LCASTLE   = Us == WHITE ? W_LCASTLE             : B_LCASTLE;
   
   *last = SCASTLE;
-  uint64_t key = ((occupied | seen_by_enemy) & KingBan) | rights_k;
+  uint64_t key = (occupied | seen_by_enemy) & KingBan | rights_k;
   last += key == KingHash;
   *last = LCASTLE;
   key = occupied & QueenOcc | seen_by_enemy & QueenAtk | rights_q;
