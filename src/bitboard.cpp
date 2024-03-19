@@ -23,8 +23,8 @@ void Bitboards::init() {
     b_diagonal[s1] = bdiag(s1);
 
     file[s1] = file_bb(s1);
-                
-    distance_from_center[s1] = std::min(std::min(md(s1, E4), md(s1, E5)), std::min(md(s1, D4), md(s1, D5)));
+      
+    distance_from_center[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
 
     for (Square s2 = H1; s2 <= A8; s2++) {
       pin_mask[s1][s2] =
@@ -33,7 +33,9 @@ void Bitboards::init() {
     }
 
     for (Square ksq = H1; ksq <= A8; ksq++) {
-      for (Direction d : {NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST}) {
+      check_ray[ksq][s1] = 0ull;
+      for (Direction d : {NORTH_EAST, SOUTH_EAST,
+                          SOUTH_WEST, NORTH_WEST}) {
         Bitboard bishop_ray = BishopAttacks(ksq, square_bb(s1)) & mask(ksq, d);
         if (bishop_ray & square_bb(s1))
           check_ray[ksq][s1] = bishop_ray;
