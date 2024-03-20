@@ -16,31 +16,42 @@
 
 inline std::string piece_to_char = "  PNBRQK  pnbrqk";
 
+inline std::string move_to_SAN(Move m) {
+
+  Square    from    = from_sq(m);
+  Square    to      = to_sq(m);
+  PieceType pt      = piece_type_on(from);
+  bool      capture = piece_on(to) || type_of(m) == ENPASSANT;
+
+  switch (type_of(m))
+  {
+    case SHORTCASTLE:
+      return "O-O";
+    case LONGCASTLE:
+      return "O-O-O";
+    case NORMAL:
+    case ENPASSANT:
+      return pt == PAWN ? capture ? std::string(1, char('h' - from % 8)) + "x" + UI::coords[to] : UI::coords[to] : std::string(1, piece_to_char[pt]) + (capture ? "x" : "") + UI::coords[to];
+    case PROMOTION:
+      return move_to_SAN(m ^ type_of(m)) + "=Q";
+  }
+}
+
+inline std::string bbtos(Bitboard b) {
+  std::string l, s;
+  l = s = "+---+---+---+---+---+---+---+---+\n";
+  for (Bitboard sqb = square_bb(A8); sqb; sqb >>= 1) {
+    s += (sqb & b) ? "| @ " : "|   ";
+    if (sqb & FILE_H)
+      s += "|\n" + l;
+  }
+  return s + "\n";
+}
+
 namespace Util {
 
   inline bool starts_with(const std::string& str, const std::string& prefix) {
     return str.compare(0, prefix.length(), prefix) == 0;
-  }
-
-  inline std::string move_to_SAN(Move m) {
-
-    Square    from    = from_sq(m);
-    Square    to      = to_sq(m);
-    PieceType pt      = piece_type_on(from);
-    bool      capture = piece_on(to) || type_of(m) == ENPASSANT;
-
-    switch (type_of(m))
-    {
-      case SHORTCASTLE:
-        return "O-O";
-      case LONGCASTLE:
-        return "O-O-O";
-      case NORMAL:
-      case ENPASSANT:
-        return pt == PAWN ? capture ? std::string(1, char('h' - from % 8)) + "x" + UI::coords[to] : UI::coords[to] : std::string(1, piece_to_char[pt]) + (capture ? "x" : "") + UI::coords[to];
-      case PROMOTION:
-        return move_to_SAN(m ^ type_of(m)) + "=Q";
-    }
   }
 
   inline int SAN_to_int(std::string sanstr) {
