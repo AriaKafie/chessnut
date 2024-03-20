@@ -48,10 +48,7 @@ void CaptureList<Us>::insertion_sort() {
 template<Color Us>
 void CaptureList<Us>::sort() {
 
-  constexpr Color Them      = !Us;
-  constexpr Piece EnemyPawn = make_piece(Them, PAWN);
-  
-  Bitboard seen_by_pawn = PawnAttacks<Them>(bb(EnemyPawn));
+  Bitboard seen_by_pawn = pawn_attacks<!Us>(bb<make_piece(!Us, PAWN)>());
             
   for (Move& m : *this) {
     
@@ -100,10 +97,7 @@ void MoveList<Us>::quicksort(int low, int high) {
 template<Color Us>
 void MoveList<Us>::sort(Move pv, int ply) {
 
-  constexpr Color Them      = !Us;
-  constexpr Piece EnemyPawn = make_piece(Them, PAWN);
-  
-  Bitboard seen_by_pawn = PawnAttacks<Them>(bb(EnemyPawn));
+  Bitboard seen_by_pawn = pawn_attacks<!Us>(bb<make_piece(!Us, PAWN)>());
               
   for (Move& m : *this) {
     

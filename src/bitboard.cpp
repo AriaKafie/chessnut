@@ -1,5 +1,6 @@
 
 #include "bitboard.h"
+#include <iostream>
 
 void init_magics();
 int score_kingshield(Square ksq, Bitboard occ, Color c);
@@ -8,69 +9,68 @@ void Bitboards::init() {
 
   for (Square s1 = H1; s1 <= A8; s1++)
     for (Square s2 = H1; s2 <= A8; s2++)
-      square_distance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
+      square_dist[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
 
   init_magics();
 
-#define fdiag(s) (square_bb(s) | BishopAttacks(s, 0) & (mask(s, NORTH_EAST) | mask(s, SOUTH_WEST)))
-#define bdiag(s) (square_bb(s) | BishopAttacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST)))
+#define mdiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST)))
+#define adiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_EAST) | mask(s, SOUTH_WEST)))
 
 #define md(a, b) (rank_distance(a, b) + file_distance(a, b))
 
   for (Square s1 = H1; s1 <= A8; s1++) {
 
-    f_diagonal[s1] = fdiag(s1);
-    b_diagonal[s1] = bdiag(s1);
+    main_diagonal[s1] = mdiag(s1);
+    anti_diagonal[s1] = adiag(s1);
 
-    file[s1] = file_bb(s1);
+    file[s1] = file_of(s1);
       
-    distance_from_center[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
+    center_dist[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
 
     for (Square s2 = H1; s2 <= A8; s2++) {
-      pin_mask[s1][s2] =
-          fdiag  (s1) & fdiag  (s2) | bdiag  (s1) & bdiag  (s2)
-        | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
+      pinmask[s1][s2] =
+          mdiag  (s1) & mdiag  (s2) | adiag  (s1) & adiag  (s2)
+        | rank_of(s1) & rank_of(s2) | file_of(s1) & file_of(s2);
     }
 
     for (Square ksq = H1; ksq <= A8; ksq++) {
-      check_ray[ksq][s1] = 0ull;
-      for (Direction d : {NORTH_EAST, SOUTH_EAST,
-                          SOUTH_WEST, NORTH_WEST}) {
-        Bitboard bishop_ray = BishopAttacks(ksq, square_bb(s1)) & mask(ksq, d);
+      for (Direction d : { NORTH_EAST, SOUTH_EAST,
+                           SOUTH_WEST, NORTH_WEST }) {
+        Bitboard bishop_ray = bishop_attacks(ksq, square_bb(s1)) & mask(ksq, d);
         if (bishop_ray & square_bb(s1))
-          check_ray[ksq][s1] = bishop_ray;
+          checkray[ksq][s1] = bishop_ray;
       }
-      for (Direction d : {NORTH, EAST, SOUTH, WEST}) {
-        Bitboard rook_ray = RookAttacks(ksq, square_bb(s1)) & mask(ksq, d);
+      for (Direction d : { NORTH, EAST, SOUTH, WEST }) {
+        Bitboard rook_ray = rook_attacks(ksq, square_bb(s1)) & mask(ksq, d);
         if (rook_ray & square_bb(s1))
-          check_ray[ksq][s1] = rook_ray;
+          checkray[ksq][s1] = rook_ray;
       }
     }
 
-    for (Direction d : {NORTH, NORTH_EAST, EAST, SOUTH_EAST,
-                        SOUTH, SOUTH_WEST, WEST, NORTH_WEST})
-      king_attacks[s1] |= safe_step(s1, d);
+    for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST,
+                         SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
+      king_atk[s1] |= safe_step(s1, d);
 
-    for (Direction d : {NORTHNORTH+EAST, NORTH_EAST+EAST, SOUTH_EAST+EAST, SOUTHSOUTH+EAST,
-                        SOUTHSOUTH+WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTHNORTH+WEST})
-      knight_attacks[s1] |= safe_step(s1, d);
+    for (Direction d : { NORTHNORTH+EAST, NORTH_EAST+EAST, SOUTH_EAST+EAST, SOUTHSOUTH+EAST,
+                         SOUTHSOUTH+WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTHNORTH+WEST })
+      knight_atk[s1] |= safe_step(s1, d);
 
     Square sq = 8 * (s1 / 8) + 1;
 
     white_kingshield[s1] =
-      ((rank_bb(sq + NORTH) | rank_bb(sq + NORTHNORTH))
+      ((rank_of(sq + NORTH) | rank_of(sq + NORTHNORTH))
        & ~(mask(sq + WEST, WEST)))
       << std::min(5, std::max(0, (s1 % 8) - 1));
 
     black_kingshield[s1] =
-      ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTHSOUTH))
+      ((rank_of(sq + SOUTH) | rank_of(sq + SOUTHSOUTH))
        & ~(mask(sq + WEST, WEST)))
       << std::min(5, std::max(0, (s1 % 8) - 1));
 
-    double_check[s1] = king_attacks[s1] | knight_attacks[s1];
+    doublecheck[s1] = king_atk[s1] | knight_atk[s1];
 
-    pawn_attacks[WHITE][s1] = PawnAttacks<WHITE>(square_bb(s1));
-    pawn_attacks[BLACK][s1] = PawnAttacks<BLACK>(square_bb(s1));
+    pawn_atk[WHITE][s1] = pawn_attacks<WHITE>(square_bb(s1));
+    pawn_atk[BLACK][s1] = pawn_attacks<BLACK>(square_bb(s1));
   }
 
 #undef fdiag
@@ -96,7 +96,7 @@ void Bitboards::init() {
     if (!(occ & square_bb(E8))) rights_mask &= cleark & clearq;
     if (!(occ & square_bb(A8))) rights_mask &= clearq;
 
-    castling_pext[pext(occ, msk)] = rights_mask;
+    castle_pext[pext(occ, msk)] = rights_mask;
   }
 
   for (Square sq = H1; sq <= A8; sq++) {
@@ -144,7 +144,7 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
     ? white_kingshield[ksq]
     : black_kingshield[ksq];
 
-  Bitboard file_right = file_bb(lsb(shield_mask));
+  Bitboard file_right = file_of(lsb(shield_mask));
   Bitboard file_mid   = file_right << 1;
   Bitboard file_left  = file_right << 2;
 
@@ -166,9 +166,9 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
 
 Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
-  Direction rook_dir  [4] = {NORTH,EAST,SOUTH,WEST};
-  Direction bishop_dir[4] = {NORTH_EAST,SOUTH_EAST,
-                             SOUTH_WEST,NORTH_WEST};
+  Direction rook_dir  [4] = { NORTH,EAST,SOUTH,WEST };
+  Direction bishop_dir[4] = { NORTH_EAST,SOUTH_EAST,
+                              SOUTH_WEST,NORTH_WEST };
   Bitboard atk = 0;
   for (Direction d : (pt == ROOK) ? rook_dir : bishop_dir) {
     Square s = sq;
@@ -181,19 +181,18 @@ Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
 void init_magics() {
 
-  for (PieceType pt : {ROOK, BISHOP}) {
+  for (PieceType pt : { ROOK, BISHOP }) {
 
     int permutation_sum = 0;
 
-    int*      base   = pt == ROOK ? rook_hash    : bishop_hash;
-    Bitboard* masks  = pt == ROOK ? rook_masks   : bishop_masks;
-    Bitboard* attack = pt == ROOK ? rook_attacks : bishop_attacks;
-    Bitboard* xray   = pt == ROOK ? rook_xray    : bishop_xray;
+    int*      base   = pt == ROOK ? rook_hash  : bishop_hash;
+    Bitboard* masks  = pt == ROOK ? rook_masks : bishop_masks;
+    Bitboard* attack = pt == ROOK ? rook_atk   : bishop_atk;
+    Bitboard* xray   = pt == ROOK ? rookxray   : bishopxray;
 
     for (Square sq = H1; sq <= A8; sq++) {
       base[sq] = permutation_sum;
-      Bitboard edges = (FILE_A | FILE_H) & ~file_bb(sq)
-                     | (RANK_1 | RANK_8) & ~rank_bb(sq);
+      Bitboard edges = (FILE_A | FILE_H) & ~file_of(sq) | (RANK_1 | RANK_8) & ~rank_of(sq);
       Bitboard mask = sliding_attacks(pt, sq, 0) & ~edges;
       masks[sq] = mask;
       int permutations = 1 << popcount(mask);
@@ -208,15 +207,4 @@ void init_magics() {
       }
     }
   }
-}
-
-std::string bitboard_to_string(Bitboard bb) {
-  std::string l,s;
-  l=s="+---+---+---+---+---+---+---+---+\n";
-  for (Bitboard sqb = square_bb(A8); sqb; sqb >>= 1) {
-    s += (sqb & bb) ? "| @ " : "|   ";
-    if (sqb & FILE_H)
-      s += "|\n" + l;
-  }
-  return s + "\n";
 }

@@ -4,36 +4,34 @@
 
 #include "types.h"
 
-#include <string>
 #include <immintrin.h>
 
-inline Bitboard rook_xray[102400];
-inline Bitboard bishop_xray[5248];
-inline Bitboard rook_attacks[102400];
-inline Bitboard bishop_attacks[5248];
+namespace Bitboards { void init(); }
+
+inline Bitboard rookxray[102400];
+inline Bitboard bishopxray[5248];
+inline Bitboard rook_atk[102400];
+inline Bitboard bishop_atk[5248];
 inline Bitboard bishop_masks[SQUARE_NB];
 inline Bitboard rook_masks[SQUARE_NB];
 inline int rook_hash[SQUARE_NB];
 inline int bishop_hash[SQUARE_NB];
-inline Bitboard double_check[SQUARE_NB];
-inline Bitboard knight_attacks[SQUARE_NB];
-inline Bitboard king_attacks[SQUARE_NB];
-inline Bitboard pawn_attacks[COLOR_NB][SQUARE_NB];
-inline Bitboard check_ray[SQUARE_NB][SQUARE_NB];
-inline Bitboard pin_mask[SQUARE_NB][SQUARE_NB];
-inline Bitboard f_diagonal[SQUARE_NB];
-inline Bitboard b_diagonal[SQUARE_NB];
+inline Bitboard doublecheck[SQUARE_NB];
+inline Bitboard knight_atk[SQUARE_NB];
+inline Bitboard king_atk[SQUARE_NB];
+inline Bitboard pawn_atk[COLOR_NB][SQUARE_NB];
+inline Bitboard checkray[SQUARE_NB][SQUARE_NB];
+inline Bitboard pinmask[SQUARE_NB][SQUARE_NB];
+inline Bitboard main_diagonal[SQUARE_NB];
+inline Bitboard anti_diagonal[SQUARE_NB];
 inline Bitboard file[SQUARE_NB];
-inline uint8_t square_distance[SQUARE_NB][SQUARE_NB];
-inline uint8_t distance_from_center[SQUARE_NB];
+inline uint8_t square_dist[SQUARE_NB][SQUARE_NB];
+inline uint8_t center_dist[SQUARE_NB];
 inline int white_kingshield_scores[SQUARE_NB][1 << 6];
 inline int black_kingshield_scores[SQUARE_NB][1 << 6];
-inline uint8_t castling_pext[1 << 6];
+inline uint8_t castle_pext[1 << 6];
 inline Bitboard white_kingshield[SQUARE_NB];
 inline Bitboard black_kingshield[SQUARE_NB];
-
-std::string bitboard_to_string(Bitboard bb);
-namespace Bitboards { void init(); }
 
 constexpr Bitboard ALL_SQUARES = 0xffffffffffffffffull;
 constexpr Bitboard FILE_A = 0x8080808080808080ull;
@@ -72,32 +70,32 @@ constexpr Bitboard shift(Bitboard bb) {
   if constexpr (D == SOUTHSOUTH) return  bb >> 16;
 }
 
-inline Bitboard CenterDistance(Square s) {
-  return distance_from_center[s];
+inline Bitboard distance_from_center(Square s) {
+  return center_dist[s];
 }
 
-inline Bitboard PinMask(Square ksq, Square pinned) {
-  return pin_mask[ksq][pinned];
+inline Bitboard pin_mask(Square ksq, Square pinned) {
+  return pinmask[ksq][pinned];
 }
 
-inline Bitboard FDiag(Square s) {
-  return f_diagonal[s];
+inline Bitboard main_diag(Square s) {
+  return main_diagonal[s];
 }
 
-inline Bitboard BDiag(Square s) {
-  return b_diagonal[s];
+inline Bitboard anti_diag(Square s) {
+  return anti_diagonal[s];
 }
 
-inline Bitboard File(Square s) {
+inline Bitboard file_bb(Square s) {
   return file[s];
 }
 
-inline Bitboard DoubleCheck(Square ksq) {
-  return double_check[ksq];
+inline Bitboard double_check(Square ksq) {
+  return doublecheck[ksq];
 }
 
-inline Bitboard CheckRay(Square ksq, Square checker) {
-  return check_ray[ksq][checker];
+inline Bitboard check_ray(Square ksq, Square checker) {
+  return checkray[ksq][checker];
 }
 
 constexpr Bitboard square_bb(Square s) {
@@ -109,14 +107,12 @@ inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
   return square_bb(sq) | square_bb(sqs...);
 }
 
-inline Bitboard file_bb(Square s) {
-  return is_ok(s) ? FILE_H << (s % 8) : 0ull;
+inline Bitboard rank_of(Square s) {
+  return is_ok(s) ? RANK_1 << 8 * (s / 8) : 0ull;
 }
 
-inline Bitboard rank_bb(Square s) {
-  return is_ok(s)
-    ? RANK_1 << 8 * (s / 8)
-    : 0ull;
+inline Bitboard file_of(Square s) {
+  return is_ok(s) ? FILE_H << (s % 8) : 0ull;
 }
 
 inline Bitboard mask(Square s, Direction d) {
@@ -130,14 +126,14 @@ inline Bitboard mask(Square s, Direction d) {
   if (d == NORTH || d == SOUTH) {
     Bitboard m = 0;
     while (is_ok(s += d))
-      m |= rank_bb(s);
+      m |= rank_of(s);
     return m;
   }
   else {
-    Bitboard r = rank_bb(s);
+    Bitboard r = rank_of(s);
     Bitboard m = 0;
     while (square_bb(s += d) & r)
-      m |= file_bb(s);
+      m |= FILE_H << (s % 8);
     return m;
   }
 }
@@ -162,42 +158,42 @@ inline uint64_t more_than_one(Bitboard b) {
   return _blsr_u64(b);
 }
 
-inline Bitboard KnightAttacks(Square sq) {
-  return knight_attacks[sq];
+inline Bitboard knight_attacks(Square sq) {
+  return knight_atk[sq];
 }
 
-inline Bitboard BishopAttacks(Square sq, Bitboard occupied) {
-  return bishop_attacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
+  return bishop_atk[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
 }
 
-inline Bitboard BishopXray(Square sq, Bitboard occupied) {
-  return bishop_xray[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
+  return bishopxray[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
 }
 
-inline Bitboard RookAttacks(Square sq, Bitboard occupied) {
-  return rook_attacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
+  return rook_atk[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
-inline Bitboard RookXray(Square sq, Bitboard occupied) {
-  return rook_xray[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+inline Bitboard rook_xray(Square sq, Bitboard occupied) {
+  return rookxray[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
-inline Bitboard QueenAttacks(Square sq, Bitboard occupied) {
-  return bishop_attacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])]
-    | rook_attacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+inline Bitboard queen_attacks(Square sq, Bitboard occupied) {
+  return bishop_atk[bishop_hash[sq] + pext(occupied, bishop_masks[sq])]
+    | rook_atk[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
-inline Bitboard KingAttacks(Square sq) {
-  return king_attacks[sq];
-}
-
-template<Color C>
-constexpr Bitboard PawnAttacks(Square sq) {
-  return pawn_attacks[C][sq];
+inline Bitboard king_attacks(Square sq) {
+  return king_atk[sq];
 }
 
 template<Color C>
-constexpr Bitboard PawnAttacks(Bitboard pawns) {
+constexpr Bitboard pawn_attacks(Square sq) {
+  return pawn_atk[C][sq];
+}
+
+template<Color C>
+constexpr Bitboard pawn_attacks(Bitboard pawns) {
   if constexpr (C == WHITE)
     return shift<NORTH_EAST>(pawns) | shift<NORTH_WEST>(pawns);
   else 
@@ -221,20 +217,20 @@ inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
 }
 
 template<Color C>
-int KingSafety(Square ksq, Bitboard occ) {
+int king_safety(Square ksq, Bitboard occ) {
   if constexpr (C == WHITE)
     return white_kingshield_scores[ksq][pext(occ, white_kingshield[ksq])];
   else
     return black_kingshield_scores[ksq][pext(occ, black_kingshield[ksq])];
 }
 
-inline uint8_t CastlingPext(Bitboard occupied) {
+inline uint8_t castling_pext(Bitboard occupied) {
   constexpr Bitboard mask = square_bb(A1, E1, H1, A8, E8, H8);
-  return castling_pext[pext(occupied, mask)];
+  return castle_pext[pext(occupied, mask)];
 }
 
-inline int Distance(Square a, Square b) {
-  return square_distance[a][b];
+inline int square_distance(Square a, Square b) {
+  return square_dist[a][b];
 }
 
 inline int file_distance(Square a, Square b) {
@@ -247,7 +243,7 @@ inline int rank_distance(Square a, Square b) {
 
 inline Bitboard safe_step(Square s, int step) {
   Square to = s + step;
-  return (is_ok(to) && Distance(s, to) <= 2) ? square_bb(to) : 0;
+  return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
 }
 
 #endif
