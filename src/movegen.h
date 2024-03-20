@@ -97,39 +97,6 @@ CaptureList<Us>::CaptureList() :
   last = make_pawn_moves<UpRight>(last, shift<UpRight>(pawns & (not_pinned | anti_diag(ksq))) & checkmask);
   last = make_pawn_moves<UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | main_diag(ksq))) & checkmask);
 
-  /*Bitboard minor_targets = (bb(Them) ^ bb(EnemyPawn) | enemy_unprotected) & checkmask;
-  Bitboard rook_targets  = (bb(EnemyRook) | bb(EnemyQueen) | enemy_unprotected) & checkmask;
-  Bitboard queen_targets = (bb(EnemyQueen) | enemy_unprotected) & checkmask;
-
-  for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, knight_attacks(from) & minor_targets);
-  }
-  for (Bitboard b = bb(FriendlyBishop) & not_pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, bishop_attacks(from, occupied) & minor_targets);
-  }
-  for (Bitboard b = bb(FriendlyBishop) & pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, bishop_attacks(from, occupied) & minor_targets & pin_mask(ksq, from));
-  }
-  for (Bitboard b = bb(FriendlyRook) & not_pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, rook_attacks(from, occupied) & rook_targets);
-  }
-  for (Bitboard b = bb(FriendlyRook) & pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, rook_attacks(from, occupied) & rook_targets & pin_mask(ksq, from));
-  }
-  for (Bitboard b = bb(FriendlyQueen) & not_pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, QueenAttacks(from, occupied) & queen_targets);
-  }
-  for (Bitboard b = bb(FriendlyQueen) & pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, QueenAttacks(from, occupied) & queen_targets & pin_mask(ksq, from));
-  }*/
-
   Bitboard friendly_rook_queen   = bb(FriendlyQueen) | bb(FriendlyRook);
   Bitboard friendly_bishop_queen = bb(FriendlyQueen) | bb(FriendlyBishop);
 
