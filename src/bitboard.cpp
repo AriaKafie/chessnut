@@ -1,6 +1,5 @@
 
 #include "bitboard.h"
-#include <iostream>
 
 void init_magics();
 int score_kingshield(Square ksq, Bitboard occ, Color c);
