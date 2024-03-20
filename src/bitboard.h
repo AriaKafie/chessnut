@@ -108,11 +108,11 @@ inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
 }
 
 inline Bitboard rank_of(Square s) {
-  return is_ok(s) ? RANK_1 << 8 * (s / 8) : 0ull;
+  return RANK_1 << 8 * (s / 8);
 }
 
 inline Bitboard file_of(Square s) {
-  return is_ok(s) ? FILE_H << (s % 8) : 0ull;
+  return FILE_H << (s % 8);
 }
 
 inline Bitboard mask(Square s, Direction d) {
