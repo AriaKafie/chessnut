@@ -21,17 +21,6 @@ typedef int      Square;
 typedef int      Color;
 typedef int      MoveType;
 typedef int      Direction;
-typedef int      Rank;
-
-enum Files {
-  FILE1,FILE2,FILE3,FILE4,
-  FILE5,FILE6,FILE7,FILE8
-};
-
-enum Ranks {
-  RANK1,RANK2,RANK3,RANK4,
-  RANK5,RANK6,RANK7,RANK8
-};
 
 enum Squares {
   H1, G1, F1, E1, D1, C1, B1, A1,
@@ -79,10 +68,6 @@ enum Directions {
   NORTHNORTH = NORTH + NORTH,
   SOUTHSOUTH = SOUTH + SOUTH
 };
-
-inline Rank rank_of(Square s) {
-  return s % 8;
-}
 
 constexpr Piece make_piece(Color c, PieceType pt) {
   return pt + (c << 3);
