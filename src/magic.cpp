@@ -9,7 +9,6 @@
 #include <fstream>
 #include <time.h>
 
-
 std::mt19937_64 rng(time(NULL));
 
 uint64_t magic_candidate();
