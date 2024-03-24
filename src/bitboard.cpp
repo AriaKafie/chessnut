@@ -1,7 +1,8 @@
 
 #include "bitboard.h"
 
-void init_magics();
+void init_magics(PieceType pt, int* base, Bitboard* masks, Bitboard* attacks, Bitboard* xray);
+
 int score_kingshield(Square ksq, Bitboard occ, Color c);
 
 void Bitboards::init() {
@@ -10,7 +11,8 @@ void Bitboards::init() {
     for (Square s2 = H1; s2 <= A8; s2++)
       square_dist[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
 
-  init_magics();
+  init_magics(BISHOP, bishop_hash, bishop_masks, bishop_atk, bishopxray);
+  init_magics(ROOK,   rook_hash,   rook_masks,   rook_atk,   rookxray  );
 
 #define mdiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST)))
 #define adiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_EAST) | mask(s, SOUTH_WEST)))
@@ -57,14 +59,10 @@ void Bitboards::init() {
     Square sq = 8 * (s1 / 8) + 1;
 
     white_kingshield[s1] =
-      ((rank_of(sq + NORTH) | rank_of(sq + NORTHNORTH))
-       & ~(mask(sq + WEST, WEST)))
-      << std::min(5, std::max(0, (s1 % 8) - 1));
+      ((rank_of(sq + NORTH) | rank_of(sq + NORTHNORTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
 
     black_kingshield[s1] =
-      ((rank_of(sq + SOUTH) | rank_of(sq + SOUTHSOUTH))
-       & ~(mask(sq + WEST, WEST)))
-      << std::min(5, std::max(0, (s1 % 8) - 1));
+      ((rank_of(sq + SOUTH) | rank_of(sq + SOUTHSOUTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
 
     doublecheck[s1] = king_atk[s1] | knight_atk[s1];
 
@@ -123,16 +121,16 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
   if (square_bb(ksq) & (FILE_E | FILE_D))
     return 10;
 
-  constexpr int pawn_weights[8][6] = {
-    // [H1..A1][LSB..MSB]
+  constexpr int pawn_weights[8][6] = 
+  { // [H1..A1][LSB..MSB]
     {10, 20, 15, 5, 10, 5},{5,  25, 15, 0, 0,  5},
     {20, 15, 10, 0, 0,  0},{0,  0,  0,  0, 0,  0},
     {0,  0,  0,  0, 0,  0},{10, 15, 20, 0, 0,  0},
     {15, 25, 5,  5, 0,  0},{15, 20, 10, 5, 10, 5}
   };
 
-  constexpr int file_weights[8][3] = {
-    // [H1..A1][right, middle, left]
+  constexpr int file_weights[8][3] =
+  { // [H1..A1][right, middle, left]
     {40, 50, 45},{40, 50, 45},
     {50, 45, 40},{0,  0,   0},
     {0,  0,   0},{40, 45, 50},
@@ -178,32 +176,26 @@ Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
 }
 
-void init_magics() {
+void init_magics(PieceType pt, int* base, Bitboard* masks, Bitboard* attacks, Bitboard* xray)
+{
+  int permutations, all_permutations = 0;
 
-  for (PieceType pt : { ROOK, BISHOP }) {
+  for (Square sq = H1; sq <= A8; sq++) {
 
-    int permutation_sum = 0;
+    base[sq] = all_permutations;
 
-    int*      base   = pt == ROOK ? rook_hash  : bishop_hash;
-    Bitboard* masks  = pt == ROOK ? rook_masks : bishop_masks;
-    Bitboard* attack = pt == ROOK ? rook_atk   : bishop_atk;
-    Bitboard* xray   = pt == ROOK ? rookxray   : bishopxray;
+    Bitboard edges = (FILE_A | FILE_H) & ~file_of(sq) | (RANK_1 | RANK_8) & ~rank_of(sq);
+    Bitboard mask = sliding_attacks(pt, sq, 0) & ~edges;
+    masks[sq] = mask;
 
-    for (Square sq = H1; sq <= A8; sq++) {
-      base[sq] = permutation_sum;
-      Bitboard edges = (FILE_A | FILE_H) & ~file_of(sq) | (RANK_1 | RANK_8) & ~rank_of(sq);
-      Bitboard mask = sliding_attacks(pt, sq, 0) & ~edges;
-      masks[sq] = mask;
-      int permutations = 1 << popcount(mask);
-      permutation_sum += permutations;
-      for (int p = 0; p < permutations; p++) {
-        Bitboard occupied = generate_occupancy(mask, p);
-        Bitboard attacks = sliding_attacks(pt, sq, occupied);
-        int hash = pext(occupied, mask);
-        attack[base[sq] + hash] = attacks;
-        xray[base[sq] + hash] =
-          sliding_attacks(pt, sq, occupied ^ (attacks & occupied));
-      }
+    all_permutations += permutations = 1 << popcount(mask);
+
+    for (int p = 0; p < permutations; p++) {
+      Bitboard occupied = generate_occupancy(mask, p);
+      Bitboard attack_mask = sliding_attacks(pt, sq, occupied);
+      int hash = pext(occupied, mask);
+      attacks[base[sq] + hash] = attack_mask;
+      xray[base[sq] + hash] = sliding_attacks(pt, sq, occupied ^ (attack_mask & occupied));
     }
   }
 }
