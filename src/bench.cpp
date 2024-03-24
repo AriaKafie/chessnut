@@ -9,7 +9,8 @@
 #include "evaluation.h"
 #include "transpositiontable.h"
 #include "debug.h"
-#include "moveordering.hpp"
+#include "moveordering.h"
+#include "uci.h"
 
 #include <chrono>
 #include <iostream>
@@ -17,16 +18,16 @@
 
 void Bench::count_nodes(int depth) {
 
-  node_count = 0;
-  q_node_count = 0;
+  nodes = 0;
+  qnodes = 0;
   int node_sum = 0;
   int q_node_sum = 0;
   uint64_t total_time = 0;
 
   for (std::string fen : fens) {
 
-    node_count = 0;
-    q_node_count = 0;
+    nodes = 0;
+    qnodes = 0;
     std::cout << fen << "  ";
     GameState::init(fen);
     TranspositionTable::clear();
@@ -42,18 +43,17 @@ void Bench::count_nodes(int depth) {
         ml.sort(best_move, 0);
 
         for (int i = 0; i < ml.length(); i++) {
-          Piece capture = Board::pieces[to_sq(ml[i])];
           uint8_t c_rights = GameState::castling_rights;
-          Board::make_legal(ml[i]);
+          Piece captured = piece_on(to_sq(ml[i]));
+          do_legal(ml[i]);
           int eval = Search::search<false>(alpha, MAX_INT, d - 1 - reduction[i], 0);
           if ((eval > alpha) && (reduction[i]))
             eval = Search::search<false>(alpha, MAX_INT, d - 1, 0);
-
           if (eval > alpha) {
             alpha = eval;
             best_move = ml[i];
           }
-          Board::undo_legal(ml[i], capture);
+          undo_legal(ml[i], captured);
           GameState::castling_rights = c_rights;
         }
       }
@@ -63,9 +63,9 @@ void Bench::count_nodes(int depth) {
         ml.sort(best_move, 0);
 
         for (int i = 0; i < ml.length(); i++) {
-          Piece capture = Board::pieces[to_sq(ml[i])];
+          Piece captured = piece_on(to_sq(ml[i]));
           uint8_t c_rights = GameState::castling_rights;
-          Board::make_legal(ml[i]);
+          do_legal(ml[i]);
           int eval = Search::search<true>(MIN_INT, beta, d - 1 - reduction[i], 0);
           if ((eval < beta) && (reduction[i]))
             eval = Search::search<true>(MIN_INT, beta, d - 1, 0);
@@ -73,7 +73,7 @@ void Bench::count_nodes(int depth) {
             beta = eval;
             best_move = ml[i];
           }
-          Board::undo_legal(ml[i], capture);
+          undo_legal(ml[i], captured);
           GameState::castling_rights = c_rights;
         }
       }
@@ -83,10 +83,10 @@ void Bench::count_nodes(int depth) {
     total_time += duration_ms;
 
     Search::in_search = false;
-    std::cout << node_count << " nodes and " << q_node_count << " q_nodes\nsearched in " << duration_ms << " ms\n\n";
-    node_sum += node_count;
-    q_node_sum += q_node_count;
+    std::cout << nodes << " nodes and " << qnodes << " qnodes\nsearched in " << duration_ms << " ms\n\n";
+    node_sum += nodes;
+    q_node_sum += qnodes;
 
   }
-  std::cout << "total nodes: " << node_sum << "\ntotal q_nodes: " << q_node_sum << "\nin: " << total_time << " ms\n";
+  std::cout << "total nodes: " << node_sum << "\ntotal qnodes: " << q_node_sum << "\nin: " << total_time << " ms\n";
 }

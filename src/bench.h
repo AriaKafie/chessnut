@@ -38,8 +38,8 @@ inline std::vector<std::string> fens = {
 
 namespace Bench {
   void count_nodes(int depth);
-  inline int node_count;
-  inline int q_node_count;
+  inline int nodes;
+  inline int qnodes;
 }
 
 #endif
