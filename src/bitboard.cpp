@@ -1,9 +1,9 @@
 
 #include "bitboard.h"
 
-void init_magics(PieceType pt, int* base, Bitboard* masks, Bitboard* attacks, Bitboard* xray);
-
 int score_kingshield(Square ksq, Bitboard occ, Color c);
+
+void init_magics(PieceType pt, int* base, Bitboard* masks, Bitboard* attacks, Bitboard* xray);
 
 void Bitboards::init() {
 
