@@ -7,10 +7,13 @@
 #include <random>
 #include <iostream>
 #include <fstream>
+#include <time.h>
 
-uint64_t random_u64();
+
+std::mt19937_64 rng(time(NULL));
+
 uint64_t magic_candidate();
-bool has_collisions(const std::vector<int>& hashcodes, const std::vector<uint64_t>& values);
+bool has_collisions(const std::vector<int>& keys, const std::vector<uint64_t>& values);
 
 /*  PRODUCTIVE COLLISION MAGICS ( >> 65 - bitcount)
         
@@ -37,7 +40,7 @@ void thing() {
 
   for (int p = 0; p < permutations; p++) {
     Bitboard occupancy = generate_occupancy(mask, p);
-    o << bitboard_to_string(occupancy) << ((occupancy * magic) >> (64 - bitcount)) << "\n";
+    o << bbtos(occupancy) << ((occupancy * magic) >> (64 - bitcount)) << "\n";
   }
   o.close();
   std::cout << "file write successful";
@@ -48,7 +51,7 @@ void Magic::search() {
 
   //thing(); return;
   constexpr uint64_t search_time = 120000;
-  std::cout << "Bitboard rook_magics[SQUARE_NB] = {\n";
+  std::cout << "Bitboard rook_magics[SQUARE_NB] =\n{\n";
   for (Square sq = H1; sq <= A8; sq++) {
 
     std::vector<Bitboard> occupancies;
@@ -60,7 +63,7 @@ void Magic::search() {
     for (int p = 0; p < permutations; p++) {
       Bitboard occ = generate_occupancy(mask, p);
       occupancies.push_back(occ);
-      attacks.push_back(RookAttacks(sq, occ));
+      attacks.push_back(rook_attacks(sq, occ));
     }
 
     uint64_t magic;
@@ -71,39 +74,25 @@ void Magic::search() {
 
     while (!valid_magic) {
       magic = magic_candidate();
-      std::vector<int> hashcodes;
-      for (Bitboard occupancy : occupancies) {
-        hashcodes.push_back((occupancy * magic) >> (64 - bitcount));
-      }
-      valid_magic = !has_collisions(hashcodes, attacks);
+      std::vector<int> keys;
+      for (Bitboard occupancy : occupancies)
+        keys.push_back(occupancy * magic >> 64 - bitcount);
+      valid_magic = !has_collisions(keys, attacks);
     }
-    std::cout << "0x" << std::hex << magic << "ull,\n";
+    std::cout << "  0x" << std::hex << magic << "ull,\n";
   }
   std::cout << "};\n";
 }
 
 uint64_t magic_candidate() {
-  return random_u64() & random_u64() & random_u64();
+  return rng() & rng() & rng();
 }
 
-uint64_t random_u64() {
-
-  std::random_device rd;
-  std::mt19937_64 gen(rd());
-
-  std::uniform_int_distribution<uint64_t> dis(std::numeric_limits<uint64_t>::min(),
-                                              std::numeric_limits<uint64_t>::max());
-
-  return dis(gen);
-}
-
-bool has_collisions(const std::vector<int>& hashcodes, const std::vector<uint64_t>& values) {
-  for (int i = 0; i < hashcodes.size(); i++) {
-    for (int j = 0; j < hashcodes.size(); j++) {
-      if ((hashcodes[i] == hashcodes[j])
-          && (values[i] != values   [j])) {
+bool has_collisions(const std::vector<int>& keys, const std::vector<uint64_t>& values) {
+  for (int i = 0; i < keys.size(); i++) {
+    for (int j = 0; j < keys.size(); j++) {
+      if (keys[i] == keys[j] && values[i] != values[j])
         return true;
-      }
     }
   }
   return false;
