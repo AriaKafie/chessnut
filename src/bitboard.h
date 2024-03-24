@@ -6,6 +6,10 @@
 
 #include <immintrin.h>
 
+#define pext(b, m)  _pext_u64(b, m)
+#define popcount(b) _mm_popcnt_u64(b)
+#define lsb(b)      _tzcnt_u64(b)
+
 namespace Bitboards { void init(); }
 
 inline Bitboard rookxray[102400];
@@ -138,18 +142,6 @@ inline Bitboard mask(Square s, Direction d) {
   }
 }
 
-inline uint64_t pext(Bitboard src, Bitboard msk) {
-  return _pext_u64(src, msk);
-}
-
-inline int popcount(Bitboard b) {
-  return _mm_popcnt_u64(b);
-}
-
-inline int lsb(Bitboard b) {
-  return _tzcnt_u64(b);
-}
-
 inline void pop_lsb(Bitboard& b) {
   b = _blsr_u64(b);
 }
@@ -179,8 +171,7 @@ inline Bitboard rook_xray(Square sq, Bitboard occupied) {
 }
 
 inline Bitboard queen_attacks(Square sq, Bitboard occupied) {
-  return bishop_atk[bishop_hash[sq] + pext(occupied, bishop_masks[sq])]
-    | rook_atk[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+  return bishop_atk[bishop_hash[sq] + pext(occupied, bishop_masks[sq])] | rook_atk[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard king_attacks(Square sq) {
