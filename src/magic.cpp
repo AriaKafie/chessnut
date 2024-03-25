@@ -6,10 +6,11 @@
 #include <random>
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
 
 std::mt19937_64 rng(curr_time_millis());
 
-bool has_collisions(const std::vector<int>& keys, const std::vector<uint64_t>& values);
+bool has_duplicates(const std::vector<int>& keys);
 
 /*  PRODUCTIVE COLLISION MAGICS ( >> 65 - bitcount)
         
@@ -48,37 +49,33 @@ void Magic::search() {
 
   for (Square sq = H1; sq <= A8; sq++) {
 
-    std::vector<Bitboard> occupancies;
-    std::vector<Bitboard> attacks;
-
     int bitcount = popcount(rook_masks[sq]);
 
-    for (int p = 0; p < 1 << bitcount; p++) {
-      Bitboard occ = generate_occupancy(rook_masks[sq], p);
-      occupancies.push_back(occ);
-      attacks.push_back(rook_attacks(sq, occ));
-    }
+    std::vector<Bitboard> occupancies;
+
+    for (int p = 0; p < 1 << bitcount; p++)
+      occupancies.push_back(generate_occupancy(rook_masks[sq], p));
 
     uint64_t magic;
     std::vector<int> keys;
 
     do
     {
-      magic = magic_candidate();
       keys.clear();
+      magic = magic_candidate();
       for (Bitboard occupancy : occupancies)
         keys.push_back(occupancy * magic >> 64 - bitcount);
-    } while (has_collisions(keys, attacks));
+    } while (has_duplicates(keys));
 
     std::cout << "  0x" << std::hex << magic << "ull,\n";
   }
   std::cout << "};\n";
 }
 
-bool has_collisions(const std::vector<int>& keys, const std::vector<uint64_t>& values) {
+bool has_duplicates(const std::vector<int>& keys) {
   for (int i = 0; i < keys.size(); i++)
     for (int j = i + 1; j < keys.size(); j++)
-      if (keys[i] == keys[j] && values[i] != values[j])
+      if (keys[i] == keys[j])
         return true;
   return false;
 }
