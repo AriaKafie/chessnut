@@ -9,7 +9,6 @@
 
 std::mt19937_64 rng(curr_time_millis());
 
-uint64_t magic_candidate();
 bool has_collisions(const std::vector<int>& keys, const std::vector<uint64_t>& values);
 
 /*  PRODUCTIVE COLLISION MAGICS ( >> 65 - bitcount)
@@ -40,6 +39,8 @@ void Magic::test_magic(Square sq, uint64_t magic) {
   std::cout << "file write successful";
 
 }
+
+uint64_t magic_candidate() { return rng() & rng() & rng(); }
 
 void Magic::search() {
 
@@ -75,16 +76,10 @@ void Magic::search() {
   std::cout << "};\n";
 }
 
-uint64_t magic_candidate() {
-  return rng() & rng() & rng();
-}
-
 bool has_collisions(const std::vector<int>& keys, const std::vector<uint64_t>& values) {
-  for (int i = 0; i < keys.size(); i++) {
-    for (int j = 0; j < keys.size(); j++) {
+  for (int i = 0; i < keys.size(); i++)
+    for (int j = i + 1; j < keys.size(); j++)
       if (keys[i] == keys[j] && values[i] != values[j])
         return true;
-    }
-  }
   return false;
 }
