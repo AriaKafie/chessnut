@@ -6,7 +6,6 @@
 #include <random>
 #include <iostream>
 #include <fstream>
-#include <unordered_set>
 
 std::mt19937_64 rng(curr_time_millis());
 
@@ -37,7 +36,7 @@ void Magic::test_magic(Square sq, uint64_t magic) {
   }
 
   o.close();
-  std::cout << "file write successful";
+  std::cout << "success\n";
 
 }
 
@@ -47,14 +46,12 @@ void Magic::search() {
 
   std::cout << "Bitboard rook_magics[SQUARE_NB] =\n{\n";
 
-  for (Square sq = H1; sq <= A8; sq++) {
-
-    int bitcount = popcount(rook_masks[sq]);
+  for (Bitboard mask : rook_masks) {
 
     std::vector<Bitboard> occupancies;
 
-    for (int p = 0; p < 1 << bitcount; p++)
-      occupancies.push_back(generate_occupancy(rook_masks[sq], p));
+    for (int i = 0; i < 1 << popcount(mask); i++)
+      occupancies.push_back(generate_occupancy(mask, i));
 
     uint64_t magic;
     std::vector<int> keys;
@@ -64,7 +61,7 @@ void Magic::search() {
       keys.clear();
       magic = magic_candidate();
       for (Bitboard occupancy : occupancies)
-        keys.push_back(occupancy * magic >> 64 - bitcount);
+        keys.push_back(occupancy * magic >> 64 - popcount(mask));
     } while (has_duplicates(keys));
 
     std::cout << "  0x" << std::hex << magic << "ull,\n";
