@@ -12,6 +12,11 @@
 
 namespace Bitboards { void init(); }
 
+namespace Magic {
+  void search();
+  void test_magic(Square sq, uint64_t magic);
+}
+
 inline Bitboard rookxray[102400];
 inline Bitboard bishopxray[5248];
 inline Bitboard rook_atk[102400];

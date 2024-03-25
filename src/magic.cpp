@@ -1,5 +1,4 @@
 
-#include "magic.h"
 #include "bitboard.h"
 #include "util.h"
 
@@ -7,10 +6,8 @@
 #include <random>
 #include <iostream>
 #include <fstream>
-#include <time.h>
 
-
-std::mt19937_64 rng(time(NULL));
+std::mt19937_64 rng(curr_time_millis());
 
 uint64_t magic_candidate();
 bool has_collisions(const std::vector<int>& keys, const std::vector<uint64_t>& values);
@@ -36,7 +33,7 @@ void Magic::test_magic(Square sq, uint64_t magic) {
 
   for (int p = 0; p < 1 << popcount(rook_masks[sq]); p++) {
     Bitboard occupancy = generate_occupancy(rook_masks[sq], p);
-    o << bbtos(occupancy) << ((occupancy * magic) >> (64 - popcount(rook_masks[sq]))) << "\n";
+    o << bbtos(occupancy) << (occupancy * magic >> 64 - popcount(rook_masks[sq])) << "\n";
   }
 
   o.close();
@@ -53,24 +50,25 @@ void Magic::search() {
     std::vector<Bitboard> occupancies;
     std::vector<Bitboard> attacks;
 
-    Bitboard mask = rook_masks[sq];
-    int bitcount = popcount(mask);
-    int permutations = 1 << bitcount;
-    for (int p = 0; p < permutations; p++) {
-      Bitboard occ = generate_occupancy(mask, p);
+    int bitcount = popcount(rook_masks[sq]);
+
+    for (int p = 0; p < 1 << bitcount; p++) {
+      Bitboard occ = generate_occupancy(rook_masks[sq], p);
       occupancies.push_back(occ);
       attacks.push_back(rook_attacks(sq, occ));
     }
 
     uint64_t magic;
-    std::vector<int> keys(64);
+    std::vector<int> keys;
 
     do
     {
       magic = magic_candidate();
+      keys.clear();
       for (Bitboard occupancy : occupancies)
-        keys.push_back((occupancy * magic) >> (64 - bitcount));
-    } while (!has_collisions(keys, attacks));
+        keys.push_back(occupancy * magic >> 64 - bitcount);
+    }
+    while (has_collisions(keys, attacks));
 
     std::cout << "  0x" << std::hex << magic << "ull,\n";
   }
