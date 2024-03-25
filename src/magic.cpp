@@ -68,8 +68,7 @@ void Magic::search() {
       keys.clear();
       for (Bitboard occupancy : occupancies)
         keys.push_back(occupancy * magic >> 64 - bitcount);
-    }
-    while (has_collisions(keys, attacks));
+    } while (has_collisions(keys, attacks));
 
     std::cout << "  0x" << std::hex << magic << "ull,\n";
   }
