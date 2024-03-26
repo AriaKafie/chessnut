@@ -7,27 +7,28 @@
 
 #include <string>
 
+#define bb(P) bitboard<P>()
+
 extern Bitboard bitboards[];
 extern Piece board[];
 
-inline Stack<Piece> piece_stack;
+inline StateInfo state_stack[MAX_PLY], *state_ptr = state_stack;
 
 namespace Zobrist {
   constexpr uint64_t Side = 17200288208102703589ull;
   extern uint64_t hash[B_KING + 1][SQUARE_NB];
-  extern uint64_t key;
 }
 
 namespace Position {
 
 void init();
 void set(const std::string& fen);
+void commit_move(Move m);
 
-inline Color      side_to_move;
-inline Color      us;
-inline Color      them;
-inline GamePhase  gamephase;
-inline StateImage st;
+inline Color     side_to_move;
+inline Color     us;
+inline Color     them;
+inline GamePhase gamephase;
 
 inline bool white_to_move() { return side_to_move == WHITE; }
 inline bool black_to_move() { return side_to_move == BLACK; }
@@ -40,25 +41,23 @@ template<Color Perspective>
 uint8_t kingside_rights()
 {
   constexpr Bitboard Mask = Perspective == WHITE ? 0b1000 : 0b0010;
-  return st.castling_rights & Mask;
+  return state_ptr->castling_rights & Mask;
 }
 template<Color Perspective>
 uint8_t queenside_rights()
 {
   constexpr Bitboard Mask = Perspective == WHITE ? 0b0100 : 0b0001;
-  return st.castling_rights & Mask;
+  return state_ptr->castling_rights & Mask;
 }
 
-inline Bitboard ep_bb() { return square_bb(st.ep_sq); }
+inline Bitboard ep_bb() { return square_bb(state_ptr->ep_sq); }
 
-inline uint64_t key() { return st.key; }
+inline uint64_t key() { return state_ptr->key; }
 
 } // namespace Position
 
 template<Piece P>
-Bitboard bb() { return bitboards[P]; }
-
-#define bb(P) bb<P>()
+Bitboard bitboard() { return bitboards[P]; }
 
 inline Piece piece_on(Square sq) { return board[sq]; }
 
@@ -70,9 +69,7 @@ template<Color> void do_move(Move m);
 template<Color> void undo_move(Move m);
 
 template<Color> ForceInline void do_capture(Move m);
-template<Color> ForceInline void undo_capture(Move m);
-
-void commit_move(Move m);
+template<Color> ForceInline void undo_capture(Move m, Piece captured);
 
 template<Color JustMoved, MoveType Type>
 ForceInline void update_castling_rights() {
@@ -90,14 +87,14 @@ ForceInline void update_castling_rights() {
   constexpr Piece EnemyRook    = make_piece(Them     , ROOK);
   
   if constexpr (Type == NORMAL)
-    Position::st.castling_rights &=
+    state_ptr->castling_rights &=
       castling_pext(bitboards[FriendlyKing] & FriendlyKingStart | bitboards[FriendlyRook] & FriendlyRookStart | bitboards[EnemyRook] | EnemyKingStart);
 
   else if constexpr (Type == PROMOTION)
-    Position::st.castling_rights &= castling_pext(bitboards[EnemyRook] | FriendlyKingStart | FriendlyRookStart | EnemyKingStart);
+    state_ptr->castling_rights &= castling_pext(bitboards[EnemyRook] | FriendlyKingStart | FriendlyRookStart | EnemyKingStart);
 
   else if constexpr (Type == SHORTCASTLE || Type == LONGCASTLE)
-    Position::st.castling_rights &= ClearRights;
+    state_ptr->castling_rights &= ClearRights;
 
 }
 
@@ -108,12 +105,8 @@ ForceInline void do_capture(Move m) {
   constexpr Piece Pawn  = make_piece(Us, PAWN);
   constexpr Piece Queen = make_piece(Us, QUEEN);
 
-  Position::side_to_move = !Position::side_to_move;
-
   Square from = from_sq(m);
   Square to   = to_sq(m);
-
-  piece_stack.push(piece_on(to));
 
   Bitboard to_bb   = square_bb(to);
   Bitboard from_to = square_bb(from, to);
@@ -140,15 +133,11 @@ ForceInline void do_capture(Move m) {
 }
 
 template<Color Us>
-ForceInline void undo_capture(Move m) {
+ForceInline void undo_capture(Move m, Piece captured) {
 
   constexpr Color Them  = !Us;
   constexpr Piece Pawn  = make_piece(Us, PAWN);
   constexpr Piece Queen = make_piece(Us, QUEEN);
-
-  Position::side_to_move = !Position::side_to_move;
-
-  Piece captured = piece_stack.pop();
 
   Square from = from_sq(m);
   Square to   = to_sq(m);
@@ -180,8 +169,6 @@ ForceInline void undo_capture(Move m) {
 template<Color Us>
 void do_move(Move m) {
 
-  using Position::st;
-
   constexpr Color Them = !Us;
 
   constexpr Piece Pawn  = make_piece(Us, PAWN);
@@ -192,25 +179,26 @@ void do_move(Move m) {
   constexpr Direction Up  = Us == WHITE ? NORTH : SOUTH;
   constexpr Direction Up2 = Up * 2;
 
-  Position::side_to_move = !Position::side_to_move;
-
   Square from = from_sq(m);
   Square to   = to_sq(m);
 
-  piece_stack.push(piece_on(to));
-  st.ep_sq = 0;
-  bool double_push = piece_type_on(to) == PAWN && to - from == Up2;
+  memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
+  state_ptr++;
+  state_ptr->captured = piece_on(to);
+
+  //state_ptr->ep_sq = 0;
+  //bool double_push = piece_type_on(from) == PAWN && to - from == Up2;
 
   Bitboard to_bb   = square_bb(to);
   Bitboard from_to = square_bb(from, to);
 
   switch (type_of(m)) {
   case NORMAL:
-    st.ep_sq = (from + Up) * double_push;
-    st.key ^= Zobrist::hash[board[from]][from];
-    st.key ^= Zobrist::hash[board[from]][to];
-    st.key ^= Zobrist::hash[board[to]][to];
-    st.key ^= Zobrist::Side;
+    //state_ptr->ep_sq = (from + Up) * double_push;
+    state_ptr->key ^= Zobrist::hash[board[from]][from];
+    state_ptr->key ^= Zobrist::hash[board[from]][to];
+    state_ptr->key ^= Zobrist::hash[board[to]][to];
+    state_ptr->key ^= Zobrist::Side;
     bitboards[board[to]] &= ~to_bb;
     bitboards[Them] &= ~to_bb;
     bitboards[board[from]] ^= from_to;
@@ -220,10 +208,10 @@ void do_move(Move m) {
     update_castling_rights<Us, NORMAL>();
     return;
   case PROMOTION:
-    st.key ^= Zobrist::hash[Pawn][from];
-    st.key ^= Zobrist::hash[Queen][to];
-    st.key ^= Zobrist::hash[board[to]][to];
-    st.key ^= Zobrist::Side;
+    state_ptr->key ^= Zobrist::hash[Pawn][from];
+    state_ptr->key ^= Zobrist::hash[Queen][to];
+    state_ptr->key ^= Zobrist::hash[board[to]][to];
+    state_ptr->key ^= Zobrist::Side;
     bitboards[board[to]] &= ~to_bb;
     bitboards[Them] &= ~to_bb;
     bitboards[Pawn] ^= square_bb(from);
@@ -243,11 +231,11 @@ void do_move(Move m) {
     constexpr Bitboard king_from_to = square_bb(king_from, king_to);
     constexpr Bitboard rook_from_to = square_bb(rook_from, rook_to);
 
-    st.key ^= Zobrist::hash[King][king_from];
-    st.key ^= Zobrist::hash[King][king_to];
-    st.key ^= Zobrist::hash[Rook][rook_from];
-    st.key ^= Zobrist::hash[Rook][rook_to];
-    st.key ^= Zobrist::Side;
+    state_ptr->key ^= Zobrist::hash[King][king_from];
+    state_ptr->key ^= Zobrist::hash[King][king_to];
+    state_ptr->key ^= Zobrist::hash[Rook][rook_from];
+    state_ptr->key ^= Zobrist::hash[Rook][rook_to];
+    state_ptr->key ^= Zobrist::Side;
     bitboards[King] ^= king_from_to;
     bitboards[Rook] ^= rook_from_to;
     bitboards[Us] ^= king_from_to ^ rook_from_to;
@@ -268,11 +256,11 @@ void do_move(Move m) {
     constexpr Bitboard king_from_to = square_bb(king_from, king_to);
     constexpr Bitboard rook_from_to = square_bb(rook_from, rook_to);
 
-    st.key ^= Zobrist::hash[King][king_from];
-    st.key ^= Zobrist::hash[King][king_to];
-    st.key ^= Zobrist::hash[Rook][rook_from];
-    st.key ^= Zobrist::hash[Rook][rook_to];
-    st.key ^= Zobrist::Side;
+    state_ptr->key ^= Zobrist::hash[King][king_from];
+    state_ptr->key ^= Zobrist::hash[King][king_to];
+    state_ptr->key ^= Zobrist::hash[Rook][rook_from];
+    state_ptr->key ^= Zobrist::hash[Rook][rook_to];
+    state_ptr->key ^= Zobrist::Side;
     bitboards[King] ^= king_from_to;
     bitboards[Rook] ^= rook_from_to;
     bitboards[Us] ^= king_from_to ^ rook_from_to;
@@ -286,10 +274,10 @@ void do_move(Move m) {
   case ENPASSANT:
     constexpr Piece  EPawn = make_piece(Them, PAWN);
               Square capsq = to + (Us == WHITE ? SOUTH : NORTH);
-    st.key ^= Zobrist::hash[Pawn][from];
-    st.key ^= Zobrist::hash[Pawn][to];
-    st.key ^= Zobrist::hash[EPawn][capsq];
-    st.key ^= Zobrist::Side;
+    state_ptr->key ^= Zobrist::hash[Pawn][from];
+    state_ptr->key ^= Zobrist::hash[Pawn][to];
+    state_ptr->key ^= Zobrist::hash[EPawn][capsq];
+    state_ptr->key ^= Zobrist::Side;
     bitboards[Pawn] ^= from_to;
     bitboards[EPawn] ^= square_bb(capsq);
     bitboards[Us] ^= from_to;
@@ -311,9 +299,8 @@ void undo_move(Move m) {
   constexpr Piece Queen = make_piece(Us, QUEEN);
   constexpr Piece King  = make_piece(Us, KING);
 
-  Position::side_to_move = !Position::side_to_move;
-
-  Piece captured = piece_stack.pop();
+  Piece captured = state_ptr->captured;
+  --state_ptr;
 
   Square from = from_sq(m);
   Square to   = to_sq(m);

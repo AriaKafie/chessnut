@@ -6,12 +6,12 @@
 #include <random>
 #include <sstream>
 
+void set_gamephase();
+
 Bitboard bitboards[B_KING + 1];
 Piece board[SQUARE_NB];
 
 uint64_t Zobrist::hash[B_KING + 1][SQUARE_NB];
-
-void set_gamephase();
 
 void Position::init() {
   
@@ -28,21 +28,21 @@ void Position::init() {
 
 void Position::set(const std::string& fen) {
 
+  memset(board, NO_PIECE, 64 * sizeof(Piece));
   memset(bitboards, 0ull, 16 * sizeof(Bitboard));
-  memset(board, NO_PIECE, 64 * sizeof(Piece   ));
 
   uint8_t token;
   Square sq = A8;
   size_t piece, idx;
 
-  std::istringstream ss(fen);
-  ss >> std::noskipws;
+  std::istringstream iss(fen);
+  iss >> std::noskipws;
 
-  while (ss >> token) {
+  while (iss >> token) {
+    if (std::isspace(token))
+      break;
     if (std::isdigit(token))
       sq -= token - '0';
-    else if (std::isspace(token))
-      break;
     else if ((piece = piece_to_char.find(token)) != std::string::npos) {
       board[sq] = piece;
       bitboards[piece] ^= square_bb(sq);
@@ -51,31 +51,33 @@ void Position::set(const std::string& fen) {
     }
   }
 
-  ss >> token;
+  iss >> token;
   side_to_move = token == 'w' ? WHITE : BLACK;
-  ss >> token;
+  iss >> token;
 
-  st.castling_rights = 0;
-  while (ss >> token)
+  state_ptr->castling_rights = 0;
+  while (iss >> token)
     if ((idx = std::string("qkQK").find(token)) != std::string::npos)
-      st.castling_rights ^= 1 << idx;
+      state_ptr->castling_rights ^= 1 << idx;
 
-  st.key = side_to_move == WHITE ? 0 : Zobrist::Side;
+  state_ptr->key = side_to_move == WHITE ? 0 : Zobrist::Side;
 
   for (Square sq = H1; sq <= A8; sq++)
-    st.key ^= Zobrist::hash[piece_on(sq)][sq];
+    state_ptr->key ^= Zobrist::hash[piece_on(sq)][sq];
 
   set_gamephase();
 
 }
 
-void commit_move(Move m) {
-  if (Position::side_to_move == WHITE)
+void Position::commit_move(Move m) {
+  if (side_to_move == WHITE)
     do_move<WHITE>(m);
   else
     do_move<BLACK>(m);
-  piece_stack.clear();
+  state_stack[0] = *state_ptr;
+  state_ptr = state_stack;
   set_gamephase();
+  side_to_move = !side_to_move;
 }
 
 void set_gamephase() {
