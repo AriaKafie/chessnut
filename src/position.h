@@ -23,7 +23,9 @@ namespace Position {
 
 void init();
 void set(const std::string& fen);
-void commit_move(Move m);
+void do_commit(Move m);
+std::string fen();
+std::string to_string();
 
 inline Color     side_to_move;
 inline Color     us;
@@ -64,12 +66,6 @@ inline Piece piece_on(Square sq) { return board[sq]; }
 inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
 
 inline Bitboard occupied_bb() { return bitboards[WHITE] | bitboards[BLACK]; }
-
-template<Color> void do_move(Move m);
-template<Color> void undo_move(Move m);
-
-template<Color> ForceInline void do_capture(Move m);
-template<Color> ForceInline void undo_capture(Move m, Piece captured);
 
 template<Color JustMoved, MoveType Type>
 ForceInline void update_castling_rights() {
@@ -185,22 +181,19 @@ void do_move(Move m) {
   memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
   state_ptr++;
   state_ptr->captured = piece_on(to);
+  state_ptr->ep_sq = (from + Up) * !(to - from ^ Up2 | piece_type_on(from) ^ PAWN);
 
-  //state_ptr->ep_sq = 0;
-  //bool double_push = piece_type_on(from) == PAWN && to - from == Up2;
-
-  Bitboard to_bb   = square_bb(to);
-  Bitboard from_to = square_bb(from, to);
+  Bitboard zero_to = ~square_bb(to);
+  Bitboard from_to =  square_bb(from, to);
 
   switch (type_of(m)) {
   case NORMAL:
-    //state_ptr->ep_sq = (from + Up) * double_push;
     state_ptr->key ^= Zobrist::hash[board[from]][from];
     state_ptr->key ^= Zobrist::hash[board[from]][to];
     state_ptr->key ^= Zobrist::hash[board[to]][to];
     state_ptr->key ^= Zobrist::Side;
-    bitboards[board[to]] &= ~to_bb;
-    bitboards[Them] &= ~to_bb;
+    bitboards[board[to]] &= zero_to;
+    bitboards[Them] &= zero_to;
     bitboards[board[from]] ^= from_to;
     bitboards[Us] ^= from_to;
     board[to] = board[from];
@@ -212,10 +205,10 @@ void do_move(Move m) {
     state_ptr->key ^= Zobrist::hash[Queen][to];
     state_ptr->key ^= Zobrist::hash[board[to]][to];
     state_ptr->key ^= Zobrist::Side;
-    bitboards[board[to]] &= ~to_bb;
-    bitboards[Them] &= ~to_bb;
+    bitboards[board[to]] &= zero_to;
+    bitboards[Them] &= zero_to;
     bitboards[Pawn] ^= square_bb(from);
-    bitboards[Queen] ^= to_bb;
+    bitboards[Queen] ^= ~zero_to;
     bitboards[Us] ^= from_to;
     board[to] = Queen;
     board[from] = NO_PIECE;
@@ -300,7 +293,7 @@ void undo_move(Move m) {
   constexpr Piece King  = make_piece(Us, KING);
 
   Piece captured = state_ptr->captured;
-  --state_ptr;
+  state_ptr--;
 
   Square from = from_sq(m);
   Square to   = to_sq(m);

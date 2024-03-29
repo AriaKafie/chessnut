@@ -8,7 +8,7 @@
 
 namespace UCI {
 
-  inline const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  constexpr auto START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   inline constexpr uint64_t thinktime = 2500;
 
   void loop();
@@ -22,8 +22,8 @@ namespace UCI {
   void handle_gameloop(std::string input);
 
   void move_prompt(std::string move);
-  std::string int_to_UCI(bool white, Move move);
-  int UCI_to_int(bool white, std::string uci_move);
+  std::string move_to_UCI(Move m);
+  Move UCI_to_move(bool white, std::string uci_move);
   bool starts_with(const std::string& str, const std::string& prefix);
   void trim(std::string& str);
   void make_ai_move();

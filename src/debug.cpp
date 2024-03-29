@@ -1,37 +1,17 @@
 
-#include "debug.h"
-#include "search.h"
-#include "board.h"
-#include "util.h"
-#include "ui.h"
-#include "zobrist.h"
-#include "gamestate.h"
-#include "defs.h"
-#include "transpositiontable.h"
-#include "uci.h"
-#include "bench.h"
-#include "evaluation.h"
-#include "bitboard.h"
 #include "movegen.h"
-#include "moveordering.h"
-#include "book.h"
-#include "magic.h"
+#include "uci.h"
+#include "ui.h"
 
-#include <fstream>
+
+#include <sstream>
+#include <iomanip>
 #include <iostream>
-#include <string>
-#include <thread>
-#include <chrono>
-#include <ammintrin.h>
-#include <regex>
 
 namespace Debug {
 
   void go() {
-    MoveList<WHITE> moves;
-    moves.sort(0, 0);
-    for (Move m : moves)
-      std::cout << Util::move_to_SAN(m) << ": " << std::dec << (m >> 16) << "\n";
+    std::cout << Position::to_string();
   }
 
   void boardstatus() {
@@ -44,7 +24,7 @@ namespace Debug {
       std::cout << piece_on(square) << padding;
       if (square % 8 == 0) std::cout << "\n";
     }
-    std::cout << std::hex << Zobrist::key << "\n\n";
+    std::cout << std::hex << Position::key() << "\n\n";
 
   }
 

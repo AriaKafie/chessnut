@@ -3,9 +3,9 @@
 #include "defs.h"
 #include "util.h"
 #include "ui.h"
-#include "board.h"
-#include "zobrist.h"
-#include "gamestate.h"
+#include "position.h"
+
+
 #include "transpositiontable.h"
 #include "search.h"
 #include "perft.h"
@@ -13,7 +13,6 @@
 #include "debug.h"
 #include "mouse.h"
 #include <algorithm>
-#include "book.h"
 #include <iomanip>
 #include <cctype>
 #include <iostream>
@@ -22,8 +21,10 @@ namespace UCI {
 
 void loop() {
 
-  GameState::white_human = true;
-  GameState::white_computer = false;
+  Position::set(START_FEN);
+
+  Position::them = WHITE;
+  Position::us   = BLACK;
   std::string command = "";
 
   while (command != "quit") {
@@ -51,19 +52,16 @@ void handle_gameloop(std::string input) {
 
   if (input.find("white") != std::string::npos) {
 
-    GameState::white_computer = true;
-    GameState::white_human = false;
+    Position::us   = WHITE;
+    Position::them = BLACK;
 
-    if (GameState::white_to_move) {
+    if (Position::white_to_move()) {
       make_ai_move();
-      GameState::checkmate(true);
       std::cin >> command;
       while (command != "quit") {
         move_prompt(command);
         UI::print_board();
-        GameState::checkmate(false);
         make_ai_move();
-        GameState::checkmate(true);
         std::cin >> command;
       }
       return;
@@ -73,9 +71,7 @@ void handle_gameloop(std::string input) {
       while (command != "quit") {
         move_prompt(command);
         UI::print_board();
-        GameState::checkmate(false);
         make_ai_move();
-        GameState::checkmate(true);
         std::cin >> command;
       }
       return;
@@ -83,31 +79,26 @@ void handle_gameloop(std::string input) {
   }
   else {
 
-    GameState::white_computer = false;
-    GameState::white_human = true;
+    Position::us   = BLACK;
+    Position::them = WHITE;
 
-    if (GameState::white_to_move) {
+    if (Position::white_to_move()) {
       std::cin >> command;
       while (command != "quit") {
         move_prompt(command);
         UI::print_board();
-        GameState::checkmate(true);
         make_ai_move();
-        GameState::checkmate(false);
         std::cin >> command;
       }
       return;
     }
     else {
       make_ai_move();
-      GameState::checkmate(false);
       std::cin >> command;
       while (command != "quit") {
         move_prompt(command);
         UI::print_board();
-        GameState::checkmate(true);
         make_ai_move();
-        GameState::checkmate(false);
         std::cin >> command;
       }
       return;
@@ -118,14 +109,13 @@ void handle_gameloop(std::string input) {
 
 void make_ai_move() {
 
-  Move best_move = GameState::white_to_move
+  Move best_move = Position::white_to_move()
     ? Search::probe_white(thinktime)
     : Search::probe_black(thinktime);
 
-  std::string sanstr = Util::move_to_SAN(best_move);
+  std::string sanstr = move_to_SAN(best_move);
   Mouse::make_move(best_move);
-  do_legal(best_move);
-  Zobrist::set();
+  Position::do_commit(best_move);
   UI::print_board();
   std::cout << Util::get_fen() << "\n";
   std::cout << sanstr << "\ndepth searched: " << std::dec << Debug::last_depth_searched << "\n";
@@ -143,26 +133,22 @@ void move_prompt(std::string move) {
     to_int = UI::movestring_to_int(input);
   }
 
-  do_legal(to_int);
+  Position::do_commit(to_int);
 
 }
 
 void handle_newgame() {
 
-  Book::init();
   TranspositionTable::clear();
-  GameState::repetition_table.reset();
 
 }
 
 void handle_debug() {
-  std::cout << std::uppercase;
-  GameState::repetition_table.print();
-  std::cout << "tt: " << (TranspositionTable::disabled ? "disabled\n" : "enabled\n");
-  std::cout << "endgame: " << (GameState::endgame ? "true\n" : "false\n");
-  std::cout << "mopup: " << (GameState::mopup ? "true\n" : "false\n");
-  std::cout << "last depth searched: " << std::dec << Debug::last_depth_searched << "\n";
-  std::cout << "PGN: " << Book::getPGN() << "\n";
+  std::cout << std::uppercase << std::left;
+  std::cout << std::setw(9) << "tt:" << (TranspositionTable::disabled ? "disabled\n" : "enabled\n");
+  std::cout << std::setw(9) << "endgame:" << (Position::endgame() ? "true\n" : "false\n");
+  std::cout << std::setw(9) << "mopup:" << (Position::mopup() ? "true\n" : "false\n");
+  std::cout << std::setw(9) << "last depth searched:" << std::dec << Debug::last_depth_searched << "\n";
 }
 
 void handle_go(std::string input) {
@@ -181,10 +167,10 @@ void handle_go(std::string input) {
     Debug::go();
   }
   else {
-    GameState::white_computer = GameState::white_to_move;
-    GameState::white_human = !GameState::white_computer;
-    int bestmove = GameState::white_to_move ? Search::probe_white(thinktime) : Search::probe_black(thinktime);
-    std::cout << "bestmove " << int_to_UCI(GameState::white_to_move, bestmove) << "\n";
+    Position::us   =  Position::side_to_move;
+    Position::them = !Position::side_to_move;
+    int bestmove = Position::white_to_move() ? Search::probe_white(thinktime) : Search::probe_black(thinktime);
+    std::cout << "bestmove " << move_to_UCI(bestmove) << "\n";
   }
 
 }
@@ -205,58 +191,42 @@ void handle_position (std::string input) {
 
   input = input.substr(9);
   if (starts_with(input, "startpos")) {
-    Book::init();
-    GameState::init(START_FEN);
+    Position::set(START_FEN);
   }
   else {
-    Book::disable();
     if (input.find("moves") == std::string::npos) {
-      GameState::init(input.substr(4));
-      Zobrist::set();
-      GameState::repetition_table.push();
+      Position::set(input.substr(4));
       return;
     }
     else {
       size_t fen_end = input.find("moves") - 1;
       std::string fen = input.substr(4, fen_end);
-      GameState::init(fen);
+      Position::set(fen);
     }
   }
-  Zobrist::set();
   size_t moves_start = input.find("moves");
   if (moves_start != std::string::npos) {
-    GameState::repetition_table.reset();
     input = input.substr(input.find("moves") + 6);
     while (input.find(' ') != std::string::npos) {
       std::string uci_move = input.substr(0, input.find(' '));
-      int computer_move = UCI_to_int(GameState::white_to_move, uci_move);
-      do_legal(computer_move);
+      int computer_move = UCI_to_move(Position::white_to_move(), uci_move);
+      Position::do_commit(computer_move);
       input = input.substr(input.find(' ') + 1);
     }
-    int computer_move = UCI_to_int(GameState::white_to_move, input);
-    do_legal(computer_move);
+    int computer_move = UCI_to_move(Position::white_to_move(), input);
+    Position::do_commit(computer_move);
   }
 
 }
 
-std::string int_to_UCI(bool white, Move move) {
-
-  int from = move & 0x3f;
-  int to = (move >> 6) & 0x3f;
-  int movetype = type_of(move);
-
-  if (movetype == SHORTCASTLE) return white ? "e1g1" : "e8g8";
-  if (movetype == LONGCASTLE)  return white ? "e1c1" : "e8c8";
-
-  std::string _promotion_flag = (movetype == PROMOTION) ? "q" : "";
-  return UI::coords[from] + UI::coords[to] + _promotion_flag;
-
+std::string move_to_UCI(Move m) {
+  return UI::coords[from_sq(m)] + UI::coords[to_sq(m)] + (type_of(m) == PROMOTION ? "q" : "");
 }
 
-int UCI_to_int(bool white_to_move, std::string uci_move) {
+Move UCI_to_move(bool white_to_move, std::string uci_move) {
 
   if (uci_move.length() < 4 || uci_move.length() > 5) {
-    std::cout << "invalid move in uci_to_int: " << uci_move;
+    std::cout << "invalid move in UCI_to_move: " << uci_move;
     std::exit(0);
   }
 
@@ -274,7 +244,7 @@ int UCI_to_int(bool white_to_move, std::string uci_move) {
         promotion_append = PROMOTION;
       }
       else {
-        std::cout << "invalid move in uci_to_int: " << uci_move;
+        std::cout << "invalid move in UCI_to_move: " << uci_move;
         std::exit(0);
       }
     }
@@ -307,7 +277,7 @@ int UCI_to_int(bool white_to_move, std::string uci_move) {
         promotion_append = PROMOTION;
       }
       else {
-        std::cout << "invalid move in uci_to_int: " << uci_move;
+        std::cout << "invalid move in UCI_to_move: " << uci_move;
         std::exit(0);
       }
     }
@@ -334,11 +304,11 @@ int UCI_to_int(bool white_to_move, std::string uci_move) {
 
 void handle_d() {
 
-  GameState::white_human = true;
-  GameState::white_computer = false;
+  Position::them = WHITE;
+  Position::us   = BLACK;
   UI::print_board();
   std::cout << "Fen: " << Util::get_fen() << "\n";
-  std::cout << "Key: " << std::hex << std::uppercase << Zobrist::key << "\n\n";
+  std::cout << "Key: " << std::hex << std::uppercase << Position::key() << "\n\n";
 
 }
 

@@ -2,7 +2,7 @@
 #ifndef AI_H
 #define AI_H
 
-#include "board.h"
+#include "position.h"
 #include "evaluation.h"
 #include "transpositiontable.h"
 #include "defs.h"
@@ -34,9 +34,6 @@ namespace Search {
 Move probe_white(uint64_t thinktime);
 Move probe_black(uint64_t thinktime);
 
-inline bool in_search;
-inline bool search_cancelled;
-
 inline bool is_matescore(int score) {
   return score > 90000 || score < -90000;
 }
@@ -63,7 +60,7 @@ inline constexpr int depth_reduction[90] = {
 template<bool maximizing>
 int quiescence_search(int alpha, int beta) {
 
-  Bench::q_node_count++;
+  Bench::qnodes++;
 
   if constexpr (maximizing) {
     int eval = static_eval();
@@ -72,7 +69,8 @@ int quiescence_search(int alpha, int beta) {
     alpha = std::max(alpha, eval);
     int best_eval = MIN_INT;
     CaptureList<WHITE> c;
-    if (c.length() == 0) return eval;
+    if (c.length() == 0)
+      return eval;
     c.sort();
     for (int i = 0; i < c.length(); i++) {
       Piece captured = piece_on(to_sq(c[i]));
@@ -93,7 +91,8 @@ int quiescence_search(int alpha, int beta) {
     beta = std::min(beta, eval);
     int best_eval = MAX_INT;
     CaptureList<BLACK> c;
-    if (c.length() == 0) return eval;
+    if (c.length() == 0)
+      return eval;
     c.sort();
     for (int i = 0; i < c.length(); i++) {
       Piece captured = piece_on(to_sq(c[i]));
@@ -113,7 +112,7 @@ int quiescence_search(int alpha, int beta) {
 template<bool maximizing>
 int search(int alpha, int beta, int depth, int ply_from_root) {
 
-  Bench::node_count++;
+  Bench::nodes++;
 
   if (depth <= 0)
     return quiescence_search<maximizing>(alpha, beta);
@@ -127,7 +126,7 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
     HashFlag flag = UPPER_BOUND;
     int best_eval = MIN_INT;
     Move best_move_yet = NULLMOVE;
-    MoveList<WHITE> moves(ply_from_root == 0);
+    MoveList<WHITE> moves;
     if (moves.length() == 0)
       return moves.incheck() ? (-matescore + ply_from_root) : 0;
     int extension = moves.incheck() ? 1 : 0;
@@ -135,20 +134,15 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
 
     for (int i = 0; i < moves.length(); i++) {
 
-      Piece captured = piece_on(to_sq(moves[i]));
-      uint8_t c_rights = GameState::castling_rights;
-
       do_move<WHITE>(moves[i]);
       int eval = search<false>(alpha, beta, depth - 1 - depth_reduction[i] + extension, ply_from_root + 1);
       if (eval > alpha && (depth_reduction[i]))
         eval = search<false>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
-      undo_move<WHITE>(moves[i], captured);
-
-      GameState::castling_rights = c_rights;
+      undo_move<WHITE>(moves[i]);
 
       if (eval >= beta) {
         TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], ply_from_root);
-        if (!captured)
+        if (!piece_on(to_sq(moves[i])))
           killer_moves[ply_from_root].add(moves[i] & 0xffff);
         return eval;
       }
@@ -163,13 +157,13 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
     }
     TranspositionTable::record(depth, flag, best_eval, best_move_yet, ply_from_root);
     return alpha; 
-  }
-  else {
+
+  } else {
 
     HashFlag flag = LOWER_BOUND;
     int best_eval = MAX_INT;
     Move best_move_yet = NULLMOVE;
-    MoveList<BLACK> moves(ply_from_root == 0);
+    MoveList<BLACK> moves;
     if (moves.length() == 0)
       return moves.incheck() ? (matescore - ply_from_root) : 0;
     int extension = moves.incheck() ? 1 : 0;
@@ -177,20 +171,15 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
 
     for (int i = 0; i < moves.length(); i++) {
 
-      Piece captured = piece_on(to_sq(moves[i]));
-      uint8_t c_rights = GameState::castling_rights;
-
       do_move<BLACK>(moves[i]);
       int eval = search<true>(alpha, beta, depth - 1 - depth_reduction[i] + extension, ply_from_root + 1);
       if (eval < beta && (depth_reduction[i]))
         eval = search<true>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
-      undo_move<BLACK>(moves[i], captured);
-
-      GameState::castling_rights = c_rights;
+      undo_move<BLACK>(moves[i]);
 
       if (eval <= alpha) {
         TranspositionTable::record(depth, UPPER_BOUND, eval, moves[i], ply_from_root);
-        if (!captured)
+        if (!piece_on(to_sq(moves[i])))
           killer_moves[ply_from_root].add(moves[i] & 0xffff);
         return eval;
       }

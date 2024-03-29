@@ -35,6 +35,9 @@ namespace Debug {
     }
   }
   /*
+  * 
+  * crash 4r3/7P/4k1K1/4b3/8/8/8/3R4 w - - 0 1
+  * 
     1. d4 d5 2. Nc3 Nf6 3. Bf4 e6 4. e3 Bb4 5. Qd3 Kf8 6. g3 Kg8
     7. Bg2 c5 8. dxc5 Nc6 9. Ne2 Bxc5 10. O-O-O Ng4 11. Rdf1 e5
     12. Bxe5 Ngxe5 13. Qd2 d4 14. exd4 Nxd4 15. Nxd4 Qxd4 16. f4 Nc4

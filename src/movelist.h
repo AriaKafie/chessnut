@@ -4,14 +4,14 @@
 
 #include "types.h"
 
-constexpr int MAX_MOVES  = 128;
-constexpr int MAX_CMOVES = 16;
+constexpr int MAX_MOVES    = 128;
+constexpr int MAX_CAPTURES = 16;
 
 template<Color Us>
 class MoveList {
 
 public:
-  MoveList(bool ep_enabled = true);
+  MoveList();
   Move*    begin()         { return moves; }
   Move*    end()           { return last; }
   size_t   length()  const { return last - moves; }
@@ -45,7 +45,7 @@ public:
   }
 
 private:
-  Move     moves[MAX_CMOVES],
+  Move     moves[MAX_CAPTURES],
            *last;
   Bitboard checkmask;
   Bitboard seen_by_enemy;

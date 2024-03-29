@@ -18,8 +18,8 @@ enum HashFlags {
 };
 
 constexpr int FAIL = 0x7fffffff;
-constexpr int tablesize = 16777216;
-constexpr int modulo = tablesize - 1;
+constexpr int TableSize = 16777216;
+constexpr int modulo = TableSize - 1;
 
 struct Entry {
   uint64_t key;

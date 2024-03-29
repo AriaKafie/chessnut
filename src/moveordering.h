@@ -2,7 +2,7 @@
 #ifndef MOVEORDERING_H
 #define MOVEORDERING_H
 
-#include "board.h"
+#include "position.h"
 #include "movelist.h"
 #include "evaluation.h"
 
@@ -48,7 +48,7 @@ void CaptureList<Us>::insertion_sort() {
 template<Color Us>
 void CaptureList<Us>::sort() {
 
-  Bitboard seen_by_pawn = pawn_attacks<!Us>(bb<make_piece(!Us, PAWN)>());
+  Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
             
   for (Move& m : *this) {
     
@@ -58,7 +58,7 @@ void CaptureList<Us>::sort() {
     Square    to       = to_sq(m);
     PieceType from_pt  = piece_type_on(from);
     PieceType captured = piece_type_on(to);
-    
+
     if (square_bb(to) & seen_by_pawn)
       score -= 500;
     score += piece_weight(captured) - piece_weight(from_pt) * bool(square_bb(to) & seen_by_enemy);
@@ -97,7 +97,7 @@ void MoveList<Us>::quicksort(int low, int high) {
 template<Color Us>
 void MoveList<Us>::sort(Move pv, int ply) {
 
-  Bitboard seen_by_pawn = pawn_attacks<!Us>(bb<make_piece(!Us, PAWN)>());
+  Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
               
   for (Move& m : *this) {
     

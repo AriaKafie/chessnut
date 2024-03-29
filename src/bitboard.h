@@ -4,6 +4,7 @@
 
 #include "types.h"
 
+#include <cmath>
 #include <immintrin.h>
 
 #define pext(b, m) _pext_u64(b, m)

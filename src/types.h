@@ -2,7 +2,6 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <cmath>
 #include <cstdint>
 
 #ifdef _MSC_VER
@@ -21,6 +20,18 @@ typedef int      Square;
 typedef int      Color;
 typedef int      MoveType;
 typedef int      Direction;
+
+constexpr int MAX_PLY = 128;
+constexpr int INFINITE = 0x7fffffff;
+
+struct StateInfo {
+  uint8_t  castling_rights;
+  uint64_t key;
+  Square   ep_sq;
+  Piece    captured;
+};
+
+enum GamePhase { MIDGAME, ENDGAME, MOPUP };
 
 enum Squares {
   H1, G1, F1, E1, D1, C1, B1, A1,

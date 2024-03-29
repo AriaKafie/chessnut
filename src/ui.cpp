@@ -1,10 +1,9 @@
 
 #include "ui.h"
-#include "board.h"
+#include "position.h"
 #include "util.h"
-#include "gamestate.h"
+
 #include "search.h"
-#include "book.h"
 #include <string>
 #include <iostream>
 
@@ -45,10 +44,10 @@ namespace UI {
          to > 55) || (board[from] == B_PAWN &&
                       to < 8))
       to_int += PROMOTION;
-    if (move == "scastle") to_int = GameState::white_human ? W_SCASTLE : B_SCASTLE;
-    if (move == "lcastle") to_int = GameState::white_human ? W_LCASTLE : B_LCASTLE;
+    if (move == "scastle") to_int = Position::them == WHITE ? W_SCASTLE : B_SCASTLE;
+    if (move == "lcastle") to_int = Position::them == WHITE ? W_LCASTLE : B_LCASTLE;
                 
-    if (GameState::white_human) {
+    if (Position::them == WHITE) {
       MoveList<WHITE> moves;
       for (Move m : moves)
         if (m == to_int) return to_int;
@@ -66,7 +65,7 @@ namespace UI {
   void print_board() {
 
     std::string line = "+---+---+---+---+---+---+---+---+";
-    if (GameState::white_human) {
+    if (Position::them == WHITE) {
       std::cout << "\n" << line << "\n| " << piece_to_char[board[63]] << " ";
       for (int i = 1; i < 64; i++) {
         if (i % 8 == 0)
@@ -98,7 +97,7 @@ namespace UI {
       std::cin >> move;
       to_int = movestring_to_int(move);
     }
-    do_legal(to_int);
+    Position::do_commit(to_int);
 
   }
 

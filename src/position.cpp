@@ -51,9 +51,9 @@ void Position::set(const std::string& fen) {
     }
   }
 
+  iss >> std::skipws;
   iss >> token;
   side_to_move = token == 'w' ? WHITE : BLACK;
-  iss >> token;
 
   state_ptr->castling_rights = 0;
   while (iss >> token)
@@ -69,7 +69,24 @@ void Position::set(const std::string& fen) {
 
 }
 
-void Position::commit_move(Move m) {
+std::string Position::to_string() {
+  std::stringstream ss;
+  ss << "\n+---+---+---+---+---+---+---+---+\n";
+  for (Square sq = A8; sq >= H1; sq--) {
+    ss << "| " << piece_to_char[board[sq]] << " ";
+    if (sq % 8 == 0)
+      ss << "| " << (sq / 8 + 1) << "\n+---+---+---+---+---+---+---+---+\n";
+  }
+  ss << "  a   b   c   d   e   f   g   h\n\nFen: " << fen() << "\nKey: " << std::hex << std::uppercase << key() << "\n";
+  return ss.str();
+}
+
+std::string Position::fen() {
+  std::stringstream fen;
+  return "";
+}
+
+void Position::do_commit(Move m) {
   if (side_to_move == WHITE)
     do_move<WHITE>(m);
   else
@@ -104,3 +121,4 @@ void set_gamephase() {
 #undef piece_count
 
 }
+

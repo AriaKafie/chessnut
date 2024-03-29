@@ -30,8 +30,8 @@ void Bitboards::init() {
 
     for (Square s2 = H1; s2 <= A8; s2++) {
       pinmask[s1][s2] =
-          mdiag  (s1) & mdiag  (s2) | adiag  (s1) & adiag  (s2)
-        | rank_of(s1) & rank_of(s2) | file_of(s1) & file_of(s2);
+        mdiag  (s1) & mdiag  (s2) | adiag  (s1) & adiag  (s2)
+      | rank_of(s1) & rank_of(s2) | file_of(s1) & file_of(s2);
     }
 
     for (Square ksq = H1; ksq <= A8; ksq++) {

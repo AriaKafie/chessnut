@@ -1,6 +1,6 @@
 
 #include "mouse.h"
-#include "gamestate.h"
+#include "position.h"
 #include "defs.h"
 #include "types.h"
 
@@ -27,7 +27,7 @@ void Mouse::make_move(Move move) {
   int to = (move >> 6) & 0x3f;
   int movetype = type_of(move);
                 
-  if (!GameState::white_to_move) {
+  if (Position::side_to_move == BLACK) {
     from ^= 63;
     to ^= 63;
   }
@@ -44,7 +44,7 @@ void Mouse::make_move(Move move) {
     click(to);
     return;
   case SHORTCASTLE:
-    if (GameState::white_to_move) {
+    if (Position::side_to_move == WHITE) {
       click(3);
       click(1);
     }
@@ -54,7 +54,7 @@ void Mouse::make_move(Move move) {
     }
     return;
   case LONGCASTLE:
-    if (GameState::white_to_move) {
+    if (Position::side_to_move == WHITE) {
       click(3);
       click(5);
     }

@@ -158,7 +158,7 @@ CaptureList<Us>::CaptureList() :
 }
 
 template<Color Us>
-MoveList<Us>::MoveList(bool ep_enabled) :
+MoveList<Us>::MoveList() :
   last(moves)
 {
   constexpr Color Them           = !Us;
@@ -239,25 +239,23 @@ MoveList<Us>::MoveList(bool ep_enabled) :
     }
   }
 
-  if (ep_enabled) {
-    if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
-      Square to = lsb(b);
-      *last++ = make_move<ENPASSANT>(to - UpRight, to);
-      Bitboard ep_toggle = b | shift<-UpRight>(b) | shift<-Up>(b);
-      Bitboard o = occupied ^ ep_toggle;
-      Bitboard slider_checks = bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen;
-      if (slider_checks)
-        last--;
-    }
-    if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
-      Square to = lsb(b);
-      *last++ = make_move<ENPASSANT>(to - UpLeft, to);
-      Bitboard ep_toggle = b | shift<-UpLeft>(b) | shift<-Up>(b);
-      Bitboard o = occupied ^ ep_toggle;
-      Bitboard slider_checks = bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen;
-      if (slider_checks)
-        last--;
-    }
+  if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
+    Square to = lsb(b);
+    *last++ = make_move<ENPASSANT>(to - UpRight, to);
+    Bitboard ep_toggle = b | shift<-UpRight>(b) | shift<-Up>(b);
+    Bitboard o = occupied ^ ep_toggle;
+    Bitboard slider_checks = bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen;
+    if (slider_checks)
+      last--;
+  }
+  if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
+    Square to = lsb(b);
+    *last++ = make_move<ENPASSANT>(to - UpLeft, to);
+    Bitboard ep_toggle = b | shift<-UpLeft>(b) | shift<-Up>(b);
+    Bitboard o = occupied ^ ep_toggle;
+    Bitboard slider_checks = bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen;
+    if (slider_checks)
+      last--;
   }
 
   Bitboard friendly_rook_queen   = bb(FriendlyQueen) | bb(FriendlyRook);

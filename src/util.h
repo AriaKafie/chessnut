@@ -2,10 +2,9 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "board.h"
+#include "position.h"
 #include "defs.h"
 #include "ui.h"
-#include "gamestate.h"
 #include "movegen.h"
 
 #include <bitset>
@@ -40,12 +39,16 @@ inline std::string move_to_SAN(Move m) {
 inline std::string bbtos(Bitboard b) {
   std::string l, s;
   l = s = "+---+---+---+---+---+---+---+---+\n";
-  for (Bitboard sqb = square_bb(A8); sqb; sqb >>= 1) {
-    s += (sqb & b) ? "| @ " : "|   ";
-    if (sqb & FILE_H)
+  for (Bitboard bit = square_bb(A8); bit; bit >>= 1) {
+    s += (bit & b) ? "| @ " : "|   ";
+    if (bit & FILE_H)
       s += "|\n" + l;
   }
   return s + "\n";
+}
+
+inline unsigned long long curr_time_millis() {
+  return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count();
 }
 
 namespace Util {
@@ -55,8 +58,8 @@ namespace Util {
   }
 
   inline int SAN_to_int(std::string sanstr) {
-    if (GameState::white_to_move) {
-      MoveList<WHITE> ml(true);
+    if (Position::white_to_move()) {
+      MoveList<WHITE> ml;
       for (Move m : ml) {
         if (move_to_SAN(m) == sanstr)
           return m;
@@ -64,7 +67,7 @@ namespace Util {
       return NULLMOVE;
     }
     else {
-      MoveList<BLACK> ml(true);
+      MoveList<BLACK> ml;
       for (Move m : ml) {
         if (move_to_SAN(m) == sanstr)
           return m;
@@ -102,9 +105,9 @@ namespace Util {
       fen += piece_to_char[square_type];
     }
 
-    fen += (GameState::white_to_move ? " w " : " b ");
+    fen += (Position::white_to_move() ? " w " : " b ");
 
-    switch (GameState::castling_rights) {
+    switch (state_ptr->castling_rights) {
     case  0: return fen + "- - 0 1";
     case  1: return fen + "q - 0 1";
     case  2: return fen + "k - 0 1";
@@ -131,43 +134,6 @@ namespace Util {
         
     std::bitset<sizeof(uint8_t) * 8> binary(num);
     std::cout << binary << std::endl;
-
-  }
-
-  unsigned long long curr_time_millis();
-  uint64_t string_to_long(std::string str);
-  std::string long_to_string(uint64_t num);
-  void print_bitboard_and_num(uint64_t bb);
-
-  inline void print_bitboard_and_num(uint64_t bb) {
-
-    std::string s = "+---+---+---+---+---+---+---+---+";
-    for (int i = 0; i < 64; i++) {
-      if (i % 8 == 0)
-        std::cout << "|\n" << s << "\n";
-      std::cout << "| " << ((bb & (1ull << (i ^ 63))) ? "@" : " ") << " ";
-    }
-    std::cout << "|\n" << s << "\n" << "0x" << std::hex << bb << "ull\n";
-
-  }
-
-  inline unsigned long long curr_time_millis() {
-    return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count();
-  }
-
-  enum color { white, black };
-
-  inline uint64_t string_to_long(std::string str) {
-
-    std::bitset<64>binary(str);
-    return binary.to_ullong();
-
-  }
-
-  inline std::string long_to_string(uint64_t num) {
-
-    std::bitset<64>binary(num);
-    return binary.to_string();
 
   }
 

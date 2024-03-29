@@ -1,8 +1,8 @@
 
 #include "evaluation.h"
 #include "util.h"
-#include "board.h"
-#include "gamestate.h"
+#include "position.h"
+
 
 ForceInline int midgame();
 int endgame();
@@ -13,7 +13,7 @@ ForceInline int material_count();
 ForceInline int piece_placement();
 
 int static_eval() {
-  return GameState::endgame ? endgame() : midgame();
+  return Position::midgame() ? midgame() : Position::endgame() ? endgame() : mopup();
 }
 
 ForceInline int midgame() {
@@ -22,8 +22,8 @@ ForceInline int midgame() {
 
 ForceInline int piece_placement() {
   int score = 0;
-  for (PieceType pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}) 
-  {
+  for (PieceType pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}) {
+
     for (Bitboard b = bitboards[pt]; b; pop_lsb(b))
       score += square_score<WHITE>(pt, lsb(b));
 
@@ -47,13 +47,11 @@ ForceInline int king_safety() {
   Square wksq = lsb(bb(W_KING));
   Square bksq = lsb(bb(B_KING));
 
-  return KingSafety<WHITE>(wksq, bb(W_PAWN))
-       - KingSafety<BLACK>(bksq, bb(B_PAWN));
+  return king_safety<WHITE>(wksq, bb(W_PAWN))
+       - king_safety<BLACK>(bksq, bb(B_PAWN));
 }
 
 int endgame() {
-
-  if (GameState::mopup) return mopup();
                 
   int score = material_count();
 
@@ -75,13 +73,13 @@ int endgame() {
 int mopup() {
 
   int score = 0;
-  if (GameState::white_computer) {
-    score += CenterDistance(lsb(bb(B_KING))) * 10;
-    score += (14 - Distance(lsb(bb(W_KING)),lsb(bb(B_KING)))) * 4;
+  if (Position::us == WHITE) {
+    score += distance_from_center(lsb(bb(B_KING))) * 10;
+    score += (14 - square_distance(lsb(bb(W_KING)),lsb(bb(B_KING)))) * 4;
     return score + material_count();
   }
-  score -= CenterDistance(lsb(bb(W_KING))) * 10;
-  score -= (14 - Distance(lsb(bb(W_KING)),lsb(bb(B_KING)))) * 4;
+  score -= distance_from_center(lsb(bb(W_KING))) * 10;
+  score -= (14 - square_distance(lsb(bb(W_KING)),lsb(bb(B_KING)))) * 4;
   return score + material_count();
 
 }
