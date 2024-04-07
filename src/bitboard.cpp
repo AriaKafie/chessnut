@@ -79,21 +79,28 @@ void Bitboards::init() {
   uint8_t cleark = 0b1101;
   uint8_t clearq = 0b1110;
 
-  Bitboard msk = square_bb(A1, E1, H1, A8, E8, H8);
+  for (int i = 0; i < 1 << 5; i++) {
 
-  for (int p = 0; p < 1 << popcount(msk); p++) {
+    Bitboard w_occ = generate_occupancy(square_bb(A1, E1, H1, A8, H8), i);
+    Bitboard b_occ = generate_occupancy(square_bb(A8, E8, H8, A1, H1), i);
 
-    Bitboard occ = generate_occupancy(msk, p);
-    uint8_t rights_mask = 0b1111;
+    uint8_t w_rights = 0b1111;
+    uint8_t b_rights = 0b1111;
 
-    if (!(occ & square_bb(H1))) rights_mask &= clearK;
-    if (!(occ & square_bb(E1))) rights_mask &= clearK & clearQ;
-    if (!(occ & square_bb(A1))) rights_mask &= clearQ;
-    if (!(occ & square_bb(H8))) rights_mask &= cleark;
-    if (!(occ & square_bb(E8))) rights_mask &= cleark & clearq;
-    if (!(occ & square_bb(A8))) rights_mask &= clearq;
+    if ((w_occ & square_bb(A1)) == 0) w_rights &= clearQ;
+    if ((w_occ & square_bb(E1)) == 0) w_rights &= clearK & clearQ;
+    if ((w_occ & square_bb(H1)) == 0) w_rights &= clearK;
+    if ((w_occ & square_bb(A8)) != 0) w_rights &= clearq;
+    if ((w_occ & square_bb(H8)) != 0) w_rights &= cleark;
 
-    castle_pext[pext(occ, msk)] = rights_mask;
+    if ((b_occ & square_bb(A8)) == 0) b_rights &= clearq;
+    if ((b_occ & square_bb(E8)) == 0) b_rights &= cleark & clearq;
+    if ((b_occ & square_bb(H8)) == 0) b_rights &= cleark;
+    if ((b_occ & square_bb(A1)) != 0) b_rights &= clearQ;
+    if ((b_occ & square_bb(H1)) != 0) b_rights &= clearK;
+
+    castle_masks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_rights;
+    castle_masks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_rights;
   }
 
   for (Square sq = H1; sq <= A8; sq++) {

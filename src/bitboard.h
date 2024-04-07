@@ -39,7 +39,7 @@ inline uint8_t square_dist[SQUARE_NB][SQUARE_NB];
 inline uint8_t center_dist[SQUARE_NB];
 inline int white_kingshield_scores[SQUARE_NB][1 << 6];
 inline int black_kingshield_scores[SQUARE_NB][1 << 6];
-inline uint8_t castle_pext[1 << 6];
+inline uint8_t castle_masks[COLOR_NB][1 << 5];
 inline Bitboard white_kingshield[SQUARE_NB];
 inline Bitboard black_kingshield[SQUARE_NB];
 
@@ -219,11 +219,6 @@ int king_safety(Square ksq, Bitboard occ) {
     return white_kingshield_scores[ksq][pext(occ, white_kingshield[ksq])];
   else
     return black_kingshield_scores[ksq][pext(occ, black_kingshield[ksq])];
-}
-
-inline uint8_t castling_pext(Bitboard occupied) {
-  constexpr Bitboard mask = square_bb(A1, E1, H1, A8, E8, H8);
-  return castle_pext[pext(occupied, mask)];
 }
 
 inline int square_distance(Square a, Square b) {
