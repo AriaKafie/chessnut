@@ -6,6 +6,7 @@
 #include "types.h"
 
 #include <string>
+#include <algorithm>
 
 #define bb(P) bitboard<P>()
 
@@ -67,31 +68,12 @@ inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
 
 inline Bitboard occupied_bb() { return bitboards[WHITE] | bitboards[BLACK]; }
 
-template<Color JustMoved, MoveType Type>
+template<Color JustMoved>
 ForceInline void update_castling_rights() {
 
-  constexpr Color Them = !JustMoved;
+  constexpr Bitboard mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
 
-  constexpr uint8_t ClearRights = JustMoved == WHITE ? 0b0011 : 0b1100;
-
-  constexpr Bitboard FriendlyKingStart = square_bb(JustMoved == WHITE ? E1 : E8);
-  constexpr Bitboard EnemyKingStart    = square_bb(JustMoved == WHITE ? E8 : E1);
-  constexpr Bitboard FriendlyRookStart = JustMoved == WHITE ? square_bb(A1, H1) : square_bb(A8, H8);
-
-  constexpr Piece FriendlyKing = make_piece(JustMoved, KING);
-  constexpr Piece FriendlyRook = make_piece(JustMoved, ROOK);
-  constexpr Piece EnemyRook    = make_piece(Them     , ROOK);
-  
-  if constexpr (Type == NORMAL)
-    state_ptr->castling_rights &=
-      castling_pext(bitboards[FriendlyKing] & FriendlyKingStart | bitboards[FriendlyRook] & FriendlyRookStart | bitboards[EnemyRook] | EnemyKingStart);
-
-  else if constexpr (Type == PROMOTION)
-    state_ptr->castling_rights &= castling_pext(bitboards[EnemyRook] | FriendlyKingStart | FriendlyRookStart | EnemyKingStart);
-
-  else if constexpr (Type == SHORTCASTLE || Type == LONGCASTLE)
-    state_ptr->castling_rights &= ClearRights;
-
+  state_ptr->castling_rights &= castle_masks[JustMoved][pext(bitboards[JustMoved], mask)];
 }
 
 template<Color Us>
@@ -198,7 +180,7 @@ void do_move(Move m) {
     bitboards[Us] ^= from_to;
     board[to] = board[from];
     board[from] = NO_PIECE;
-    update_castling_rights<Us, NORMAL>();
+    update_castling_rights<Us>();
     return;
   case PROMOTION:
     state_ptr->key ^= Zobrist::hash[Pawn][from];
@@ -212,7 +194,7 @@ void do_move(Move m) {
     bitboards[Us] ^= from_to;
     board[to] = Queen;
     board[from] = NO_PIECE;
-    update_castling_rights<Us, PROMOTION>();
+    update_castling_rights<Us>();
     return;
   case SHORTCASTLE:
   {
@@ -236,7 +218,7 @@ void do_move(Move m) {
     board[rook_from] = NO_PIECE;
     board[king_to] = King;
     board[rook_to] = Rook;
-    update_castling_rights<Us, SHORTCASTLE>();
+    update_castling_rights<Us>();
   }
     return;
   case LONGCASTLE:
@@ -261,7 +243,7 @@ void do_move(Move m) {
     board[rook_from] = NO_PIECE;
     board[king_to] = King;
     board[rook_to] = Rook;
-    update_castling_rights<Us, LONGCASTLE>();
+    update_castling_rights<Us>();
   }
   return;
   case ENPASSANT:
