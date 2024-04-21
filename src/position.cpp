@@ -29,7 +29,7 @@ void Position::init() {
 void Position::set(const std::string& fen) {
 
   memset(board, NO_PIECE, 64 * sizeof(Piece));
-  memset(bitboards, 0ull, 16 * sizeof(Bitboard));
+  memset(bitboards, 0, 16 * sizeof(Bitboard));
 
   uint8_t token;
   Square sq = A8;

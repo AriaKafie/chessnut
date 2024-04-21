@@ -35,19 +35,14 @@ namespace UI {
                 
     int to_int = from + (to << 6);
                 
-    if (((board[from] == W_PAWN) ||
-         (board[from] == B_PAWN)) &&
-        ((std::abs(to - from) % 2) != 0) &&
-        (board[to] == NO_PIECE))
+    if (((board[from] == W_PAWN) || (board[from] == B_PAWN)) && ((std::abs(to - from) % 2) != 0) && (board[to] == NO_PIECE))
       to_int += ENPASSANT;
-    if ((board[from] == W_PAWN &&
-         to > 55) || (board[from] == B_PAWN &&
-                      to < 8))
+    if ((board[from] == W_PAWN && to > 55) || (board[from] == B_PAWN && to < 8))
       to_int += PROMOTION;
-    if (move == "scastle") to_int = Position::them == WHITE ? W_SCASTLE : B_SCASTLE;
-    if (move == "lcastle") to_int = Position::them == WHITE ? W_LCASTLE : B_LCASTLE;
+    if (move == "scastle") to_int = Position::white_to_move() ? W_SCASTLE : B_SCASTLE;
+    if (move == "lcastle") to_int = Position::white_to_move() ? W_LCASTLE : B_LCASTLE;
                 
-    if (Position::them == WHITE) {
+    if (Position::white_to_move()) {
       MoveList<WHITE> moves;
       for (Move m : moves)
         if (m == to_int) return to_int;
@@ -58,30 +53,6 @@ namespace UI {
       for (Move m : moves)
         if (m == to_int) return to_int;
       return -1;
-    }
-
-  }
-
-  void print_board() {
-
-    std::string line = "+---+---+---+---+---+---+---+---+";
-    if (Position::them == WHITE) {
-      std::cout << "\n" << line << "\n| " << piece_to_char[board[63]] << " ";
-      for (int i = 1; i < 64; i++) {
-        if (i % 8 == 0)
-          std::cout << "| " << (i % 9) << "\n" << line << "\n";
-        std::cout << "| " << piece_to_char[board[i^63]] << " ";
-      }
-      std::cout << "| 1\n" << line << "\n  a   b   c   d   e   f   g   h\n\n";
-    }
-    else {
-      std::cout << "\n" << line << "\n| " << piece_to_char[board[0]] << " ";
-      for (int i = 1; i < 64; i++) {
-        if (i % 8 == 0)
-          std::cout << "| " << (9 - (i % 9)) << "\n" << line << "\n";
-        std::cout << "| " << piece_to_char[board[i]] << " ";
-      }
-      std::cout << "| 8\n" << line << "\n  h   g   f   e   d   c   b   a\n\n";
     }
 
   }

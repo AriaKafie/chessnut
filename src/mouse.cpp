@@ -1,7 +1,7 @@
 
 #include "mouse.h"
 #include "position.h"
-#include "defs.h"
+
 #include "types.h"
 
 #include <thread>

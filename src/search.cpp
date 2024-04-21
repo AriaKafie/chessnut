@@ -2,6 +2,7 @@
 #include "search.h"
 #include "position.h"
 #include "ui.h"
+#include "uci.h"
 #include "util.h"
 #include "debug.h"
 #include "moveordering.h"
@@ -21,10 +22,10 @@ Move probe_white(uint64_t thinktime) {
     for (Move& m : moves)
       m &= 0xffff;
 
-    alpha = MIN_INT;
+    alpha = -INFINITE;
     moves.sort(best_move, 0);
 
-    for (int i = 0; i < moves.length(); i++) {
+    for (int i = 0; i < moves.size(); i++) {
 
       if ((curr_time_millis() - start_time) > thinktime) {
         search_cancelled = true;
@@ -33,9 +34,9 @@ Move probe_white(uint64_t thinktime) {
       }
 
       do_move<WHITE>(moves[i]);
-      eval = search<false>(alpha, MAX_INT, depth - 1 - reduction[i], 0);
+      eval = search<false>(alpha, INFINITE, depth - 1 - reduction[i], 0);
       if ((eval > alpha) && reduction[i])
-        eval = search<false>(alpha, MAX_INT, depth - 1, 0);
+        eval = search<false>(alpha, INFINITE, depth - 1, 0);
       undo_move<WHITE>(moves[i]);
 
       if (eval > alpha) {
@@ -60,10 +61,10 @@ Move probe_black(uint64_t thinktime) {
     for (Move& m : moves)
       m &= 0xffff;
 
-    beta = MAX_INT;
+    beta = INFINITE;
     moves.sort(best_move, 0);
 
-    for (int i = 0; i < moves.length(); i++) {
+    for (int i = 0; i < moves.size(); i++) {
 
       if ((curr_time_millis() - start_time) > thinktime) {
         search_cancelled = true;
@@ -72,9 +73,9 @@ Move probe_black(uint64_t thinktime) {
       }
 
       do_move<BLACK>(moves[i]);
-      eval = search<true>(MIN_INT, beta, depth - 1 - reduction[i], 0);
+      eval = search<true>(-INFINITE, beta, depth - 1 - reduction[i], 0);
       if ((eval < beta) && reduction[i])
-        eval = search<true>(MIN_INT, beta, depth - 1, 0);
+        eval = search<true>(-INFINITE, beta, depth - 1, 0);
       undo_move<BLACK>(moves[i]);
      
       if (eval < beta) {

@@ -22,11 +22,10 @@ ForceInline int midgame() {
 
 ForceInline int piece_placement() {
   int score = 0;
-  for (PieceType pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}) {
-
+  for (PieceType pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING})
+  {
     for (Bitboard b = bitboards[pt]; b; pop_lsb(b))
       score += square_score<WHITE>(pt, lsb(b));
-
     for (Bitboard b = bitboards[pt + 8]; b; pop_lsb(b))
       score -= square_score<BLACK>(pt, lsb(b));
   }
@@ -72,16 +71,17 @@ int endgame() {
 
 int mopup() {
 
-  int score = 0;
-  if (Position::us == WHITE) {
+  int score = material_count();
+
+  if (score) {
     score += distance_from_center(lsb(bb(B_KING))) * 10;
     score += (14 - square_distance(lsb(bb(W_KING)),lsb(bb(B_KING)))) * 4;
-    return score + material_count();
+  } else {
+    score -= distance_from_center(lsb(bb(W_KING))) * 10;
+    score -= (14 - square_distance(lsb(bb(W_KING)),lsb(bb(B_KING)))) * 4;
   }
-  score -= distance_from_center(lsb(bb(W_KING))) * 10;
-  score -= (14 - square_distance(lsb(bb(W_KING)),lsb(bb(B_KING)))) * 4;
-  return score + material_count();
 
+  return score;
 }
 
 ForceInline int material_count() {

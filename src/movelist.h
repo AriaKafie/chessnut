@@ -14,7 +14,7 @@ public:
   MoveList();
   Move*    begin()         { return moves; }
   Move*    end()           { return last; }
-  size_t   length()  const { return last - moves; }
+  size_t   size()    const { return last - moves; }
   bool     incheck() const { return ~checkmask; }
   void     sort(Move pv, int ply);
   Move operator[](int i) const {
@@ -36,9 +36,9 @@ class CaptureList {
 
 public:
   CaptureList();
-  Move*    begin()        { return moves; }
-  Move*    end()          { return last; }
-  size_t   length() const { return last - moves; }
+  Move*    begin()      { return moves; }
+  Move*    end()        { return last; }
+  size_t   size() const { return last - moves; }
   void     sort();
   Move operator[](int i) const {
     return moves[i];

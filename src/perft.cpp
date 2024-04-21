@@ -3,9 +3,9 @@
 #include "perft.h"
 #include "position.h"
 #include "debug.h"
+#include "uci.h"
 #include "ui.h"
 #include "util.h"
-
 #include "movegen.h"
 #include "moveordering.h"
 
@@ -15,36 +15,54 @@
 template<Color>
 void expand(int depth);
 
-uint64_t leaves;
+uint64_t nodes;
 
 template<Color C>
-void run(int depth) {
-  for (int plies_to_search = 1; plies_to_search <= depth; plies_to_search++) {
-    leaves = 0;
+void go_bench(int depth) {
+  std::cout << "depth  nodes       ms      nodes\\second\n" << std::left;
+  MoveList<C> moves;
+  for (int d = 1; d <= depth; d++) {
+    nodes = 0;
     auto start = curr_time_millis();
-    MoveList<C> moves;
     for (Move m : moves) {
       do_move<C>(m);
-      expand<!C>(plies_to_search - 1);
+      expand<!C>(d - 1);
       undo_move<C>(m);
     }
     auto delta = curr_time_millis() - start;
-    std::cout << "\nDepth " << plies_to_search << ": " << leaves << " (" << delta << " ms)\n";
+    std::cout << std::setw(7) << d << std::setw(12) << nodes << std::setw(8) << delta << std::max(0, int(double(nodes) / (double(delta) / 1000.0))) << "\n";
   }
+  std::cout << "\n";
+}
+
+template<Color C>
+void perft(int depth) {
+  uint64_t total_nodes = 0;
+  MoveList<C> moves;
+  for (Move m : moves) {
+    nodes = 0;
+    std::cout << move_to_UCI(m) << ": ";
+    do_move<C>(m);
+    expand<!C>(depth - 1);
+    undo_move<C>(m);
+    std::cout << nodes << "\n";
+    total_nodes += nodes;
+  }
+  std::cout << "\nnodes searched: " << total_nodes << "\n\n";
 }
 
 template<Color SideToMove>
 void expand(int depth) {
 
   if (depth == 0) {
-    leaves++;
+    nodes++;
     return;
   }
 
   MoveList<SideToMove> moves;
 
   if (depth == 1) {
-    leaves += moves.length();
+    nodes += moves.size();
     return;
   }
 
@@ -56,9 +74,16 @@ void expand(int depth) {
 
 }
 
+void Perft::bench(int depth) {
+  if (Position::white_to_move())
+    go_bench<WHITE>(depth);
+  else
+    go_bench<BLACK>(depth);
+}
+
 void Perft::go(int depth) {
   if (Position::white_to_move())
-    run<WHITE>(depth);
+    perft<WHITE>(depth);
   else
-    run<BLACK>(depth);
+    perft<BLACK>(depth);
 }

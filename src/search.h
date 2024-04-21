@@ -5,7 +5,7 @@
 #include "position.h"
 #include "evaluation.h"
 #include "transpositiontable.h"
-#include "defs.h"
+
 #include "bench.h"
 #include "movegen.h"
 #include "moveordering.h"
@@ -67,16 +67,16 @@ int quiescence_search(int alpha, int beta) {
     if (eval >= beta)
       return beta;
     alpha = std::max(alpha, eval);
-    int best_eval = MIN_INT;
-    CaptureList<WHITE> c;
-    if (c.length() == 0)
+    int best_eval = -INFINITE;
+    CaptureList<WHITE> captures;
+    if (captures.size() == 0)
       return eval;
-    c.sort();
-    for (int i = 0; i < c.length(); i++) {
-      Piece captured = piece_on(to_sq(c[i]));
-      do_capture<WHITE>(c[i]);
+    captures.sort();
+    for (int i = 0; i < captures.size(); i++) {
+      Piece captured = piece_on(to_sq(captures[i]));
+      do_capture<WHITE>(captures[i]);
       eval = quiescence_search<false>(alpha, beta);
-      undo_capture<WHITE>(c[i], captured);
+      undo_capture<WHITE>(captures[i], captured);
       if (eval >= beta)
         return eval;
       best_eval = std::max(eval, best_eval);
@@ -89,16 +89,16 @@ int quiescence_search(int alpha, int beta) {
     if (eval <= alpha)
       return alpha;
     beta = std::min(beta, eval);
-    int best_eval = MAX_INT;
-    CaptureList<BLACK> c;
-    if (c.length() == 0)
+    int best_eval = INFINITE;
+    CaptureList<BLACK> captures;
+    if (captures.size() == 0)
       return eval;
-    c.sort();
-    for (int i = 0; i < c.length(); i++) {
-      Piece captured = piece_on(to_sq(c[i]));
-      do_capture<BLACK>(c[i]);
+    captures.sort();
+    for (int i = 0; i < captures.size(); i++) {
+      Piece captured = piece_on(to_sq(captures[i]));
+      do_capture<BLACK>(captures[i]);
       eval = quiescence_search<true>(alpha, beta);
-      undo_capture<BLACK>(c[i], captured);
+      undo_capture<BLACK>(captures[i], captured);
       if (eval <= alpha)
         return eval;
       best_eval = std::min(eval, best_eval);
@@ -124,19 +124,19 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
   if constexpr (maximizing) {
 
     HashFlag flag = UPPER_BOUND;
-    int best_eval = MIN_INT;
+    int best_eval = -INFINITE;
     Move best_move_yet = NULLMOVE;
     MoveList<WHITE> moves;
-    if (moves.length() == 0)
+    if (moves.size() == 0)
       return moves.incheck() ? (-matescore + ply_from_root) : 0;
     int extension = moves.incheck() ? 1 : 0;
     moves.sort(TranspositionTable::lookup_move(), ply_from_root);
 
-    for (int i = 0; i < moves.length(); i++) {
+    for (int i = 0; i < moves.size(); i++) {
 
       do_move<WHITE>(moves[i]);
       int eval = search<false>(alpha, beta, depth - 1 - depth_reduction[i] + extension, ply_from_root + 1);
-      if (eval > alpha && (depth_reduction[i]))
+      if (eval > alpha && depth_reduction[i] && (depth - 1 + extension > 0))
         eval = search<false>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
       undo_move<WHITE>(moves[i]);
 
@@ -161,19 +161,19 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
   } else {
 
     HashFlag flag = LOWER_BOUND;
-    int best_eval = MAX_INT;
+    int best_eval = INFINITE;
     Move best_move_yet = NULLMOVE;
     MoveList<BLACK> moves;
-    if (moves.length() == 0)
+    if (moves.size() == 0)
       return moves.incheck() ? (matescore - ply_from_root) : 0;
     int extension = moves.incheck() ? 1 : 0;
     moves.sort(TranspositionTable::lookup_move(), ply_from_root);
 
-    for (int i = 0; i < moves.length(); i++) {
+    for (int i = 0; i < moves.size(); i++) {
 
       do_move<BLACK>(moves[i]);
       int eval = search<true>(alpha, beta, depth - 1 - depth_reduction[i] + extension, ply_from_root + 1);
-      if (eval < beta && (depth_reduction[i]))
+      if (eval < beta && depth_reduction[i] && (depth - 1 + extension > 0))
         eval = search<true>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
       undo_move<BLACK>(moves[i]);
 

@@ -9,6 +9,12 @@
 #include <cstdint>
 #include <fstream>
 
+void gameinfo();
+
+std::string brd();
+
+namespace Perft { void go(); }
+
 namespace Debug {
 
   inline std::string to_binary_string(int a) {
@@ -78,7 +84,6 @@ namespace Debug {
   inline const char* _knight_blunder = "r2qr1k1/ppp2ppp/2n2b2/8/3PpB2/1Q2P3/PP1N1PPP/R4RK1 b - - 3 14";
 
   inline int last_depth_searched;
-  void boardstatus();
   void go();
 
 }

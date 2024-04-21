@@ -3,7 +3,7 @@
 #define UTIL_H
 
 #include "position.h"
-#include "defs.h"
+
 #include "ui.h"
 #include "movegen.h"
 
@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 inline std::string piece_to_char = "  PNBRQK  pnbrqk";
 
@@ -74,60 +75,6 @@ namespace Util {
       }
       return NULLMOVE;
     }
-  }
-
-  inline std::string get_fen() {
-
-    std::string fen = "";
-
-    for (int i = 63; i >= 0; i--) {
-      if ((i % 8 == 7) && (i != 63)) fen += "/";
-      int square_type = piece_on(i);
-      if (square_type == NO_PIECE) {
-        bool break_twice = false;
-        int num_empty_squares = 0;
-        for (int j = i; piece_on(j) == NO_PIECE; j--) {
-          num_empty_squares++;
-          if (j % 8 == 0) {
-            fen += std::to_string(num_empty_squares);
-            i = j;
-            break_twice = true;
-            break;
-          }
-        }
-        if (break_twice) {
-          continue;
-        }
-        fen += std::to_string(num_empty_squares);
-        i -= (num_empty_squares - 1);
-        continue;
-      }
-      fen += piece_to_char[square_type];
-    }
-
-    fen += (Position::white_to_move() ? " w " : " b ");
-
-    switch (state_ptr->castling_rights) {
-    case  0: return fen + "- - 0 1";
-    case  1: return fen + "q - 0 1";
-    case  2: return fen + "k - 0 1";
-    case  3: return fen + "kq - 0 1";
-    case  4: return fen + "Q - 0 1";
-    case  5: return fen + "Qq - 0 1";
-    case  6: return fen + "Qk - 0 1";
-    case  7: return fen + "Qkq - 0 1";
-    case  8: return fen + "K - 0 1";
-    case  9: return fen + "Kq - 0 1";
-    case 10: return fen + "Kk - 0 1";
-    case 11: return fen + "Kkq - 0 1";
-    case 12: return fen + "KQ - 0 1";
-    case 13: return fen + "KQq - 0 1";
-    case 14: return fen + "KQk - 0 1";
-    case 15: return fen + "KQkq - 0 1";
-    }
-
-    return fen;
-
   }
 
   inline void print_binary(uint8_t num) {

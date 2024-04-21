@@ -36,15 +36,15 @@ void Bench::count_nodes(int depth) {
     for (int d = 1; d <= depth; d++) {
       if (Position::white_to_move()) {
 
-        int alpha = MIN_INT;
+        int alpha = -INFINITE;
         MoveList<WHITE> moves;
         moves.sort(best_move, 0);
 
-        for (int i = 0; i < moves.length(); i++) {
+        for (int i = 0; i < moves.size(); i++) {
           do_move<WHITE>(moves[i]);
-          int eval = Search::search<false>(alpha, MAX_INT, d - 1 - reduction[i], 0);
+          int eval = Search::search<false>(alpha, INFINITE, d - 1 - reduction[i], 0);
           if ((eval > alpha) && (reduction[i]))
-            eval = Search::search<false>(alpha, MAX_INT, d - 1, 0);
+            eval = Search::search<false>(alpha, INFINITE, d - 1, 0);
           if (eval > alpha) {
             alpha = eval;
             best_move = moves[i];
@@ -53,15 +53,15 @@ void Bench::count_nodes(int depth) {
         }
       }
       else {
-        int beta = MAX_INT;
+        int beta = INFINITE;
         MoveList<BLACK> moves;
         moves.sort(best_move, 0);
 
-        for (int i = 0; i < moves.length(); i++) {
+        for (int i = 0; i < moves.size(); i++) {
           do_move<BLACK>(moves[i]);
-          int eval = Search::search<true>(MIN_INT, beta, d - 1 - reduction[i], 0);
+          int eval = Search::search<true>(-INFINITE, beta, d - 1 - reduction[i], 0);
           if ((eval < beta) && (reduction[i]))
-            eval = Search::search<true>(MIN_INT, beta, d - 1, 0);
+            eval = Search::search<true>(-INFINITE, beta, d - 1, 0);
           if (eval < beta) {
             beta = eval;
             best_move = moves[i];

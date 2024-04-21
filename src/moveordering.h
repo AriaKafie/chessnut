@@ -24,17 +24,18 @@ struct Killer {
 
 };
 
-inline Killer killer_moves[256];
+inline Killer killer_moves[MAX_PLY];
 
-constexpr uint32_t MAX_SCORE             = 0xffff0000;
-constexpr uint32_t WINNING_CAPTURE_BONUS = 8000;
-constexpr uint32_t LOSING_CAPTURE_BONUS  = 2000;
-constexpr uint32_t KILLER_BONUS          = 4000;
-constexpr uint32_t SEEN_BY_PAWN_PENALTY  = -50;
+constexpr uint32_t MAX_SCORE            = 0xffff0000;
+constexpr uint32_t GOOD_CAPTURE_BONUS   = 8000;
+constexpr uint32_t BAD_CAPTURE_BONUS    = 2000;
+constexpr uint32_t EVASION_BONUS        = 1000;
+constexpr uint32_t KILLER_BONUS         = 4000;
+constexpr uint32_t SEEN_BY_PAWN_PENALTY = -50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
-  for (int i = 1; i < length(); i++) {
+  for (int i = 1; i < size(); i++) {
     Move key = moves[i];
     int j = i - 1;
     while (j >= 0 && score_of(moves[j]) < score_of(key)) {
@@ -56,12 +57,12 @@ void CaptureList<Us>::sort() {
     
     Square    from     = from_sq(m);
     Square    to       = to_sq(m);
-    PieceType from_pt  = piece_type_on(from);
+    PieceType pt       = piece_type_on(from);
     PieceType captured = piece_type_on(to);
 
     if (square_bb(to) & seen_by_pawn)
       score -= 500;
-    score += piece_weight(captured) - piece_weight(from_pt) * bool(square_bb(to) & seen_by_enemy);
+    score += piece_weight(captured) - piece_weight(pt) * bool(square_bb(to) & seen_by_enemy);
 
     m += score << 16;
       
@@ -110,20 +111,20 @@ void MoveList<Us>::sort(Move pv, int ply) {
     
     Square    from     = from_sq(m);
     Square    to       = to_sq(m);
-    PieceType from_pt  = piece_type_on(from);
+    PieceType pt       = piece_type_on(from);
     PieceType captured = piece_type_on(to);
     
     if (captured) {
-      int material_delta = piece_weight(captured) - piece_weight(from_pt);
+      int material_delta = piece_weight(captured) - piece_weight(pt);
       if (square_bb(to) & seen_by_enemy)
-        score += (material_delta >= 0 ? WINNING_CAPTURE_BONUS : LOSING_CAPTURE_BONUS) + material_delta;
+        score += (material_delta >= 0 ? GOOD_CAPTURE_BONUS : BAD_CAPTURE_BONUS) + material_delta;
       else
-        score += WINNING_CAPTURE_BONUS + material_delta;
+        score += GOOD_CAPTURE_BONUS + material_delta;
     }
     else {
       if (killer_moves[ply].contains(m))
         score += KILLER_BONUS;
-      score += (square_score<Us>(from_pt, to) - square_score<Us>(from_pt, from)) / 2;
+      score += (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
     }
     
     if (square_bb(to) & seen_by_pawn)
@@ -133,7 +134,7 @@ void MoveList<Us>::sort(Move pv, int ply) {
       
   }
   
-  quicksort(0, length()-1);
+  quicksort(0, size()-1);
   
 }
 

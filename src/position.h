@@ -29,8 +29,6 @@ std::string fen();
 std::string to_string();
 
 inline Color     side_to_move;
-inline Color     us;
-inline Color     them;
 inline GamePhase gamephase;
 
 inline bool white_to_move() { return side_to_move == WHITE; }

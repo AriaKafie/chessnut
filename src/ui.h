@@ -20,7 +20,6 @@ namespace UI {
     "h8", "g8", "f8", "e8", "d8", "c8", "b8", "a8",
   };
   inline std::string piece_to_char = "  PNBRQK  pnbrqk";
-  void print_board();
   void move_prompt();
   void clear_line();
   std::string move_to_string(Move move);
