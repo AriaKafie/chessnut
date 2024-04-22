@@ -10,6 +10,7 @@
 #include "movegen.h"
 #include "moveordering.h"
 #include "ui.h"
+#include "util.h"
 
 #include <cstdint>
 #include <iostream>
@@ -30,6 +31,10 @@ inline constexpr int reduction[90] = {
 };
 
 namespace Search {
+
+inline uint64_t search_start;
+inline uint64_t search_time;
+inline bool search_cancelled;
 
 Move probe_white(uint64_t thinktime);
 Move probe_black(uint64_t thinktime);
@@ -59,8 +64,6 @@ inline constexpr int depth_reduction[90] = {
 
 template<bool maximizing>
 int quiescence_search(int alpha, int beta) {
-
-  Bench::qnodes++;
 
   if constexpr (maximizing) {
     int eval = static_eval();
@@ -112,7 +115,11 @@ int quiescence_search(int alpha, int beta) {
 template<bool maximizing>
 int search(int alpha, int beta, int depth, int ply_from_root) {
 
-  Bench::nodes++;
+  if (search_cancelled) [[unlikely]]
+    return 0;
+
+  if (RepetitionTable::has_repeated())
+    return 0;
 
   if (depth <= 0)
     return quiescence_search<maximizing>(alpha, beta);
@@ -139,6 +146,9 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
       if (eval > alpha && depth_reduction[i] && (depth - 1 + extension > 0))
         eval = search<false>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
       undo_move<WHITE>(moves[i]);
+
+      if (search_cancelled) [[unlikely]]
+        return 0;
 
       if (eval >= beta) {
         TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], ply_from_root);
@@ -176,6 +186,9 @@ int search(int alpha, int beta, int depth, int ply_from_root) {
       if (eval < beta && depth_reduction[i] && (depth - 1 + extension > 0))
         eval = search<true>(alpha, beta, depth - 1 + extension, ply_from_root + 1);
       undo_move<BLACK>(moves[i]);
+
+      if (search_cancelled) [[unlikely]]
+        return 0;
 
       if (eval <= alpha) {
         TranspositionTable::record(depth, UPPER_BOUND, eval, moves[i], ply_from_root);
