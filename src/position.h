@@ -3,10 +3,11 @@
 #define POSITION_H
 
 #include "bitboard.h"
+#include "transpositiontable.h"
 #include "types.h"
 
 #include <string>
-#include <algorithm>
+#include <vector>
 
 #define bb(P) bitboard<P>()
 
@@ -178,6 +179,7 @@ void do_move(Move m) {
     bitboards[Us] ^= from_to;
     board[to] = board[from];
     board[from] = NO_PIECE;
+    RepetitionTable::increment();
     update_castling_rights<Us>();
     return;
   case PROMOTION:
@@ -192,6 +194,7 @@ void do_move(Move m) {
     bitboards[Us] ^= from_to;
     board[to] = Queen;
     board[from] = NO_PIECE;
+    RepetitionTable::increment();
     update_castling_rights<Us>();
     return;
   case SHORTCASTLE:
@@ -216,6 +219,7 @@ void do_move(Move m) {
     board[rook_from] = NO_PIECE;
     board[king_to] = King;
     board[rook_to] = Rook;
+    RepetitionTable::increment();
     update_castling_rights<Us>();
   }
     return;
@@ -241,6 +245,7 @@ void do_move(Move m) {
     board[rook_from] = NO_PIECE;
     board[king_to] = King;
     board[rook_to] = Rook;
+    RepetitionTable::increment();
     update_castling_rights<Us>();
   }
   return;
@@ -258,12 +263,15 @@ void do_move(Move m) {
     board[from] = NO_PIECE;
     board[to] = Pawn;
     board[capsq] = NO_PIECE;
+    RepetitionTable::increment();
     return;
   }
 }
 
 template<Color Us>
 void undo_move(Move m) {
+
+  RepetitionTable::decrement();
 
   constexpr Color Them = !Us;
 

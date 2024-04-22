@@ -4,13 +4,42 @@
 
 #include <iostream>
 
-Entry entries[TableSize];
+constexpr int TTSize = 1 << 24;
+constexpr int RepSize = 1 << 18;
 
-namespace TranspositionTable {
+Entry entries[TTSize];
+RepInfo rep_table[RepSize];
 
-int lookup(int depth, int alpha, int beta, int ply_from_root) {
+bool RepetitionTable::has_repeated() {
+  RepInfo& ri = rep_table[Position::key() & (RepSize - 1)];
+  if (ri.key == Position::key() && ri.occurrences >= 3)
+    return true;
+  return false;
+}
 
-  Entry* entry = &entries[Position::key() & modulo];
+void RepetitionTable::increment() {
+  RepInfo& ri = rep_table[Position::key() & (RepSize - 1)];
+  if (ri.key == Position::key())
+    ri.occurrences++;
+  else if (ri.key == 0 || ri.occurrences == 0) {
+    ri.key = Position::key();
+    ri.occurrences = 1;
+  }
+}
+
+void RepetitionTable::decrement() {
+  RepInfo& ri = rep_table[Position::key() & (RepSize - 1)];
+  if (ri.key == Position::key())
+    ri.occurrences--;
+}
+
+void RepetitionTable::clear() {
+  memset(rep_table, 0, RepSize * sizeof(RepInfo));
+}
+
+int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root) {
+
+  Entry* entry = &entries[Position::key() & (TTSize - 1)];
   int eval = entry->eval;
   eval -= ply_from_root * (eval > 90000);
   eval += ply_from_root * (eval < -90000);
@@ -28,28 +57,17 @@ int lookup(int depth, int alpha, int beta, int ply_from_root) {
   return FAIL;
 }
 
-void disable() {
-  disabled = true;
-}
-
-void enable() {
-  disabled = false;
-}
-
-void record(uint8_t depth, HashFlag flag, int eval, uint16_t best_move, int ply_from_root) {
-  int index = Position::key() & modulo;
+void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, uint16_t best_move, int ply_from_root) {
+  int index = Position::key() & (TTSize - 1);
   eval += ply_from_root * (eval > 90000);
   eval -= ply_from_root * (eval < -90000);
   entries[index].set(Position::key(), depth, flag, eval, best_move);
 }
 
-int lookup_move() {
-  return entries[Position::key() & modulo].best_move;
+int TranspositionTable::lookup_move() {
+  return entries[Position::key() & (TTSize - 1)].best_move;
 }
 
-void clear() {
-  memset(entries, 0, TableSize * sizeof(Entry));
+void TranspositionTable::clear() {
+  memset(entries, 0, TTSize * sizeof(Entry));
 }
-
-} // namespace TranspositionTable
-

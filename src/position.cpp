@@ -1,10 +1,12 @@
 
 #include "position.h"
+#include "transpositiontable.h"
 #include "util.h"
 
 #include <cstring>
 #include <random>
 #include <sstream>
+#include <vector>
 
 void set_gamephase();
 
@@ -31,16 +33,14 @@ void Position::set(const std::string& fen) {
   memset(board, NO_PIECE, 64 * sizeof(Piece));
   memset(bitboards, 0, 16 * sizeof(Bitboard));
 
-  uint8_t token;
+  char token;
   Square sq = A8;
   size_t piece, idx;
 
-  std::istringstream iss(fen);
-  iss >> std::noskipws;
+  std::istringstream is(fen);
+  is >> std::noskipws;
 
-  while (iss >> token) {
-    if (std::isspace(token))
-      break;
+  while (is >> token && !std::isspace(token)) {
     if (std::isdigit(token))
       sq -= token - '0';
     else if ((piece = piece_to_char.find(token)) != std::string::npos) {
@@ -51,12 +51,12 @@ void Position::set(const std::string& fen) {
     }
   }
 
-  iss >> std::skipws;
-  iss >> token;
+  is >> std::skipws;
+  is >> token;
   side_to_move = token == 'w' ? WHITE : BLACK;
 
   state_ptr->castling_rights = 0;
-  while (iss >> token)
+  while (is >> token)
     if ((idx = std::string("qkQK").find(token)) != std::string::npos)
       state_ptr->castling_rights ^= 1 << idx;
 
@@ -66,7 +66,6 @@ void Position::set(const std::string& fen) {
     state_ptr->key ^= Zobrist::hash[piece_on(sq)][sq];
 
   set_gamephase();
-
 }
 
 std::string Position::to_string() {
@@ -112,6 +111,8 @@ std::string Position::fen() {
 }
 
 void Position::do_commit(Move m) {
+  if (piece_on(to_sq(m)) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
+    RepetitionTable::clear();
   if (side_to_move == WHITE)
     do_move<WHITE>(m);
   else
