@@ -3,18 +3,25 @@
 #include "uci.h"
 #include "ui.h"
 #include "search.h"
+#include "transpositiontable.h"
 
 #include <sstream>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 // 4q2r/2pk4/Q1n1bp1p/6p1/8/2NP4/PrPB1PPP/R5K1 w - - 0 1
+
+extern RepInfo rep_table[];
+
 namespace Debug {
 
   void go() {
-    for (Square s = H1; s <= A8; s++) {
-      std::cout << square_to_uci(s) << "\n";
+    for (int i = 0; i < (1 << 18); i++) {
+      RepInfo& ri = rep_table[i];
+      if (ri.occurrences)
+        std::cout << std::hex << ri.key << ": " << std::dec << (int)ri.occurrences << "\n";
     }
+    std::cout << "ok\n";
   }
 
 }
@@ -32,19 +39,26 @@ std::string brd() {
 
 void gameinfo() {
 
-#define GAMEINFO(color)             \
-  do {                              \
-    MoveList<color> moves;          \
-    if (moves.size())               \
-      std::cout << "nonterminal\n"; \
-    else if (moves.incheck())       \
-      std::cout << "mate\n";        \
-    else                            \
-      std::cout << "draw\n";        \
-  } while (false)
+  if (RepetitionTable::has_repeated()) {
+    std::cout << "draw\n";
+    return;
+  }
 
-  if (Position::white_to_move()) { GAMEINFO(WHITE); } 
-  else                           { GAMEINFO(BLACK); }
-
-#undef GAMEINFO
+  if (Position::white_to_move()) {
+    MoveList<WHITE> moves;
+    if (moves.size())
+      std::cout << "nonterminal\n";
+    else if (moves.incheck())
+      std::cout << "mate\n";
+    else
+      std::cout << "draw\n";
+  } else {
+    MoveList<BLACK> moves;
+    if (moves.size())
+      std::cout << "nonterminal\n";
+    else if (moves.incheck())
+      std::cout << "mate\n";
+    else
+      std::cout << "draw\n";
+  }
 }

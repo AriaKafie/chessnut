@@ -5,7 +5,7 @@
 #include <iostream>
 
 constexpr int TTSize = 1 << 24;
-constexpr int RepSize = 1 << 18;
+constexpr int RepSize = 1 << 12;
 
 Entry entries[TTSize];
 RepInfo rep_table[RepSize];

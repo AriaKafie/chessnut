@@ -27,16 +27,16 @@ CaptureList<Us>::CaptureList() :
 {
   constexpr Color Them           = !Us;
   constexpr Piece FriendlyPawn   = make_piece(Us,   PAWN);
-  constexpr Piece FriendlyKnight = make_piece(Us,   KNIGHT);
-  constexpr Piece FriendlyBishop = make_piece(Us,   BISHOP);
-  constexpr Piece FriendlyRook   = make_piece(Us,   ROOK);
-  constexpr Piece FriendlyQueen  = make_piece(Us,   QUEEN);
-  constexpr Piece FriendlyKing   = make_piece(Us,   KING);
   constexpr Piece EnemyPawn      = make_piece(Them, PAWN);
+  constexpr Piece FriendlyKnight = make_piece(Us,   KNIGHT);
   constexpr Piece EnemyKnight    = make_piece(Them, KNIGHT);
+  constexpr Piece FriendlyBishop = make_piece(Us,   BISHOP);
   constexpr Piece EnemyBishop    = make_piece(Them, BISHOP);
+  constexpr Piece FriendlyRook   = make_piece(Us,   ROOK);
   constexpr Piece EnemyRook      = make_piece(Them, ROOK);
+  constexpr Piece FriendlyQueen  = make_piece(Us,   QUEEN);
   constexpr Piece EnemyQueen     = make_piece(Them, QUEEN);
+  constexpr Piece FriendlyKing   = make_piece(Us,   KING);
   constexpr Piece EnemyKing      = make_piece(Them, KING);
 
   Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);
@@ -162,17 +162,17 @@ MoveList<Us>::MoveList() :
   last(moves)
 {
   constexpr Color Them           = !Us;
-  constexpr Piece FriendlyPawn   = make_piece(Us, PAWN);
-  constexpr Piece FriendlyKnight = make_piece(Us, KNIGHT);
-  constexpr Piece FriendlyBishop = make_piece(Us, BISHOP);
-  constexpr Piece FriendlyRook   = make_piece(Us, ROOK);
-  constexpr Piece FriendlyQueen  = make_piece(Us, QUEEN);
-  constexpr Piece FriendlyKing   = make_piece(Us, KING);
+  constexpr Piece FriendlyPawn   = make_piece(Us,   PAWN);
   constexpr Piece EnemyPawn      = make_piece(Them, PAWN);
+  constexpr Piece FriendlyKnight = make_piece(Us,   KNIGHT);
   constexpr Piece EnemyKnight    = make_piece(Them, KNIGHT);
+  constexpr Piece FriendlyBishop = make_piece(Us,   BISHOP);
   constexpr Piece EnemyBishop    = make_piece(Them, BISHOP);
+  constexpr Piece FriendlyRook   = make_piece(Us,   ROOK);
   constexpr Piece EnemyRook      = make_piece(Them, ROOK);
+  constexpr Piece FriendlyQueen  = make_piece(Us,   QUEEN);
   constexpr Piece EnemyQueen     = make_piece(Them, QUEEN);
+  constexpr Piece FriendlyKing   = make_piece(Us,   KING);
   constexpr Piece EnemyKing      = make_piece(Them, KING);
 
   Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);

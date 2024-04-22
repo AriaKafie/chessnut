@@ -91,8 +91,10 @@ void UCI::loop() {
       handle_debug();
     else if (token == "isready")
       std::cout << "readyok\n";
-    else if (token == "ucinewgame")
+    else if (token == "ucinewgame") {
       TranspositionTable::clear();
+      RepetitionTable::clear();
+    }
     else if (token == "position")
       position(ss);
     else if (token == "go")
@@ -118,45 +120,45 @@ void handle_gameloop(std::string input) {
   if (input.find("white") != std::string::npos) {
     if (Position::white_to_move()) {
       make_ai_move();
-      std::cin >> command;
+      std::getline(std::cin, command);
       while (command != "quit") {
         move_prompt(command);
         std::cout << Position::to_string();
         make_ai_move();
-        std::cin >> command;
+        std::getline(std::cin, command);
       }
       return;
     }
     else {
-      std::cin >> command;
+      std::getline(std::cin, command);
       while (command != "quit") {
         move_prompt(command);
         std::cout << Position::to_string();
         make_ai_move();
-        std::cin >> command;
+        std::getline(std::cin, command);
       }
       return;
     }
   }
   else {
     if (Position::white_to_move()) {
-      std::cin >> command;
+      std::getline(std::cin, command);
       while (command != "quit") {
         move_prompt(command);
         std::cout << Position::to_string();
         make_ai_move();
-        std::cin >> command;
+        std::getline(std::cin, command);
       }
       return;
     }
     else {
       make_ai_move();
-      std::cin >> command;
+      std::getline(std::cin, command);
       while (command != "quit") {
         move_prompt(command);
         std::cout << Position::to_string();
         make_ai_move();
-        std::cin >> command;
+        std::getline(std::cin, command);
       }
       return;
     }
@@ -216,7 +218,6 @@ void handle_newgame() {
 
 void handle_debug() {
   std::cout << std::uppercase << std::left;
-  std::cout << std::setw(9) << "tt:" << (TranspositionTable::disabled ? "disabled\n" : "enabled\n");
   std::cout << std::setw(9) << "endgame:" << (Position::endgame() ? "true\n" : "false\n");
   std::cout << std::setw(9) << "mopup:" << (Position::mopup() ? "true\n" : "false\n");
   std::cout << std::setw(9) << "last depth searched: " << std::dec << Debug::last_depth_searched << "\n";
