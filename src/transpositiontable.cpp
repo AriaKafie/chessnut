@@ -5,20 +5,20 @@
 #include <iostream>
 
 constexpr int TTSize = 1 << 24;
-constexpr int RepSize = 1 << 12;
+constexpr int RTSize = 1 << 20;
 
 Entry entries[TTSize];
-RepInfo rep_table[RepSize];
+RepInfo rep_table[RTSize];
 
 bool RepetitionTable::has_repeated() {
-  RepInfo& ri = rep_table[Position::key() & (RepSize - 1)];
+  RepInfo& ri = rep_table[Position::key() & (RTSize - 1)];
   if (ri.key == Position::key() && ri.occurrences >= 3)
     return true;
   return false;
 }
 
 void RepetitionTable::increment() {
-  RepInfo& ri = rep_table[Position::key() & (RepSize - 1)];
+  RepInfo& ri = rep_table[Position::key() & (RTSize - 1)];
   if (ri.key == Position::key())
     ri.occurrences++;
   else if (ri.key == 0 || ri.occurrences == 0) {
@@ -28,13 +28,13 @@ void RepetitionTable::increment() {
 }
 
 void RepetitionTable::decrement() {
-  RepInfo& ri = rep_table[Position::key() & (RepSize - 1)];
+  RepInfo& ri = rep_table[Position::key() & (RTSize - 1)];
   if (ri.key == Position::key())
     ri.occurrences--;
 }
 
 void RepetitionTable::clear() {
-  memset(rep_table, 0, RepSize * sizeof(RepInfo));
+  memset(rep_table, 0, RTSize * sizeof(RepInfo));
 }
 
 int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root) {

@@ -65,6 +65,8 @@ inline constexpr int depth_reduction[90] = {
 template<bool maximizing>
 int quiescence_search(int alpha, int beta) {
 
+  Bench::qnodes++;
+
   if constexpr (maximizing) {
     int eval = static_eval();
     if (eval >= beta)
@@ -114,6 +116,8 @@ int quiescence_search(int alpha, int beta) {
 
 template<bool maximizing>
 int search(int alpha, int beta, int depth, int ply_from_root) {
+
+  Bench::nodes++;
 
   if (search_cancelled) [[unlikely]]
     return 0;

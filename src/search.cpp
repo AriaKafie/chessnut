@@ -31,7 +31,7 @@ Move Search::probe_white(uint64_t thinktime) {
   std::thread timer([thinktime]() { poll(thinktime); });
   timer.detach();
 
-  for (int depth = 1; !search_cancelled; depth++)
+  for (int depth = 1; depth < MAX_PLY && !search_cancelled; depth++)
   {
     for (Move& m : moves)
       m &= 0xffff;
@@ -72,7 +72,7 @@ Move Search::probe_black(uint64_t thinktime) {
   std::thread timer([thinktime]() { poll(thinktime); });
   timer.detach();
 
-  for (int depth = 1; !search_cancelled; depth++)
+  for (int depth = 1; depth < MAX_PLY && !search_cancelled; depth++)
   {
     for (Move& m : moves)
       m &= 0xffff;
