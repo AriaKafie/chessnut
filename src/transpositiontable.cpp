@@ -57,15 +57,16 @@ int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root
   return FAIL;
 }
 
-void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, uint16_t best_move, int ply_from_root) {
+void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move bestmove, int ply_from_root) {
   int index = Position::key() & (TTSize - 1);
   eval += ply_from_root * (eval > 90000);
   eval -= ply_from_root * (eval < -90000);
-  entries[index].set(Position::key(), depth, flag, eval, best_move);
+  entries[index].set(Position::key(), depth, flag, eval, bestmove);
 }
 
 int TranspositionTable::lookup_move() {
-  return entries[Position::key() & (TTSize - 1)].best_move;
+  Entry& e = entries[Position::key() & (TTSize - 1)];
+  return e.key == Position::key() ? e.bestmove : NULLMOVE;
 }
 
 void TranspositionTable::clear() {

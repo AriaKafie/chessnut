@@ -32,7 +32,7 @@ void Magic::test_magic(Square sq, uint64_t magic) {
 
   for (int p = 0; p < 1 << popcount(rook_masks[sq]); p++) {
     Bitboard occupancy = generate_occupancy(rook_masks[sq], p);
-    o << bbtos(occupancy) << (occupancy * magic >> 64 - popcount(rook_masks[sq])) << "\n";
+    o << to_string(occupancy) << (occupancy * magic >> 64 - popcount(rook_masks[sq])) << "\n";
   }
 
   o.close();

@@ -65,9 +65,9 @@ void go(std::istringstream& cmd) {
   } else if (token == "movetime") {
     uint64_t movetime;
     cmd >> movetime;
-    std::cout << ("bestmove " + move_to_UCI(Position::white_to_move() ? Search::probe_white(movetime) : Search::probe_black(movetime))) << "\n";
+    std::cout << ("bestmove " + move_to_UCI(Search::bestmove(movetime))) << "\n";
   } else
-    std::cout << ("bestmove " + move_to_UCI(Position::white_to_move() ? Search::probe_white(think_time) : Search::probe_black(think_time))) << "\n";
+    std::cout << ("bestmove " + move_to_UCI(Search::bestmove(3000))) << "\n";
 }
 
 void UCI::loop() {
@@ -183,9 +183,7 @@ Move uci_to_move(const std::string& uci) {
 
 void make_ai_move() {
 
-  Move best_move = Position::white_to_move()
-    ? Search::probe_white(think_time)
-    : Search::probe_black(think_time);
+  Move best_move = Search::bestmove(3000);
 
   std::string sanstr = move_to_SAN(best_move);
   Mouse::make_move(best_move);
