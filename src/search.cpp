@@ -11,7 +11,16 @@
 #include "util.h"
 #include "bench.h"
 
+#include <cmath>
 #include <thread>
+
+int reductions[MAX_PLY][MAX_PLY];
+
+void Search::init() {
+  for (int depth = 0; depth < MAX_PLY; depth++)
+    for (int mn = 0; mn < MAX_PLY; mn++)
+      reductions[depth][mn] = int(std::log(mn + 2) / std::log(std::min(14, depth) + 2));
+}
 
 bool search_cancelled;
 
@@ -85,17 +94,21 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
   HashFlag flag = UPPER_BOUND;
   int best_eval = -INFINITE;
   Move best_move_yet = NULLMOVE;
+
   MoveList<SideToMove> moves;
   if (moves.size() == 0)
     return moves.incheck() ? -matescore + ply_from_root : 0;
-  int extension = moves.incheck() ? 1 : 0;
   moves.sort(TranspositionTable::lookup_move(), ply_from_root);
+
+  int extension = moves.incheck() ? 1 : 0;
 
   for (int i = 0; i < moves.size(); i++)
   {
+    int R = reductions[depth][i];
+
     do_move<SideToMove>(moves[i]);
-    int eval = -search<!SideToMove>(-beta, -alpha, depth - 1 - depth_reduction[i] + extension, ply_from_root + 1, true);
-    if (eval > alpha && depth_reduction[i] && (depth - 1 + extension > 0))
+    int eval = -search<!SideToMove>(-beta, -alpha, depth - 1 - R + extension, ply_from_root + 1, true);
+    if (eval > alpha && R && (depth - 1 + extension > 0))
       eval = -search<!SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true);
     undo_move<SideToMove>(moves[i]);
 

@@ -2,17 +2,25 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include "position.h"
-#include "evaluation.h"
-#include "transpositiontable.h"
+#include "types.h"
 
-#include "bench.h"
-#include "movegen.h"
-#include "moveordering.h"
-#include "ui.h"
-#include "util.h"
+//struct PlyInfo {
+//  Move move_played;
+//};
+//
+//PlyInfo search_stack[MAX_PLY];
 
-inline constexpr int reduction[90] =
+
+/*
+  if (quietbetacut)
+    counter_moves[from_to(search_stack[ply_from_root - 1].move_played)] = move;
+
+  for (Move& m : *this)
+    if (m == counter_moves[from_to(search_stack[ply_from_root - 1].move_played)])
+      m += counter_move_score (* depth?);
+*/
+
+inline constexpr int reduction[MAX_PLY] =
 {
   0,1,1,1,1,2,2,2,2,2,
   2,2,2,2,2,3,3,3,3,3,
@@ -25,7 +33,7 @@ inline constexpr int reduction[90] =
   8,8,8,8,8,8,8,8,8,8,
 };
 
-inline constexpr int depth_reduction[90] =
+inline constexpr int depth_reduction[MAX_PLY] =
 {
   0,0,0,0,0,0,0,0,0,0,
   1,1,1,1,1,1,1,1,1,1,
@@ -40,6 +48,11 @@ inline constexpr int depth_reduction[90] =
 
 constexpr int matescore = 100000;
 
-namespace Search { Move bestmove(uint64_t thinktime); }
+namespace Search {
+
+Move bestmove(uint64_t thinktime);
+void init();
+
+} // namespace Search
 
 #endif

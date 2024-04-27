@@ -4,11 +4,10 @@
 #include "util.h"
 #include "search.h"
 
-#include <fstream>
-
 int main(int argc, char* argv[]) {
 
   Bitboards::init();
+  Search::init();
   Position::init();
   UCI::loop();
 

@@ -9,19 +9,38 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+#include <cmath>
+#include <algorithm>
+
 // 4q2r/2pk4/Q1n1bp1p/6p1/8/2NP4/PrPB1PPP/R5K1 w - - 0 1
 
 extern RepInfo rep_table[];
+extern int reductions[MAX_PLY][MAX_PLY];
+
+int reduction_(int d, int mn) {
+  return std::log(mn + 2) * std::log(std::min(14, d) + 2);
+}
 
 namespace Debug {
 
   void go() {
-    for (int i = 0; i < (1 << 18); i++) {
-      RepInfo& ri = rep_table[i];
-      if (ri.occurrences)
-        std::cout << std::hex << ri.key << ": " << std::dec << (int)ri.occurrences << "\n";
+    for (int depth = 0; depth < 15; depth++) {
+      for (int mn = 0; mn < MAX_PLY; mn++) {
+        if (mn%10 == 0)
+          std::cout << "\n";
+        std::cout << std::setw(4) << (std::to_string(reduction_(depth, mn)) + ",");
+      }
+      std::cout << "\n\n";
     }
-    std::cout << "ok\n";
+
+    for (int depth = 0; depth < MAX_PLY; depth++) {
+      for (int mn = 0; mn < MAX_PLY; mn++) {
+        if (mn % 10 == 0)
+          std::cout << "\n";
+        std::cout << std::setw(4) << std::to_string(int(std::log(mn + 2) / std::log(std::min(14, depth) + 2))) + ",";
+      }
+      std::cout << "\n\n";
+    }
   }
 
 }
@@ -42,6 +61,16 @@ void gameinfo() {
   if (RepetitionTable::has_repeated()) {
     std::cout << "draw\n";
     return;
+  }
+
+  int count = 0;
+  for (int i = 0; i < (1 << 20); i++) {
+    if (rep_table[i].occurrences)
+      count++;
+    if (count >= 100) {
+      std::cout << "draw\n";
+      return;
+    }
   }
 
   if (Position::white_to_move()) {
