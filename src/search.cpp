@@ -27,7 +27,7 @@ int nodes, qnodes;
 template<Color SideToMove>
 int qsearch(int alpha, int beta) {
 
-  qnodes++;
+  //qnodes++;
 
   int eval = static_eval<SideToMove>();
 
@@ -63,7 +63,7 @@ int qsearch(int alpha, int beta) {
 template<Color SideToMove>
 int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
 
-  nodes++;
+  //nodes++;
 
   if (search_cancelled) [[unlikely]]
     return 0;
@@ -89,16 +89,16 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
       return eval;
   }
 
-  HashFlag flag = UPPER_BOUND;
-  int best_eval = -INFINITE;
-  Move best_move_yet = NULLMOVE;
+  int      best_eval = -INFINITE;
+  Move     best_move = NULLMOVE;
+  HashFlag flag      = UPPER_BOUND;
 
   MoveList<SideToMove> moves;
   if (moves.size() == 0)
-    return moves.incheck() ? -matescore + ply_from_root : 0;
+    return moves.in_check() ? -matescore + ply_from_root : 0;
   moves.sort(TranspositionTable::lookup_move(), ply_from_root);
 
-  int extension = moves.incheck() ? 1 : 0;
+  int extension = moves.in_check();
 
   for (int i = 0; i < moves.size(); i++)
   {
@@ -106,7 +106,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
 
     do_move<SideToMove>(moves[i]);
     int eval = -search<!SideToMove>(-beta, -alpha, depth - 1 - R + extension, ply_from_root + 1, true);
-    if (eval > alpha && R && (depth - 1 + extension > 0))
+    if (eval > alpha && R && depth - 1 + extension > 0)
       eval = -search<!SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true);
     undo_move<SideToMove>(moves[i]);
 
@@ -123,15 +123,14 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
 
     best_eval = std::max(eval, best_eval);
 
-    if (eval > alpha)
-    {
-      best_move_yet = moves[i];
+    if (eval > alpha) {
+      best_move = moves[i];
       alpha = eval;
       flag = EXACT;
     }
 
   }
-  TranspositionTable::record(depth, flag, best_eval, best_move_yet, ply_from_root);
+  TranspositionTable::record(depth, flag, best_eval, best_move, ply_from_root);
   return alpha; 
 }
 
@@ -218,10 +217,8 @@ void go() {
 }
 
 void Search::go_infinite() {
-  if (Position::white_to_move())
-    go<WHITE>();
-  else
-    go<BLACK>();
+  if (Position::white_to_move()) go<WHITE>();
+  else                           go<BLACK>();
 }
 
 void Bench::count_nodes(int depth) {

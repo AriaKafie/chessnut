@@ -77,7 +77,7 @@ void gameinfo() {
     MoveList<WHITE> moves;
     if (moves.size())
       std::cout << "nonterminal\n";
-    else if (moves.incheck())
+    else if (moves.in_check())
       std::cout << "mate\n";
     else
       std::cout << "draw\n";
@@ -85,7 +85,7 @@ void gameinfo() {
     MoveList<BLACK> moves;
     if (moves.size())
       std::cout << "nonterminal\n";
-    else if (moves.incheck())
+    else if (moves.in_check())
       std::cout << "mate\n";
     else
       std::cout << "draw\n";
