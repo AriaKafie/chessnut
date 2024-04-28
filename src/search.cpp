@@ -22,8 +22,6 @@ void Search::init() {
       reductions[depth][mn] = int(std::log(mn + 2) / std::log(std::min(14, depth) + 2));
 }
 
-bool search_cancelled;
-
 int nodes, qnodes;
 
 template<Color SideToMove>
@@ -83,7 +81,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
   if (do_null && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
   {
     state_ptr->key ^= Zobrist::Side;
-    int eval = -search<!SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root, false);
+    int eval = -search<!SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
     state_ptr->key ^= Zobrist::Side;
     if (search_cancelled) [[unlikely]]
       return 0;
@@ -115,7 +113,8 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
     if (search_cancelled) [[unlikely]]
       return 0;
 
-    if (eval >= beta) {
+    if (eval >= beta)
+    {
       TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], ply_from_root);
       if (!piece_on(to_sq(moves[i])))
         killer_moves[ply_from_root].add(moves[i] & 0xffff);
@@ -124,7 +123,8 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
 
     best_eval = std::max(eval, best_eval);
 
-    if (eval > alpha) {
+    if (eval > alpha)
+    {
       best_move_yet = moves[i];
       alpha = eval;
       flag = EXACT;
@@ -135,16 +135,6 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null) {
   return alpha; 
 }
 
-void poll(uint64_t thinktime) {
-  auto start_time = curr_time_millis();
-  while (true) {
-    if (curr_time_millis() - start_time > thinktime) {
-      search_cancelled = true;
-      return;
-     }
-  }
-}
-
 template<Color SideToMove>
 Move best_move(uint64_t thinktime) {
 
@@ -152,11 +142,11 @@ Move best_move(uint64_t thinktime) {
   int eval, alpha;
   Move best_move = NULLMOVE;
   MoveList<SideToMove> moves;
-  
-  std::thread timer([thinktime]() { poll(thinktime); });
+
+  std::thread timer([thinktime]() { start_timer(thinktime); });
   timer.detach();
 
-  for (int depth = 1; depth < MAX_PLY && !search_cancelled; depth++)
+  for (int depth = 1; depth < 64 && !search_cancelled; depth++)
   {
     Debug::last_depth_searched = depth - 1;
 
@@ -181,13 +171,58 @@ Move best_move(uint64_t thinktime) {
         alpha = eval;
         best_move = moves[i];
       }
-
     }
   }
   return best_move == NULLMOVE ? moves[0] : best_move;
 }
 
 Move Search::bestmove(uint64_t thinktime) { return Position::white_to_move() ? best_move<WHITE>(thinktime) : best_move<BLACK>(thinktime); }
+
+template<Color SideToMove>
+void go() {
+
+  search_cancelled = false;
+  int eval, alpha;
+  Move best_move = NULLMOVE;
+  MoveList<SideToMove> moves;
+  
+  std::thread t([]() { await_stop(); });
+  t.detach();
+
+  for (int depth = 1; depth < 64 && !search_cancelled; depth++)
+  {
+    for (Move& m : moves)
+      m &= 0xffff;
+
+    alpha = -INFINITE;
+    moves.sort(best_move, 0);
+
+    for (int i = 0; i < moves.size(); i++)
+    {
+      do_move<SideToMove>(moves[i]);
+      eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1 - reduction[i], 0, true);
+      if (eval > alpha && reduction[i])
+        eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1, 0, true);
+      undo_move<SideToMove>(moves[i]);
+
+      if (search_cancelled)
+        break;
+
+      if (eval > alpha) {
+        alpha = eval;
+        best_move = moves[i];
+      }
+    }
+    std::cout << "depth " << depth << ": bestmove " << move_to_uci(best_move) << "\n";
+  }
+}
+
+void Search::go_infinite() {
+  if (Position::white_to_move())
+    go<WHITE>();
+  else
+    go<BLACK>();
+}
 
 void Bench::count_nodes(int depth) {
 

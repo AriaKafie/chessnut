@@ -62,12 +62,14 @@ void go(std::istringstream& cmd) {
   } else if (token == "bench") {
     cmd >> depth;
     Perft::bench(depth);
+  } else if (token == "infinite") {
+    Search::go_infinite();
   } else if (token == "movetime") {
     uint64_t movetime;
     cmd >> movetime;
-    std::cout << ("bestmove " + move_to_UCI(Search::bestmove(movetime))) << "\n";
+    std::cout << ("bestmove " + move_to_uci(Search::bestmove(movetime))) << "\n";
   } else
-    std::cout << ("bestmove " + move_to_UCI(Search::bestmove(3000))) << "\n";
+    std::cout << ("bestmove " + move_to_uci(Search::bestmove(3000))) << "\n";
 }
 
 void UCI::loop() {
@@ -233,7 +235,7 @@ void handle_isready () {
 
 }
 
-std::string move_to_UCI(Move m) {
+std::string move_to_uci(Move m) {
   return UI::coords[from_sq(m)] + UI::coords[to_sq(m)] + (type_of(m) == PROMOTION ? "q" : "");
 }
 

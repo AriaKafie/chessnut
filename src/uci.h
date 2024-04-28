@@ -26,7 +26,7 @@ void handle_isready();
 void handle_gameloop(std::string input);
 
 void move_prompt(std::string move);
-std::string move_to_UCI(Move m);
+std::string move_to_uci(Move m);
 bool starts_with(const std::string& str, const std::string& prefix);
 void trim(std::string& str);
 void make_ai_move();

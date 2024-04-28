@@ -41,7 +41,7 @@ void perft(int depth) {
   MoveList<C> moves;
   for (Move m : moves) {
     nodes = 0;
-    std::cout << move_to_UCI(m) << ": ";
+    std::cout << move_to_uci(m) << ": ";
     do_move<C>(m);
     expand<!C>(depth - 1);
     undo_move<C>(m);
