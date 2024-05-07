@@ -296,15 +296,21 @@ MoveList<Us>::MoveList() :
   constexpr Move     SCASTLE  = Us == WHITE ? W_SCASTLE             : B_SCASTLE;
   constexpr Move     LCASTLE  = Us == WHITE ? W_LCASTLE             : B_LCASTLE;
             
-  uint64_t hash;
+  //uint64_t hash;
 
-  *last = SCASTLE;
+  /**last = SCASTLE;
   hash = (occupied | seen_by_enemy) & KingBan | Position::kingside_rights<Us>();
   last += !(hash ^ KingKey);
 
   *last = LCASTLE;
   hash = occupied & QueenOcc | seen_by_enemy & QueenAtk | Position::queenside_rights<Us>();
-  last += !(hash ^ QueenKey);
+  last += !(hash ^ QueenKey);*/
+
+  *last = SCASTLE;
+  last += !(((occupied | seen_by_enemy) & KingBan | Position::kingside_rights<Us>()) ^ KingKey);
+
+  *last = LCASTLE;
+  last += !((occupied & QueenOcc | seen_by_enemy & QueenAtk | Position::queenside_rights<Us>()) ^ QueenKey);
   
 }
 

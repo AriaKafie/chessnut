@@ -16,7 +16,7 @@ public:
   Move*  end()            { return last; }
   size_t size()     const { return last - moves; }
   bool   in_check() const { return ~checkmask; }
-  void   sort(Move pv, int ply);
+  void   sort(Move pv, int ply_from_root);
   Move operator[](int i) const {
     return moves[i];
   }

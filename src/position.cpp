@@ -140,7 +140,7 @@ void set_gamephase() {
     5 * piece_count(make_piece(them, ROOK))   +
     9 * piece_count(make_piece(them, QUEEN));
 
-  if (enemy_material < 5 && friendly_material >= 5/* || friendly_material < 5 && enemy_material >= 5*/)
+  if (enemy_material < 5 && friendly_material >= 5)
     Position::gamephase = MOPUP;
   else if (enemy_material < 10 || enemy_material < 17 && !bitboards[make_piece(them, QUEEN)])
     Position::gamephase = ENDGAME;

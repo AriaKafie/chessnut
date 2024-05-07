@@ -62,14 +62,12 @@ void go(std::istringstream& cmd) {
   } else if (token == "bench") {
     cmd >> depth;
     Perft::bench(depth);
-  } else if (token == "infinite") {
-    Search::go_infinite();
   } else if (token == "movetime") {
     uint64_t movetime;
     cmd >> movetime;
     std::cout << ("bestmove " + move_to_uci(Search::bestmove(movetime))) << "\n";
   } else
-    std::cout << ("bestmove " + move_to_uci(Search::bestmove(3000))) << "\n";
+    Search::go_infinite();
 }
 
 void UCI::loop() {
@@ -101,7 +99,6 @@ void UCI::loop() {
       position(ss);
     else if (token == "go")
       go(ss);
-
     else if (token == "gameloop")
       handle_gameloop(cmd);
     else if (token == "d")

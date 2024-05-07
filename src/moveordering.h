@@ -134,7 +134,7 @@ void MoveList<Us>::sort(Move pv, int ply) {
       
   }
   
-  quicksort(0, size()-1);
+  quicksort(0, size() - 1);
   
 }
 

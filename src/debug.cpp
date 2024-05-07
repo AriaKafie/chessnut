@@ -1,9 +1,13 @@
 
+#include "debug.h"
+
+#include "bench.h"
 #include "movegen.h"
 #include "uci.h"
 #include "ui.h"
 #include "search.h"
 #include "transpositiontable.h"
+#include "util.h"
 
 #include <sstream>
 #include <iomanip>
@@ -21,28 +25,14 @@ int reduction_(int d, int mn) {
   return std::log(mn + 2) * std::log(std::min(14, d) + 2);
 }
 
-namespace Debug {
-
-  void go() {
-    for (int depth = 0; depth < 15; depth++) {
-      for (int mn = 0; mn < MAX_PLY; mn++) {
-        if (mn%10 == 0)
-          std::cout << "\n";
-        std::cout << std::setw(4) << (std::to_string(reduction_(depth, mn)) + ",");
-      }
-      std::cout << "\n\n";
-    }
-
-    for (int depth = 0; depth < MAX_PLY; depth++) {
-      for (int mn = 0; mn < MAX_PLY; mn++) {
-        if (mn % 10 == 0)
-          std::cout << "\n";
-        std::cout << std::setw(4) << std::to_string(int(std::log(mn + 2) / std::log(std::min(14, depth) + 2))) + ",";
-      }
-      std::cout << "\n\n";
-    }
+void Debug::go()
+{
+  for (int i = 0; i < MAX_PLY; i++)
+  {
+    if (i % 10 == 0)
+      std::cout << "\n";
+    std::cout << std::setw(3) << i << ",";
   }
-
 }
 
 std::string brd() {
