@@ -34,15 +34,14 @@ void Position::set(const std::string& fen) {
   memset(board, NO_PIECE, 64 * sizeof(Piece));
   memset(bitboards, 0, 16 * sizeof(Bitboard));
 
-  char               token;
   Square             sq = A8;
   size_t             piece, idx;
   std::istringstream is(fen);
-  std::string        castling, enpassant;
+  std::string        pieces, color, castling, enpassant;
 
-  is >> std::noskipws;
+  is >> pieces >> color >> castling >> enpassant;
 
-  while (is >> token && !std::isspace(token)) {
+  for (char token : pieces) {
     if (std::isdigit(token))
       sq -= token - '0';
     else if ((piece = piece_to_char.find(token)) != std::string::npos) {
@@ -53,13 +52,9 @@ void Position::set(const std::string& fen) {
     }
   }
 
-  is >> std::skipws;
-  is >> token;
-  side_to_move = token == 'w' ? WHITE : BLACK;
+  side_to_move = color == "w" ? WHITE : BLACK;
 
   state_ptr->castling_rights = state_ptr->ep_sq = 0;
-
-  is >> castling >> enpassant;
 
   for (char token : castling)
     if ((idx = std::string("qkQK").find(token)) != std::string::npos)
