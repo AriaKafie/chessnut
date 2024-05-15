@@ -1,6 +1,7 @@
 
 #include "position.h"
 #include "transpositiontable.h"
+#include "uci.h"
 #include "util.h"
 
 #include <cstring>
@@ -33,11 +34,12 @@ void Position::set(const std::string& fen) {
   memset(board, NO_PIECE, 64 * sizeof(Piece));
   memset(bitboards, 0, 16 * sizeof(Bitboard));
 
-  char token;
-  Square sq = A8;
-  size_t piece, idx;
-
+  char               token;
+  Square             sq = A8;
+  size_t             piece, idx;
   std::istringstream is(fen);
+  std::string        castling, enpassant;
+
   is >> std::noskipws;
 
   while (is >> token && !std::isspace(token)) {
@@ -55,10 +57,16 @@ void Position::set(const std::string& fen) {
   is >> token;
   side_to_move = token == 'w' ? WHITE : BLACK;
 
-  state_ptr->castling_rights = 0;
-  while (is >> token)
+  state_ptr->castling_rights = state_ptr->ep_sq = 0;
+
+  is >> castling >> enpassant;
+
+  for (char token : castling)
     if ((idx = std::string("qkQK").find(token)) != std::string::npos)
       state_ptr->castling_rights ^= 1 << idx;
+
+  if (enpassant != "-")
+    state_ptr->ep_sq = uci_to_square(enpassant);
 
   state_ptr->key = side_to_move == WHITE ? 0 : Zobrist::Side;
 
@@ -106,7 +114,7 @@ std::string Position::fen() {
     if (queenside_rights<WHITE>()) fen << "Q";
     if (kingside_rights <BLACK>()) fen << "k";
     if (queenside_rights<BLACK>()) fen << "q";
-  }                                fen << " - 0 1";
+  }                                fen << " " << (state_ptr->ep_sq ? square_to_uci(state_ptr->ep_sq) : "-") << " 0 1";
   return fen.str();
 }
 

@@ -27,12 +27,7 @@ int reduction_(int d, int mn) {
 
 void Debug::go()
 {
-  for (int i = 0; i < MAX_PLY; i++)
-  {
-    if (i % 10 == 0)
-      std::cout << "\n";
-    std::cout << std::setw(3) << i << ",";
-  }
+  std::cout << to_string(Position::ep_bb());
 }
 
 std::string brd() {
