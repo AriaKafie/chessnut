@@ -26,7 +26,6 @@ void Position::init() {
     for (Square sq = H1; sq <= A8; sq++)
       Zobrist::hash[pc][sq] = rng();
   }
-
 }
 
 void Position::set(const std::string& fen) {
