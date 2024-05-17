@@ -129,30 +129,6 @@ CaptureList<Us>::CaptureList() :
     last = make_moves(last, from, queen_attacks(from, occupied) & queen_targets & pin_mask(ksq, from));
   }
 
-  /*Bitboard friendly_rook_queen   = bb(FriendlyQueen) | bb(FriendlyRook);
-  Bitboard friendly_bishop_queen = bb(FriendlyQueen) | bb(FriendlyBishop);
-
-  for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, knight_attacks(from) & checkmask);
-  }
-  for (Bitboard b = friendly_bishop_queen & not_pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, bishop_attacks(from, occupied) & checkmask);
-  }
-  for (Bitboard b = friendly_bishop_queen & pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, bishop_attacks(from, occupied) & checkmask & pin_mask(ksq, from));
-  }
-  for (Bitboard b = friendly_rook_queen & not_pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, rook_attacks(from, occupied) & checkmask);
-  }
-  for (Bitboard b = friendly_rook_queen & pinned; b; pop_lsb(b)) {
-    Square from = lsb(b);
-    last = make_moves(last, from, rook_attacks(from, occupied) & checkmask & pin_mask(ksq, from));
-  }*/
-
   last = make_moves(last, ksq, king_attacks(ksq) & enemy_unprotected);
 }
 
