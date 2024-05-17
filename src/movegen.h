@@ -154,7 +154,6 @@ CaptureList<Us>::CaptureList() :
   }*/
 
   last = make_moves(last, ksq, king_attacks(ksq) & enemy_unprotected);
-
 }
 
 template<Color Us>
@@ -295,16 +294,6 @@ MoveList<Us>::MoveList() :
   constexpr Bitboard QueenKey = Us == WHITE ? 0b0100                : 0b0001;
   constexpr Move     SCASTLE  = Us == WHITE ? W_SCASTLE             : B_SCASTLE;
   constexpr Move     LCASTLE  = Us == WHITE ? W_LCASTLE             : B_LCASTLE;
-            
-  //uint64_t hash;
-
-  /**last = SCASTLE;
-  hash = (occupied | seen_by_enemy) & KingBan | Position::kingside_rights<Us>();
-  last += !(hash ^ KingKey);
-
-  *last = LCASTLE;
-  hash = occupied & QueenOcc | seen_by_enemy & QueenAtk | Position::queenside_rights<Us>();
-  last += !(hash ^ QueenKey);*/
 
   *last = SCASTLE;
   last += !(((occupied | seen_by_enemy) & KingBan | Position::kingside_rights<Us>()) ^ KingKey);
