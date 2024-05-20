@@ -63,7 +63,8 @@ CaptureList<Us>::CaptureList() :
     last = make_moves(last, ksq, king_attacks(ksq) & enemy_unprotected);
     return;
   }
-  if (checkmask == 0) checkmask = ALL_SQUARES;
+
+  checkmask |= -!checkmask;
 
   checkmask &= bb(Them);
 
@@ -79,8 +80,7 @@ CaptureList<Us>::CaptureList() :
 
   Bitboard not_pinned = ~pinned;
 
-  if (Bitboard promotable = bb(FriendlyPawn) & Promote)
-  {
+  if (Bitboard promotable = bb(FriendlyPawn) & Promote) {
     for (Bitboard b = shift<UpRight>(promotable & (not_pinned | anti_diag(ksq))) & checkmask; b; pop_lsb(b)) {
       Square to = lsb(b);
       *last++ = make_move<PROMOTION>(to - UpRight, to);
@@ -172,7 +172,8 @@ MoveList<Us>::MoveList() :
     last = make_moves(last, ksq, king_attacks(ksq) & ~(seen_by_enemy | bb(Us)));
     return;
   }
-  if (checkmask == 0) checkmask = ALL_SQUARES;
+
+  checkmask |= -!checkmask;
 
   Bitboard pinned = 0;
   for (Bitboard pinners = bishop_xray(ksq, occupied) & enemy_bishop_queen | rook_xray(ksq, occupied) & enemy_rook_queen; pinners; pop_lsb(pinners))
@@ -198,8 +199,7 @@ MoveList<Us>::MoveList() :
   last = make_pawn_moves<Up     >(last, shift<Up     >(pawns & (not_pinned | file_bb  (ksq))) & empty    & checkmask);
   last = make_pawn_moves<Up2    >(last, shift<Up2    >(pawns & (not_pinned | file_bb  (ksq))) & e        & checkmask);
 
-  if (Bitboard promotable = bb(FriendlyPawn) & Promote)
-  {
+  if (Bitboard promotable = bb(FriendlyPawn) & Promote) {
     for (Bitboard b = shift<UpRight>(promotable & (not_pinned | anti_diag(ksq))) & bb(Them) & checkmask; b; pop_lsb(b)) {
       Square to = lsb(b);
       *last++ = make_move<PROMOTION>(to - UpRight, to);
@@ -219,18 +219,14 @@ MoveList<Us>::MoveList() :
     *last++ = make_move<ENPASSANT>(to - UpRight, to);
     Bitboard ep_toggle = b | shift<-UpRight>(b) | shift<-Up>(b);
     Bitboard o = occupied ^ ep_toggle;
-    Bitboard slider_checks = bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen;
-    if (slider_checks)
-      last--;
+    last -= bool(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
   }
   if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
     Square to = lsb(b);
     *last++ = make_move<ENPASSANT>(to - UpLeft, to);
     Bitboard ep_toggle = b | shift<-UpLeft>(b) | shift<-Up>(b);
     Bitboard o = occupied ^ ep_toggle;
-    Bitboard slider_checks = bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen;
-    if (slider_checks)
-      last--;
+    last -= bool(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
   }
 
   Bitboard friendly_rook_queen   = bb(FriendlyQueen) | bb(FriendlyRook);
