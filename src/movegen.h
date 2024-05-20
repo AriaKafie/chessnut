@@ -216,17 +216,18 @@ MoveList<Us>::MoveList() :
 
   if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
     Square to = lsb(b);
-    *last++ = make_move<ENPASSANT>(to - UpRight, to);
+    *last = make_move<ENPASSANT>(to - UpRight, to);
     Bitboard ep_toggle = b | shift<-UpRight>(b) | shift<-Up>(b);
     Bitboard o = occupied ^ ep_toggle;
-    last -= bool(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
+    last += !(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
   }
+
   if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
     Square to = lsb(b);
-    *last++ = make_move<ENPASSANT>(to - UpLeft, to);
+    *last = make_move<ENPASSANT>(to - UpLeft, to);
     Bitboard ep_toggle = b | shift<-UpLeft>(b) | shift<-Up>(b);
     Bitboard o = occupied ^ ep_toggle;
-    last -= bool(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
+    last += !(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
   }
 
   Bitboard friendly_rook_queen   = bb(FriendlyQueen) | bb(FriendlyRook);
@@ -257,23 +258,19 @@ MoveList<Us>::MoveList() :
 
   last = make_moves(last, ksq, king_attacks(ksq) & ~(seen_by_enemy | bb(Us)));
 
-  if (~checkmask) return;
+  constexpr Bitboard k_no_atk = Us == WHITE ? square_bb(E1, F1, G1) : square_bb(E8, F8, G8);
+  constexpr Bitboard k_no_occ = Us == WHITE ? square_bb(F1, G1)     : square_bb(F8, G8);
+  constexpr Bitboard q_no_atk = Us == WHITE ? square_bb(C1, D1, E1) : square_bb(C8, D8, E8);
+  constexpr Bitboard q_no_occ = Us == WHITE ? square_bb(B1, C1, D1) : square_bb(B8, C8, D8);
 
-  constexpr Bitboard KingBan  = Us == WHITE ? square_bb(F1, G1)     : square_bb(F8, G8);
-  constexpr Bitboard QueenOcc = Us == WHITE ? square_bb(B1, C1, D1) : square_bb(B8, C8, D8);
-  constexpr Bitboard QueenAtk = Us == WHITE ? square_bb(C1, D1)     : square_bb(C8, D8);
-  constexpr Bitboard KingKey  = Us == WHITE ? 0b1000                : 0b0010;
-  constexpr Bitboard QueenKey = Us == WHITE ? 0b0100                : 0b0001;
-  constexpr Move     SCASTLE  = Us == WHITE ? W_SCASTLE             : B_SCASTLE;
-  constexpr Move     LCASTLE  = Us == WHITE ? W_LCASTLE             : B_LCASTLE;
+  constexpr Move SCASTLE = Us == WHITE ? make_move<SHORTCASTLE>(E1, G1) : make_move<SHORTCASTLE>(E8, G8);
+  constexpr Move LCASTLE = Us == WHITE ? make_move<LONGCASTLE >(E1, C1) : make_move<LONGCASTLE >(E8, C8);
 
   *last = SCASTLE;
-  last += !(((occupied | seen_by_enemy) & KingBan | Position::kingside_rights<Us>()) ^ KingKey);
+  last += !((seen_by_enemy & k_no_atk | occupied & k_no_occ | !Position::kingside_rights <Us>()));
 
   *last = LCASTLE;
-  last += !((occupied & QueenOcc | seen_by_enemy & QueenAtk | Position::queenside_rights<Us>()) ^ QueenKey);
-  
+  last += !((seen_by_enemy & q_no_atk | occupied & q_no_occ | !Position::queenside_rights<Us>()));
 }
 
 #endif
-
