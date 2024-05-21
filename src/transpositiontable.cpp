@@ -2,8 +2,6 @@
 #include "transpositiontable.h"
 #include "position.h"
 
-#include <iostream>
-
 constexpr int TTSize = 1 << 24;
 constexpr int RTSize = 1 << 20;
 
