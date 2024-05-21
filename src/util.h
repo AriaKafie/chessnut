@@ -2,10 +2,9 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "position.h"
-
-#include "ui.h"
 #include "movegen.h"
+#include "position.h"
+#include "uci.h"
 
 #include <bitset>
 #include <chrono>
@@ -18,10 +17,10 @@ inline std::string piece_to_char = "  PNBRQK  pnbrqk";
 
 inline std::string move_to_SAN(Move m) {
 
-  Square    from    = from_sq(m);
-  Square    to      = to_sq(m);
-  PieceType pt      = piece_type_on(from);
-  bool      capture = piece_on(to) || type_of(m) == ENPASSANT;
+  Square      from    = from_sq(m);
+  std::string to      = square_to_uci(to_sq(m));
+  PieceType   pt      = piece_type_on(from);
+  bool        capture = piece_on(to_sq(m)) || type_of(m) == ENPASSANT;
 
   switch (type_of(m))
   {
@@ -31,7 +30,7 @@ inline std::string move_to_SAN(Move m) {
       return "O-O-O";
     case NORMAL:
     case ENPASSANT:
-      return pt == PAWN ? capture ? std::string(1, char('h' - from % 8)) + "x" + UI::coords[to] : UI::coords[to] : std::string(1, piece_to_char[pt]) + (capture ? "x" : "") + UI::coords[to];
+      return pt == PAWN ? capture ? std::string(1, char('h' - from % 8)) + "x" + to : to : std::string(1, piece_to_char[pt]) + (capture ? "x" : "") + to;
     case PROMOTION:
       return move_to_SAN(m ^ type_of(m)) + "=Q";
   }

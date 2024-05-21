@@ -8,7 +8,7 @@
 #include "moveordering.h"
 #include "position.h"
 #include "uci.h"
-#include "ui.h"
+
 #include "util.h"
 
 #include <cmath>
@@ -68,9 +68,13 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
 
   if (search_cancelled) [[unlikely]]
     return 0;
-
+    
   if (RepetitionTable::has_repeated())
     return 0;
+
+  /*int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root);
+  if (lookup != FAIL)
+    return lookup;*/
 
   if (depth <= 0)
     return qsearch<SideToMove>(alpha, beta);
@@ -184,6 +188,7 @@ Move Search::bestmove(uint64_t thinktime) { return Position::white_to_move() ? b
 template<Color SideToMove>
 void go()
 {
+  nodes = qnodes = 0;
   search_cancelled = false;
   int eval, alpha;
   Move best_move = NULLMOVE;
@@ -216,7 +221,7 @@ void go()
         best_move = moves[i];
       }
     }
-    std::cout << "info depth " << depth << " score cp " << alpha << " pv " << move_to_uci(best_move) << "\n";
+    std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " qnodes " << qnodes <<  " pv " << move_to_uci(best_move) << "\n";
   }
   std::cout << "bestmove " << move_to_uci(best_move) << "\n";
 }
@@ -253,11 +258,11 @@ void Bench::count_nodes(int depth) {
           int eval = -search<BLACK>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
           if (eval > alpha && root_reductions[i])
             eval = -search<BLACK>(-INFINITE, -alpha, d - 1, 0, true);
+          undo_move<WHITE>(moves[i]);
           if (eval > alpha) {
             alpha = eval;
             best_move = moves[i];
           }
-          undo_move<WHITE>(moves[i]);
         }
       } else {
         int alpha = -INFINITE;
@@ -269,11 +274,11 @@ void Bench::count_nodes(int depth) {
           int eval = -search<WHITE>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
           if (eval > alpha && root_reductions[i])
             eval = -search<WHITE>(-INFINITE, -alpha, d - 1, 0, true);
+          undo_move<BLACK>(moves[i]);
           if (eval > alpha) {
             alpha = eval;
             best_move = moves[i];
           }
-          undo_move<BLACK>(moves[i]);
         }
       }
     }

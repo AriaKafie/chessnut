@@ -4,7 +4,7 @@
 #include "bench.h"
 #include "movegen.h"
 #include "uci.h"
-#include "ui.h"
+
 #include "search.h"
 #include "transpositiontable.h"
 #include "util.h"

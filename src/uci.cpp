@@ -2,7 +2,7 @@
 #include "uci.h"
 
 #include "util.h"
-#include "ui.h"
+
 #include "position.h"
 #include "transpositiontable.h"
 #include "search.h"
@@ -195,12 +195,12 @@ void make_ai_move() {
 void move_prompt(std::string move) {
 
   std::string input = move;
-  int to_int = UI::movestring_to_int(input);
+  int to_int = uci_to_move(input);
 
   while (to_int == -1) {
     std::cout << "invalid\n";
     std::cin >> input;
-    to_int = UI::movestring_to_int(input);
+    to_int = uci_to_move(input);
   }
 
   Position::do_commit(to_int);
@@ -233,7 +233,7 @@ void handle_isready () {
 }
 
 std::string move_to_uci(Move m) {
-  return UI::coords[from_sq(m)] + UI::coords[to_sq(m)] + (type_of(m) == PROMOTION ? "q" : "");
+  return square_to_uci(from_sq(m)) + square_to_uci(to_sq(m)) + (type_of(m) == PROMOTION ? "q" : "");
 }
 
 void handle_d() {

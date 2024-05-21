@@ -4,7 +4,7 @@
 #include "position.h"
 #include "debug.h"
 #include "uci.h"
-#include "ui.h"
+
 #include "util.h"
 #include "movegen.h"
 #include "moveordering.h"

@@ -45,13 +45,13 @@ inline bool endgame() { return gamephase == ENDGAME; }
 inline bool mopup  () { return gamephase == MOPUP;   }
 
 template<Color Perspective>
-uint8_t kingside_rights()
+bool kingside_rights()
 {
   constexpr Bitboard Mask = Perspective == WHITE ? 0b1000 : 0b0010;
   return state_ptr->castling_rights & Mask;
 }
 template<Color Perspective>
-uint8_t queenside_rights()
+bool queenside_rights()
 {
   constexpr Bitboard Mask = Perspective == WHITE ? 0b0100 : 0b0001;
   return state_ptr->castling_rights & Mask;

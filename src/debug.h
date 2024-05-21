@@ -3,7 +3,7 @@
 #define DEBUG_H
 
 #include "types.h"
-#include "ui.h"
+
 #include <iostream>
 #include <string>
 #include <cstdint>
@@ -28,17 +28,6 @@ namespace Debug {
       mask <<= 1;
     }
     return binary;
-  }
-
-  inline void get_square(Square& s) {
-    std::string str;
-    std::cin >> str;
-    for (Square sq = H1; sq <= A8; sq++) {
-      if (UI::coords[sq] == str) {
-        s = sq;
-        return;
-      }
-    }
   }
   /*
   * 

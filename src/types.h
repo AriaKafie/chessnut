@@ -133,4 +133,4 @@ constexpr uint32_t score_of(Move m) {
   return m & 0xffff0000;
 }
 
-#endif*/
+#endif

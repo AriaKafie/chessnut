@@ -13,7 +13,7 @@ inline int piece_weight(PieceType pt) { return piece_weight_table[pt]; }
 
 constexpr int square_score_table[PIECE_TYPE_NB][SQUARE_NB] = 
 {
-// scored from black's pov (promotion = 0-7) with a maximizer perspective (retarded)
+// scored from black's pov (promotion = 0-7) with a maximizer perspective
   { // pawn
     50, 50, 50, 50, 50, 50, 50, 50,
     50, 50, 50, 50, 50, 50, 50, 50,

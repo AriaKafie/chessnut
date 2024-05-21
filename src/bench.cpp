@@ -5,7 +5,7 @@
 
 #include "position.h"
 
-#include "ui.h"
+
 #include "evaluation.h"
 #include "transpositiontable.h"
 #include "debug.h"
