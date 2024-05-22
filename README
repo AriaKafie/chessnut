@@ -1,4 +1,4 @@
-This chess engine communicates exclusively via stdin and stdout. It supports the basic UCI commands:
+This chess engine supports the basic UCI commands:
 
 Description of the universal chess interface (UCI)    April  2006
 =================================================================
