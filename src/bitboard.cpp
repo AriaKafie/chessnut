@@ -1,6 +1,8 @@
 
 #include "bitboard.h"
 
+#include <algorithm>
+
 int score_kingshield(Square ksq, Bitboard occ, Color c);
 
 void init_magics(PieceType pt, int* base, Bitboard* masks, Bitboard* attacks, Bitboard* xray);
@@ -9,10 +11,10 @@ void Bitboards::init() {
 
   for (Square s1 = H1; s1 <= A8; s1++)
     for (Square s2 = H1; s2 <= A8; s2++)
-      square_dist[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
+      SquareDistance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
 
-  init_magics(BISHOP, bishop_hash, bishop_masks, bishop_atk, bishopxray);
-  init_magics(ROOK,   rook_hash,   rook_masks,   rook_atk,   rookxray  );
+  init_magics(BISHOP, bishop_hash, bishop_masks, BishopAttacks, BishopXray);
+  init_magics(ROOK,   rook_hash,   rook_masks,   RookAttacks,   RookXray  );
 
 #define mdiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST)))
 #define adiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_EAST) | mask(s, SOUTH_WEST)))
@@ -26,17 +28,13 @@ void Bitboards::init() {
 
     file[s1] = file_of(s1);
       
-    center_dist[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
+    CenterDistance[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
 
-    for (Square s2 = H1; s2 <= A8; s2++) {
-      pinmask[s1][s2] =
-        mdiag  (s1) & mdiag  (s2) | adiag  (s1) & adiag  (s2)
-      | rank_of(s1) & rank_of(s2) | file_of(s1) & file_of(s2);
-    }
+    for (Square s2 = H1; s2 <= A8; s2++)
+      pinmask[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_of(s1) & rank_of(s2) | file_of(s1) & file_of(s2);
 
     for (Square ksq = H1; ksq <= A8; ksq++) {
-      for (Direction d : { NORTH_EAST, SOUTH_EAST,
-                           SOUTH_WEST, NORTH_WEST }) {
+      for (Direction d : { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST }) {
         Bitboard bishop_ray = bishop_attacks(ksq, square_bb(s1)) & mask(ksq, d);
         if (bishop_ray & square_bb(s1))
           checkray[ksq][s1] = bishop_ray;
@@ -48,13 +46,12 @@ void Bitboards::init() {
       }
     }
 
-    for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST,
-                         SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
-      king_atk[s1] |= safe_step(s1, d);
+    for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
+      KingAttacks[s1] |= safe_step(s1, d);
 
     for (Direction d : { NORTHNORTH+EAST, NORTH_EAST+EAST, SOUTH_EAST+EAST, SOUTHSOUTH+EAST,
                          SOUTHSOUTH+WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTHNORTH+WEST })
-      knight_atk[s1] |= safe_step(s1, d);
+      KnightAttacks[s1] |= safe_step(s1, d);
 
     Square sq = 8 * (s1 / 8) + 1;
 
@@ -64,10 +61,10 @@ void Bitboards::init() {
     black_kingshield[s1] =
       ((rank_of(sq + SOUTH) | rank_of(sq + SOUTHSOUTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
 
-    doublecheck[s1] = king_atk[s1] | knight_atk[s1];
+    doublecheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
 
-    pawn_atk[WHITE][s1] = pawn_attacks<WHITE>(square_bb(s1));
-    pawn_atk[BLACK][s1] = pawn_attacks<BLACK>(square_bb(s1));
+    PawnAttacks[WHITE][s1] = pawn_attacks<WHITE>(square_bb(s1));
+    PawnAttacks[BLACK][s1] = pawn_attacks<BLACK>(square_bb(s1));
   }
 
 #undef fdiag
@@ -79,8 +76,8 @@ void Bitboards::init() {
   uint8_t cleark = 0b1101;
   uint8_t clearq = 0b1110;
 
-  for (int i = 0; i < 1 << 5; i++) {
-
+  for (int i = 0; i < 1 << 5; i++)
+  {
     Bitboard w_occ = generate_occupancy(square_bb(A1, E1, H1, A8, H8), i);
     Bitboard b_occ = generate_occupancy(square_bb(A8, E8, H8, A1, H1), i);
 
@@ -113,7 +110,6 @@ void Bitboards::init() {
       black_kingshield_scores[sq][pext(occ, black_kingshield[sq])] = score_kingshield(sq, occ, BLACK);
     }
   }
-
 }
 
 int score_kingshield(Square ksq, Bitboard occ, Color c) {
@@ -144,9 +140,7 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
     {45, 50, 40},{45, 50, 40}
   };
 
-  Bitboard shield_mask = (c == WHITE)
-    ? white_kingshield[ksq]
-    : black_kingshield[ksq];
+  Bitboard shield_mask = (c == WHITE) ? white_kingshield[ksq] : black_kingshield[ksq];
 
   Bitboard file_right = file_of(lsb(shield_mask));
   Bitboard file_mid   = file_right << 1;
