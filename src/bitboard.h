@@ -18,25 +18,25 @@ namespace Magic {
   void test_magic(Square sq, uint64_t magic);
 }
 
-inline Bitboard rookxray[102400];
-inline Bitboard bishopxray[5248];
-inline Bitboard rook_atk[102400];
-inline Bitboard bishop_atk[5248];
+inline Bitboard RookXray[102400];
+inline Bitboard BishopXray[5248];
+inline Bitboard RookAttacks[102400];
+inline Bitboard BishopAttacks[5248];
 inline Bitboard bishop_masks[SQUARE_NB];
 inline Bitboard rook_masks[SQUARE_NB];
 inline int rook_hash[SQUARE_NB];
 inline int bishop_hash[SQUARE_NB];
 inline Bitboard doublecheck[SQUARE_NB];
-inline Bitboard knight_atk[SQUARE_NB];
-inline Bitboard king_atk[SQUARE_NB];
-inline Bitboard pawn_atk[COLOR_NB][SQUARE_NB];
+inline Bitboard KnightAttacks[SQUARE_NB];
+inline Bitboard KingAttacks[SQUARE_NB];
+inline Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 inline Bitboard checkray[SQUARE_NB][SQUARE_NB];
 inline Bitboard pinmask[SQUARE_NB][SQUARE_NB];
 inline Bitboard main_diagonal[SQUARE_NB];
 inline Bitboard anti_diagonal[SQUARE_NB];
 inline Bitboard file[SQUARE_NB];
-inline uint8_t square_dist[SQUARE_NB][SQUARE_NB];
-inline uint8_t center_dist[SQUARE_NB];
+inline uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
+inline uint8_t CenterDistance[SQUARE_NB];
 inline int white_kingshield_scores[SQUARE_NB][1 << 6];
 inline int black_kingshield_scores[SQUARE_NB][1 << 6];
 inline uint8_t castle_masks[COLOR_NB][1 << 5];
@@ -81,7 +81,7 @@ constexpr Bitboard shift(Bitboard bb) {
 }
 
 inline Bitboard distance_from_center(Square s) {
-  return center_dist[s];
+  return CenterDistance[s];
 }
 
 inline Bitboard pin_mask(Square ksq, Square pinned) {
@@ -157,36 +157,36 @@ inline uint64_t more_than_one(Bitboard b) {
 }
 
 inline Bitboard knight_attacks(Square sq) {
-  return knight_atk[sq];
+  return KnightAttacks[sq];
 }
 
 inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
-  return bishop_atk[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+  return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
 }
 
 inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
-  return bishopxray[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+  return BishopXray[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
 }
 
 inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
-  return rook_atk[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+  return RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard rook_xray(Square sq, Bitboard occupied) {
-  return rookxray[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+  return RookXray[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard queen_attacks(Square sq, Bitboard occupied) {
-  return bishop_atk[bishop_hash[sq] + pext(occupied, bishop_masks[sq])] | rook_atk[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+  return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])] | RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard king_attacks(Square sq) {
-  return king_atk[sq];
+  return KingAttacks[sq];
 }
 
 template<Color C>
 constexpr Bitboard pawn_attacks(Square sq) {
-  return pawn_atk[C][sq];
+  return PawnAttacks[C][sq];
 }
 
 template<Color C>
@@ -222,7 +222,7 @@ int king_safety(Square ksq, Bitboard occ) {
 }
 
 inline int square_distance(Square a, Square b) {
-  return square_dist[a][b];
+  return SquareDistance[a][b];
 }
 
 inline int file_distance(Square a, Square b) {
