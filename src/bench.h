@@ -24,8 +24,6 @@ inline std::vector<std::string> fens = {
   "r1bqkbnr/pp1ppppp/2n5/1Bp5/4P3/2P5/PP1P1PPP/RNBQK1NR b KQkq - 2 3",
   "r2qkb1r/pp1b1ppp/2n1pn2/2p1P3/2B5/5N2/PBPP1PPP/RN1Q1RK1 b kq - 0 8",
   "r2qkbnr/pp1b2pp/2n1pp2/3p4/1P1P4/P3P3/3B1PPP/RN1QKBNR b KQkq - 0 8",
-
-
   "2rq1rk1/4ppbp/n2p2p1/p2nP1B1/1p1P4/5NN1/PP3PPP/R2QR1K1 w - - 1 16",
   "r4rk1/pp1n1ppp/1qpb1n2/3p3b/3P4/2N1PN1P/PPQ1BPP1/R1B2RK1 w - - 7 13",
   "rnbqk1nr/ppp1ppbp/6p1/3p4/P1PP4/4P3/1P3PPP/RNBQKBNR b KQkq c3 0 4",

@@ -1,18 +1,6 @@
 
 #include "uci.h"
 
-#include "util.h"
-
-#include "position.h"
-#include "transpositiontable.h"
-#include "search.h"
-#include "perft.h"
-#include "bench.h"
-#include "debug.h"
-#include "mouse.h"
-
-#include <filesystem>
-#include <fstream>
 #include <algorithm>
 #include <iomanip>
 #include <cctype>
@@ -22,8 +10,17 @@
 #include <chrono>
 #include <regex>
 
-void position(std::istringstream& cmd) {
+#include "util.h"
+#include "position.h"
+#include "transpositiontable.h"
+#include "search.h"
+#include "perft.h"
+#include "bench.h"
+#include "debug.h"
+#include "mouse.h"
 
+void position(std::istringstream& cmd)
+{
   std::string fen, token;
   cmd >> token;
 
@@ -43,6 +40,19 @@ void position(std::istringstream& cmd) {
 
   while (cmd >> token)
     Position::do_commit(uci_to_move(token));
+}
+
+void moves(std::istringstream& cmd) {
+  std::string token;
+  while (cmd >> token) {
+    Move move = uci_to_move(token);
+    if (is_legal(move))
+      Position::do_commit(move);
+    else {
+      std::cout << "invalid: " << token << "\n";
+      return;
+    }
+  }
 }
 
 void go(std::istringstream& cmd) {
@@ -70,8 +80,8 @@ void go(std::istringstream& cmd) {
     Search::go_infinite();
 }
 
-void UCI::loop() {
-
+void UCI::loop()
+{
   Position::set(STARTPOS);
 
   std::string cmd, token;
@@ -82,8 +92,6 @@ void UCI::loop() {
 
     std::istringstream ss(cmd);
     ss >> token;
-
-    trim(cmd);
 
     if (token == "uci")
       std::cout << "uciok\n";
@@ -99,6 +107,8 @@ void UCI::loop() {
       position(ss);
     else if (token == "go")
       go(ss);
+    else if (token == "moves")
+      moves(ss);
     else if (token == "gameloop")
       handle_gameloop(cmd);
     else if (token == "d")
@@ -234,16 +244,6 @@ void handle_isready () {
 
 std::string move_to_uci(Move m) {
   return square_to_uci(from_sq(m)) + square_to_uci(to_sq(m)) + (type_of(m) == PROMOTION ? "q" : "");
-}
-
-void handle_d() {
-  std::cout << Position::to_string();
-}
-
-bool starts_with(const std::string& str, const std::string& prefix) {
-
-  return str.compare(0, prefix.length(), prefix) == 0;
-
 }
 
 void trim(std::string& str) {

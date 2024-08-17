@@ -186,16 +186,13 @@ int mopup()
 {
   int score = material_count<Us>();
 
-  constexpr Piece FriendlyKing = make_piece(Us, KING);
-  constexpr Piece EnemyKing = make_piece(!Us, KING);
+  constexpr Piece FriendlyKing = make_piece( Us, KING);
+  constexpr Piece EnemyKing    = make_piece(!Us, KING);
 
-  if (score) {
-    score += distance_from_center(lsb(bb(EnemyKing))) * 10;
-    score += (14 - square_distance(lsb(bb(FriendlyKing)),lsb(bb(EnemyKing)))) * 4;
-  } else {
-    score -= distance_from_center(lsb(bb(FriendlyKing))) * 10;
-    score -= (14 - square_distance(lsb(bb(FriendlyKing)),lsb(bb(EnemyKing)))) * 4;
-  }
+  if (score > 0)
+    score += 10 * distance_from_center(lsb(bb(EnemyKing)))    + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))));
+  else
+    score -= 10 * distance_from_center(lsb(bb(FriendlyKing))) + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))));
 
   return score;
 }

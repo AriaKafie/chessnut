@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-//   entries    ~Megabytes
+//   entries    megabytes
 // 
 //   4194304    67
 //   16777216   268

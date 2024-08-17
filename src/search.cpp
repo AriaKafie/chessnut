@@ -1,6 +1,9 @@
 
 #include "search.h"
 
+#include <cmath>
+#include <thread>
+
 #include "bench.h"
 #include "debug.h"
 #include "evaluation.h"
@@ -8,21 +11,15 @@
 #include "moveordering.h"
 #include "position.h"
 #include "uci.h"
-
 #include "util.h"
 
-#include <cmath>
-#include <thread>
-
-int reductions[MAX_PLY][MAX_PLY];
+int reductions[MAX_PLY][MAX_PLY], nodes, qnodes;
 
 void Search::init() {
   for (int depth = 0; depth < MAX_PLY; depth++)
     for (int mn = 0; mn < MAX_PLY; mn++)
       reductions[depth][mn] = int(std::log(mn + 2) / std::log(std::min(14, depth) + 2));
 }
-
-int nodes, qnodes;
 
 template<Color SideToMove>
 int qsearch(int alpha, int beta)
@@ -43,20 +40,19 @@ int qsearch(int alpha, int beta)
 
   captures.sort();
 
-  for (int i = 0; i < captures.size(); i++)
+  for (Move move : captures)
   {
-    Piece captured = piece_on(to_sq(captures[i]));
+    Piece captured = piece_on(to_sq(move));
 
-    do_capture<SideToMove>(captures[i]);
+    do_capture<SideToMove>(move);
     eval = -qsearch<!SideToMove>(-beta, -alpha);
-    undo_capture<SideToMove>(captures[i], captured);
+    undo_capture<SideToMove>(move, captured);
 
     if (eval >= beta)
       return eval;
 
     best_eval = std::max(eval, best_eval);
     alpha = std::max(alpha, eval);
-
   }
   return best_eval;
 }
@@ -72,15 +68,10 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
   if (RepetitionTable::has_repeated())
     return 0;
 
-  /*int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root);
-  if (lookup != FAIL)
-    return lookup;*/
-
   if (depth <= 0)
     return qsearch<SideToMove>(alpha, beta);
 
-  int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root);
-  if (lookup != FAIL)
+  if (int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root); lookup != FAIL)
     return lookup;
 
   if (do_null && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
@@ -132,7 +123,8 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
 
     best_eval = std::max(eval, best_eval);
 
-    if (eval > alpha) {
+    if (eval > alpha)
+    {
       best_move = moves[i];
       alpha = eval;
       flag = EXACT;

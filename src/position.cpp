@@ -1,13 +1,14 @@
 
 #include "position.h"
-#include "transpositiontable.h"
-#include "uci.h"
-#include "util.h"
 
 #include <cstring>
 #include <random>
 #include <sstream>
 #include <vector>
+
+#include "transpositiontable.h"
+#include "uci.h"
+#include "util.h"
 
 void set_gamephase();
 
@@ -22,10 +23,8 @@ void Position::init() {
 
   for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
                     B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING })
-  {
     for (Square sq = H1; sq <= A8; sq++)
       Zobrist::hash[pc][sq] = rng();
-  }
 }
 
 void Position::set(const std::string& fen) {
@@ -113,12 +112,15 @@ std::string Position::fen() {
 }
 
 void Position::do_commit(Move m) {
+
   if (piece_on(to_sq(m)) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
     RepetitionTable::clear();
+
   if (side_to_move == WHITE)
     do_move<WHITE>(m);
   else
     do_move<BLACK>(m);
+
   state_stack[0] = *state_ptr;
   state_ptr = state_stack;
   set_gamephase();

@@ -1,16 +1,13 @@
 
-#include "uci.h"
 #include "bitboard.h"
-#include "util.h"
 #include "search.h"
+#include "uci.h"
 
-int main(int argc, char* argv[]) {
-
+int main()
+{
   Bitboards::init();
   Search::init();
   Position::init();
+
   UCI::loop();
-
-  return 0;
-
 }

@@ -2,24 +2,21 @@
 #ifndef POSITION_H
 #define POSITION_H
 
+#include <string>
+#include <vector>
+
 #include "bitboard.h"
 #include "transpositiontable.h"
 #include "types.h"
 
-#include <string>
-#include <vector>
-
 #define bb(P) bitboard<P>()
 
-extern Bitboard bitboards[];
 extern Piece board[];
+extern Bitboard bitboards[];
 
 inline StateInfo state_stack[MAX_PLY], *state_ptr = state_stack;
 
-namespace Zobrist {
-  constexpr uint64_t Side = 17200288208102703589ull;
-  extern uint64_t hash[B_KING + 1][SQUARE_NB];
-}
+namespace Zobrist { constexpr uint64_t Side = 17200288208102703589ull; extern uint64_t hash[B_KING + 1][SQUARE_NB]; }
 
 template<Piece P>
 Bitboard bitboard() { return bitboards[P]; }
@@ -241,8 +238,8 @@ void do_move(Move m) {
     board[rook_to] = Rook;
     RepetitionTable::increment();
     update_castling_rights<Us>();
-  }
     return;
+  }
   case LONGCASTLE:
   {
     constexpr Square king_from = Us == WHITE ? E1 : E8;
@@ -267,8 +264,8 @@ void do_move(Move m) {
     board[rook_to] = Rook;
     RepetitionTable::increment();
     update_castling_rights<Us>();
+    return;
   }
-  return;
   case ENPASSANT:
     constexpr Piece  EPawn = make_piece(Them, PAWN);
               Square capsq = to + (Us == WHITE ? SOUTH : NORTH);
@@ -345,8 +342,8 @@ void undo_move(Move m) {
     board[rook_to] = NO_PIECE;
     board[king_from] = King;
     board[rook_from] = Rook;
+    return;
   }
-  return;
   case LONGCASTLE:
   {
     constexpr Square king_from = Us == WHITE ? E1 : E8;
@@ -364,8 +361,8 @@ void undo_move(Move m) {
     board[rook_to] = NO_PIECE;
     board[king_from] = King;
     board[rook_from] = Rook;
+    return;
   }
-  return;
   case ENPASSANT:
     constexpr Piece  EPawn = make_piece(Them, PAWN);
               Square capsq = to + (Us == WHITE ? SOUTH : NORTH);

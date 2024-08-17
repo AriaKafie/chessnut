@@ -18,7 +18,7 @@
 
 // 4q2r/2pk4/Q1n1bp1p/6p1/8/2NP4/PrPB1PPP/R5K1 w - - 0 1
 
-extern RepInfo rep_table[];
+extern RepInfo repetition_table[];
 extern int reductions[MAX_PLY][MAX_PLY];
 
 int reduction_(int d, int mn) {
@@ -27,7 +27,7 @@ int reduction_(int d, int mn) {
 
 void Debug::go()
 {
-  std::cout << to_string(Position::ep_bb());
+  
 }
 
 std::string brd() {
@@ -50,7 +50,7 @@ void gameinfo() {
 
   int count = 0;
   for (int i = 0; i < (1 << 20); i++) {
-    if (rep_table[i].occurrences)
+    if (repetition_table[i].occurrences)
       count++;
     if (count >= 100) {
       std::cout << "draw\n";

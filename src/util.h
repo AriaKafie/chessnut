@@ -51,38 +51,20 @@ inline unsigned long long curr_time_millis() {
   return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count();
 }
 
-namespace Util {
-
-  inline bool starts_with(const std::string& str, const std::string& prefix) {
-    return str.compare(0, prefix.length(), prefix) == 0;
+inline bool is_legal(Move move) {
+  if (Position::white_to_move()) {
+    MoveList<WHITE> moves;
+    for (Move m : moves)
+      if (m == move)
+        return true;
+    return false;
+  } else {
+    MoveList<BLACK> moves;
+    for (Move m : moves)
+      if (m == move)
+        return true;
+    return false;
   }
-
-  inline int SAN_to_int(std::string sanstr) {
-    if (Position::white_to_move()) {
-      MoveList<WHITE> ml;
-      for (Move m : ml) {
-        if (move_to_SAN(m) == sanstr)
-          return m;
-      }
-      return NULLMOVE;
-    }
-    else {
-      MoveList<BLACK> ml;
-      for (Move m : ml) {
-        if (move_to_SAN(m) == sanstr)
-          return m;
-      }
-      return NULLMOVE;
-    }
-  }
-
-  inline void print_binary(uint8_t num) {
-        
-    std::bitset<sizeof(uint8_t) * 8> binary(num);
-    std::cout << binary << std::endl;
-
-  }
-
 }
 
 #endif

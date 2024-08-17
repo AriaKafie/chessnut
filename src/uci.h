@@ -19,7 +19,6 @@ Move uci_to_move(const std::string& uci);
 namespace UCI { void loop(); }
 
 void handle_uci();
-void handle_d();
 void handle_debug();
 void handle_newgame();
 void handle_isready();
@@ -27,7 +26,6 @@ void handle_gameloop(std::string input);
 
 void move_prompt(std::string move);
 std::string move_to_uci(Move m);
-bool starts_with(const std::string& str, const std::string& prefix);
 void trim(std::string& str);
 void make_ai_move();
 

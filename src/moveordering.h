@@ -26,12 +26,12 @@ struct Killer {
 
 inline Killer killer_moves[MAX_PLY];
 
-constexpr uint32_t MAX_SCORE            = 0xffff0000;
-constexpr uint32_t GOOD_CAPTURE_BONUS   = 8000;
-constexpr uint32_t BAD_CAPTURE_BONUS    = 2000;
-constexpr uint32_t EVASION_BONUS        = 1000;
-constexpr uint32_t KILLER_BONUS         = 4000;
-constexpr uint32_t SEEN_BY_PAWN_PENALTY = -50;
+constexpr uint32_t MAX_SCORE          = 0xffff0000;
+constexpr uint32_t GOOD_CAPTURE_BONUS = 8000;
+constexpr uint32_t BAD_CAPTURE_BONUS  = 2000;
+constexpr uint32_t EVASION_BONUS      = 1000;
+constexpr uint32_t KILLER_BONUS       = 4000;
+constexpr uint32_t SEEN_BY_PAWN_MALUS = 50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
@@ -64,12 +64,10 @@ void CaptureList<Us>::sort() {
       score -= 500;
     score += piece_weight(captured) - piece_weight(pt) * bool(square_bb(to) & seen_by_enemy);
 
-    m += score << 16;
-      
+    m += score << 16;  
   }
   
   insertion_sort();
-  
 }
 
 template<Color Us>
@@ -128,7 +126,7 @@ void MoveList<Us>::sort(Move pv, int ply) {
     }
     
     if (square_bb(to) & seen_by_pawn)
-      score += SEEN_BY_PAWN_PENALTY;
+      score -= SEEN_BY_PAWN_MALUS;
 
     m += score << 16;
       
