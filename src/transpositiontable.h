@@ -38,7 +38,7 @@ struct Entry {
   uint8_t depth;
   HashFlag flag;
   int eval;
-  Move bestmove;
+  uint16_t bestmove;
   void set(uint64_t k, uint8_t d, HashFlag f, int e,  Move m) {
     key = k; depth = d; flag = f; eval = e; bestmove = m;
   }
@@ -48,7 +48,7 @@ namespace TranspositionTable {
 
   int lookup(int depth, int alpha, int beta, int ply_from_root);
   void record(uint8_t depth, HashFlag flag, int eval, Move bestmove, int ply_from_root);
-  int lookup_move();
+  Move lookup_move();
   void clear();
 
 }

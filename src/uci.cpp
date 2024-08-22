@@ -17,20 +17,19 @@
 #include "perft.h"
 #include "bench.h"
 #include "debug.h"
-#include "mouse.h"
 
 void position(std::istringstream& cmd)
 {
   std::string fen, token;
   cmd >> token;
 
-  if (token == "startpos") {
+  if (token == "startpos")
+  {
     fen = STARTPOS;
     cmd >> token;
-  } else if (token == "current") {
-    fen = Position::fen();
-    cmd >> token;
-  } else if (token == "fen") {
+  }
+  else if (token == "fen")
+  {
     while (cmd >> token && token != "moves")
       fen += token + " ";
   } else
@@ -44,40 +43,43 @@ void position(std::istringstream& cmd)
 
 void moves(std::istringstream& cmd) {
   std::string token;
-  while (cmd >> token) {
+  while (cmd >> token)
+  {
     Move move = uci_to_move(token);
+
     if (is_legal(move))
       Position::do_commit(move);
-    else {
+    else
+    {
       std::cout << "invalid: " << token << "\n";
       return;
     }
   }
 }
 
-void go(std::istringstream& cmd) {
+void go(std::istringstream& args) {
 
   int depth;
   std::string token;
-  cmd >> token;
+  args >> token;
 
   if (token == "perft") {
-    cmd >> depth;
+    args >> depth;
     Perft::go(depth);
   } else if (token == "nodes") {
-    cmd >> depth;
+    args >> depth;
     Bench::count_nodes(depth);
   } else if (token == "debug") {
     Debug::go();
   } else if (token == "bench") {
-    cmd >> depth;
+    args >> depth;
     Perft::bench(depth);
   } else if (token == "movetime") {
-    uint64_t movetime;
-    cmd >> movetime;
-    std::cout << ("bestmove " + move_to_uci(Search::bestmove(movetime))) << "\n";
+    uint64_t thinktime;
+    args >> thinktime;
+    Search::go(thinktime);
   } else
-    Search::go_infinite();
+    Search::go();
 }
 
 void UCI::loop()
@@ -109,8 +111,6 @@ void UCI::loop()
       go(ss);
     else if (token == "moves")
       moves(ss);
-    else if (token == "gameloop")
-      handle_gameloop(cmd);
     else if (token == "d")
       std::cout << Position::to_string();
     else if (token == "gameinfo")
@@ -119,60 +119,6 @@ void UCI::loop()
       std::cout << brd() << "\n";
 
   } while (cmd != "quit");
-}
-
-void handle_gameloop(std::string input) {
-
-  std::cout << Position::to_string();
-  std::string command;
-
-  if (input.find("white") != std::string::npos) {
-    if (Position::white_to_move()) {
-      make_ai_move();
-      std::getline(std::cin, command);
-      while (command != "quit") {
-        move_prompt(command);
-        std::cout << Position::to_string();
-        make_ai_move();
-        std::getline(std::cin, command);
-      }
-      return;
-    }
-    else {
-      std::getline(std::cin, command);
-      while (command != "quit") {
-        move_prompt(command);
-        std::cout << Position::to_string();
-        make_ai_move();
-        std::getline(std::cin, command);
-      }
-      return;
-    }
-  }
-  else {
-    if (Position::white_to_move()) {
-      std::getline(std::cin, command);
-      while (command != "quit") {
-        move_prompt(command);
-        std::cout << Position::to_string();
-        make_ai_move();
-        std::getline(std::cin, command);
-      }
-      return;
-    }
-    else {
-      make_ai_move();
-      std::getline(std::cin, command);
-      while (command != "quit") {
-        move_prompt(command);
-        std::cout << Position::to_string();
-        make_ai_move();
-        std::getline(std::cin, command);
-      }
-      return;
-    }
-  }
-
 }
 
 Move uci_to_move(const std::string& uci) {
@@ -192,13 +138,13 @@ Move uci_to_move(const std::string& uci) {
 
 void make_ai_move() {
 
-  Move best_move = Search::bestmove(3000);
+  /*Move best_move = Search::bestmove(3000);
 
   std::string sanstr = move_to_SAN(best_move);
   Mouse::make_move(best_move);
   Position::do_commit(best_move);
   std::cout << Position::to_string();
-  std::cout << sanstr << "\ndepth searched: " << std::dec << Debug::last_depth_searched << "\n";
+  std::cout << sanstr << "\ndepth searched: " << std::dec << Debug::last_depth_searched << "\n";*/
 
 }
 

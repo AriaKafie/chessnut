@@ -25,9 +25,8 @@ constexpr int matescore = 100000;
 
 namespace Search {
 
-Move bestmove(uint64_t thinktime);
 void init();
-void go_infinite();
+void go(uint64_t thinktime = 0);
 
 } // namespace Search
 

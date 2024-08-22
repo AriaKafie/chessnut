@@ -98,9 +98,10 @@ void MoveList<Us>::sort(Move pv, int ply) {
 
   Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
               
-  for (Move& m : *this) {
-    
-    if (m == (pv & 0xffff)) {
+  for (Move& m : *this)
+  {  
+    if (m == (pv & 0xffff))
+    {
       m += MAX_SCORE;
       continue;
     }
@@ -112,14 +113,16 @@ void MoveList<Us>::sort(Move pv, int ply) {
     PieceType pt       = piece_type_on(from);
     PieceType captured = piece_type_on(to);
     
-    if (captured) {
+    if (captured)
+    {
       int material_delta = piece_weight(captured) - piece_weight(pt);
       if (square_bb(to) & seen_by_enemy)
         score += (material_delta >= 0 ? GOOD_CAPTURE_BONUS : BAD_CAPTURE_BONUS) + material_delta;
       else
         score += GOOD_CAPTURE_BONUS + material_delta;
     }
-    else {
+    else
+    {
       if (killer_moves[ply].contains(m))
         score += KILLER_BONUS;
       score += (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
@@ -129,7 +132,6 @@ void MoveList<Us>::sort(Move pv, int ply) {
       score -= SEEN_BY_PAWN_MALUS;
 
     m += score << 16;
-      
   }
   
   quicksort(0, size() - 1);

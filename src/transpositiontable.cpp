@@ -35,33 +35,33 @@ void RepetitionTable::clear() {
 
 int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root) {
   
-  Entry* entry = &transposition_table[Position::key() & (TT_SIZE - 1)];
-  int eval = entry->eval;
-  eval -= ply_from_root * (eval > 90000);
+  const Entry& entry = transposition_table[Position::key() & (TT_SIZE - 1)];
+
+  int eval = entry.eval;
+
+  eval -= ply_from_root * (eval >  90000);
   eval += ply_from_root * (eval < -90000);
 
-  if (entry->key == Position::key()) {
-    if (entry->depth >= depth) {
-      if (entry->flag == EXACT)
-        return eval;
-      if (entry->flag == UPPER_BOUND && alpha >= eval)
-        return alpha;
-      if (entry->flag == LOWER_BOUND && beta <= eval)
-        return beta;
-    }
+  if (entry.key == Position::key() && entry.depth >= depth) {
+    if (entry.flag == EXACT)
+      return eval;
+    if (entry.flag == UPPER_BOUND && eval <= alpha)
+      return alpha;
+    if (entry.flag == LOWER_BOUND && eval >= beta)
+      return beta;
   }
+
   return FAIL;
 }
 
 void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move bestmove, int ply_from_root) {
-  int index = Position::key() & (TT_SIZE - 1);
-  eval += ply_from_root * (eval > 90000);
+  eval += ply_from_root * (eval >  90000);
   eval -= ply_from_root * (eval < -90000);
-  transposition_table[index].set(Position::key(), depth, flag, eval, bestmove);
+  transposition_table[Position::key() & (TT_SIZE - 1)].set(Position::key(), depth, flag, eval, bestmove);
 }
 
-int TranspositionTable::lookup_move() {
-  Entry& e = transposition_table[Position::key() & (TT_SIZE - 1)];
+Move TranspositionTable::lookup_move() {
+  const Entry& e = transposition_table[Position::key() & (TT_SIZE - 1)];
   return e.key == Position::key() ? e.bestmove : NULLMOVE;
 }
 
