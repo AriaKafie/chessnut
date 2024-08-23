@@ -93,8 +93,8 @@ ForceInline void update_castling_rights() {
 }
 
 template<Color Us>
-ForceInline void do_capture(Move m) {
-
+ForceInline void do_capture(Move m)
+{
   constexpr Color Them  = !Us;
   constexpr Piece Pawn  = make_piece(Us, PAWN);
   constexpr Piece Queen = make_piece(Us, QUEEN);
@@ -127,8 +127,8 @@ ForceInline void do_capture(Move m) {
 }
 
 template<Color Us>
-ForceInline void undo_capture(Move m, Piece captured) {
-
+ForceInline void undo_capture(Move m, Piece captured)
+{
   constexpr Color Them  = !Us;
   constexpr Piece Pawn  = make_piece(Us, PAWN);
   constexpr Piece Queen = make_piece(Us, QUEEN);
@@ -161,8 +161,8 @@ ForceInline void undo_capture(Move m, Piece captured) {
 }
 
 template<Color Us>
-void do_move(Move m) {
-
+void do_move(Move m)
+{
   constexpr Color Them = !Us;
 
   constexpr Piece Pawn  = make_piece(Us, PAWN);
@@ -286,8 +286,8 @@ void do_move(Move m) {
 }
 
 template<Color Us>
-void undo_move(Move m) {
-
+void undo_move(Move m)
+{
   RepetitionTable::decrement();
 
   constexpr Color Them = !Us;

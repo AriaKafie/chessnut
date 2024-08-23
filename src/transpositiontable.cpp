@@ -33,8 +33,11 @@ void RepetitionTable::clear() {
   memset(repetition_table, 0, RT_SIZE * sizeof(RepInfo));
 }
 
-int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root) {
-  
+int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root)
+{
+  if (const RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)]; ri.key == Position::key() && ri.occurrences > 1)
+    return FAIL;
+
   const Entry& entry = transposition_table[Position::key() & (TT_SIZE - 1)];
 
   int eval = entry.eval;
