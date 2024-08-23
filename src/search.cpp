@@ -103,6 +103,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
     int reduction = reductions[depth][i];
 
     do_move<SideToMove>(moves[i]);
+
     int eval = -search<!SideToMove>(-beta, -alpha, depth - 1 - reduction + extension, ply_from_root + 1, true);
 
     if (eval > alpha && reduction && depth - 1 + extension > 0)
@@ -154,6 +155,7 @@ void iterative_deepening()
     for (int i = 0; i < moves.size(); i++)
     {
       do_move<SideToMove>(moves[i]);
+
       int eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1 - root_reductions[i], 0, true);
 
       if (eval > alpha && root_reductions[i])
