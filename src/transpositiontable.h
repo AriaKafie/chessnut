@@ -6,10 +6,8 @@
 
 #include <cstdint>
 
-//   entries    megabytes
-// 
-//   4194304    67
-//   16777216   268
+constexpr int TT_SIZE = 1 << 24;
+constexpr int RT_SIZE = 1 << 15;
 
 namespace RepetitionTable {
   bool has_repeated();
@@ -39,9 +37,6 @@ struct Entry {
   HashFlag flag;
   int eval;
   uint16_t bestmove;
-  void set(uint64_t k, uint8_t d, HashFlag f, int e,  Move m) {
-    key = k; depth = d; flag = f; eval = e; bestmove = m;
-  }
 };
 
 namespace TranspositionTable {

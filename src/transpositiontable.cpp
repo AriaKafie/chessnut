@@ -2,9 +2,6 @@
 #include "transpositiontable.h"
 #include "position.h"
 
-constexpr int TT_SIZE = 1 << 24;
-constexpr int RT_SIZE = 1 << 20;
-
 Entry transposition_table[TT_SIZE];
 RepInfo repetition_table[RT_SIZE];
 
@@ -57,10 +54,18 @@ int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root
   return FAIL;
 }
 
-void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move bestmove, int ply_from_root) {
+void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move bestmove, int ply_from_root)
+{
   eval += ply_from_root * (eval >  90000);
   eval -= ply_from_root * (eval < -90000);
-  transposition_table[Position::key() & (TT_SIZE - 1)].set(Position::key(), depth, flag, eval, bestmove);
+
+  Entry& e = transposition_table[Position::key() & (TT_SIZE - 1)];
+
+  e.key      = Position::key();
+  e.depth    = depth;
+  e.flag     = flag;
+  e.eval     = eval;
+  e.bestmove = bestmove;
 }
 
 Move TranspositionTable::lookup_move() {
