@@ -20,9 +20,12 @@ class Engine:
     def bestmove(self):
         self.p.stdin.write("go movetime " + self.movetime + "\n")
         self.p.stdin.flush()
-        response = self.p.stdout.readline().strip()
-        #with open(self.debug, 'a') as log:
-        #    log.write(response + " from " + self.path + " at " + datetime.now().strftime('%H:%M:%S') + "\n")
+        
+        while True:
+            response = self.p.stdout.readline().strip()
+            if response == "" or response.split()[0] == "bestmove":
+                break
+                
         if response == "":
             return "crash"
         else:
@@ -103,8 +106,8 @@ for i in range(len(fenlist)):
             time.sleep(5)
             break
             
-        e1.send_message("position current moves " + move)
-        e2.send_message("position current moves " + move)
+        e1.send_message("moves " + move)
+        e2.send_message("moves " + move)
 
         refresh(e1, fen)
             
@@ -130,8 +133,8 @@ for i in range(len(fenlist)):
             e2 = Engine("c:\\users\\14244\\desktop\\chess\\mm\\engines\\" + sys.argv[2], sys.argv[4], "e2debug.txt")
             time.sleep(5)
             break
-        e1.send_message("position current moves " + move)
-        e2.send_message("position current moves " + move)
+        e1.send_message("moves " + move)
+        e2.send_message("moves " + move)
 
 e1.send_message("quit")
 e2.send_message("quit")
