@@ -82,14 +82,18 @@ std::string Position::to_string() {
   return ss.str();
 }
 
-std::string Position::fen() {
+std::string Position::fen()
+{
   std::stringstream fen;
-  for (int rank = 7; rank >= 0; rank--) {
-    for (int file = 7; file >= 0; file--) {
-      Piece pc = piece_on(rank * 8 + file);
-      if (pc)
+
+  for (int rank = 7; rank >= 0; rank--)
+  {
+    for (int file = 7; file >= 0; file--)
+    {
+      if (Piece pc = piece_on(rank * 8 + file); pc != NO_PIECE)
         fen << piece_to_char[pc];
-      else {
+      else
+      {
         int empty_squares = 0, f;
         for (f = file; f >= 0 && !piece_on(rank * 8 + f); f--)
           empty_squares++;
@@ -100,15 +104,19 @@ std::string Position::fen() {
     if (rank)
       fen << "/";
   }
+
   fen << " " << "wb"[side_to_move] << " ";
+
   if (!state_ptr->castling_rights)
     fen << "-";
-  else {
+  else
+  {
     if (kingside_rights <WHITE>()) fen << "K";
     if (queenside_rights<WHITE>()) fen << "Q";
     if (kingside_rights <BLACK>()) fen << "k";
     if (queenside_rights<BLACK>()) fen << "q";
   }                                fen << " " << (state_ptr->ep_sq ? square_to_uci(state_ptr->ep_sq) : "-") << " 0 1";
+
   return fen.str();
 }
 
