@@ -33,16 +33,17 @@ void Position::set(const std::string& fen) {
   memset(bitboards, 0, 16 * sizeof(Bitboard));
 
   Square             sq = A8;
-  size_t             piece, idx;
   std::istringstream is(fen);
   std::string        pieces, color, castling, enpassant;
 
   is >> pieces >> color >> castling >> enpassant;
 
-  for (char token : pieces) {
+  for (char token : pieces)
+  {
     if (std::isdigit(token))
       sq -= token - '0';
-    else if ((piece = piece_to_char.find(token)) != std::string::npos) {
+    else if (size_t piece = piece_to_char.find(token); piece != std::string::npos)
+    {
       board[sq] = piece;
       bitboards[piece] ^= square_bb(sq);
       bitboards[color_of(piece)] ^= square_bb(sq);
@@ -55,7 +56,7 @@ void Position::set(const std::string& fen) {
   state_ptr->castling_rights = state_ptr->ep_sq = 0;
 
   for (char token : castling)
-    if ((idx = std::string("qkQK").find(token)) != std::string::npos)
+    if (size_t idx = std::string("qkQK").find(token); idx != std::string::npos)
       state_ptr->castling_rights ^= 1 << idx;
 
   if (enpassant != "-")
@@ -111,8 +112,8 @@ std::string Position::fen() {
   return fen.str();
 }
 
-void Position::do_commit(Move m) {
-
+void Position::do_commit(Move m)
+{
   if (piece_on(to_sq(m)) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
     RepetitionTable::clear();
 
