@@ -17,8 +17,8 @@ Piece board[SQUARE_NB];
 
 uint64_t Zobrist::hash[B_KING + 1][SQUARE_NB];
 
-void Position::init() {
-  
+void Position::init()
+{  
   std::mt19937_64 rng(221564671644);
 
   for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
@@ -27,8 +27,8 @@ void Position::init() {
       Zobrist::hash[pc][sq] = rng();
 }
 
-void Position::set(const std::string& fen) {
-
+void Position::set(const std::string& fen)
+{
   memset(board, NO_PIECE, 64 * sizeof(Piece));
   memset(bitboards, 0, 16 * sizeof(Bitboard));
 
