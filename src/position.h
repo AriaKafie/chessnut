@@ -184,7 +184,7 @@ void do_move(Move m)
     state_ptr->ep_sq = (from + Up) * !(to - from ^ Up2 | piece_type_on(from) ^ PAWN);
 
     Bitboard zero_to = ~square_bb(to);
-    Bitboard from_to =    square_bb(from, to);
+    Bitboard from_to =  square_bb(from, to);
 
     switch (type_of(m))
     {
