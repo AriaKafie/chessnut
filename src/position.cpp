@@ -83,6 +83,7 @@ std::string Position::to_string() {
         if (sq % 8 == 0)
             ss << "| " << (sq / 8 + 1) << "\n+---+---+---+---+---+---+---+---+\n";
     }
+
     ss << "  a   b   c   d   e   f   g   h\n\nFen: " << fen() << "\nKey: " << std::hex << std::uppercase << key() << "\n\n";
 
     return ss.str();
@@ -107,6 +108,7 @@ std::string Position::fen() {
                 file = f + 1;
             }
         }
+
         if (rank)
             fen << "/";
     }
