@@ -11,17 +11,22 @@ bool RepetitionTable::has_repeated() {
 }
 
 void RepetitionTable::increment() {
+
     RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
+
     if (ri.key == Position::key())
         ri.occurrences++;
-    else if (ri.key == 0 || ri.occurrences == 0) {
+    else if (ri.key == 0 || ri.occurrences == 0)
+    {
         ri.key = Position::key();
         ri.occurrences = 1;
     }
 }
 
 void RepetitionTable::decrement() {
+
     RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
+
     if (ri.key == Position::key())
         ri.occurrences--;
 }

@@ -2,6 +2,7 @@
 #include "perft.h"
 
 #include <chrono>
+#include <iomanip>
 
 #include "debug.h"
 #include "movegen.h"
@@ -14,7 +15,7 @@
 template<Color>
 void expand(int depth);
 
-uint64_t nodes;
+uint64_t pnodes;
 
 template<Color C>
 void go_bench(int depth) {
@@ -25,7 +26,7 @@ void go_bench(int depth) {
 
     for (int d = 1; d <= depth; d++)
     {
-        nodes = 0;
+        pnodes = 0;
         auto start = curr_time_millis();
         for (Move m : moves)
         {
@@ -35,7 +36,7 @@ void go_bench(int depth) {
         }
 
         auto delta = curr_time_millis() - start;
-        std::cout << std::setw(7) << d << std::setw(12) << nodes << std::setw(8) << delta << std::max(0, int(double(nodes) / (double(delta) / 1000.0))) << "\n";
+        std::cout << std::setw(7) << d << std::setw(12) << pnodes << std::setw(8) << delta << std::max(0, int(double(pnodes) / (double(delta) / 1000.0))) << "\n";
     }
 
     std::cout << "\n";
@@ -50,13 +51,13 @@ void perft(int depth) {
 
     for (Move m : moves)
     {
-        nodes = 0;
+        pnodes = 0;
         std::cout << move_to_uci(m) << ": ";
         do_move<C>(m);
         expand<!C>(depth - 1);
         undo_move<C>(m);
-        std::cout << nodes << "\n";
-        total_nodes += nodes;
+        std::cout << pnodes << "\n";
+        total_nodes += pnodes;
     }
 
     std::cout << "\nnodes searched: " << total_nodes << "\n\n";
@@ -67,7 +68,7 @@ void expand(int depth)
 {
     if (depth == 0)
     {
-        nodes++;
+        pnodes++;
         return;
     }
 
@@ -75,7 +76,7 @@ void expand(int depth)
 
     if (depth == 1)
     {
-        nodes += moves.size();
+        pnodes += moves.size();
         return;
     }
 
