@@ -91,8 +91,8 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
             return eval;
     }
 
-    Move     best_move = NULLMOVE;
-    HashFlag flag      = UPPER_BOUND;
+    Move     best_move  = NULLMOVE;
+    HashFlag bound_type = UPPER_BOUND;
 
     MoveList<SideToMove> moves;
 
@@ -133,11 +133,11 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
         {
             best_move = moves[i];
             alpha = eval;
-            flag = EXACT;
+            bound_type = EXACT;
         }
     }
 
-    TranspositionTable::record(depth, flag, alpha, best_move, ply_from_root);
+    TranspositionTable::record(depth, bound_type, alpha, best_move, ply_from_root);
 
     return alpha;
 }
