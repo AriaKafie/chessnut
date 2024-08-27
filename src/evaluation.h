@@ -7,9 +7,9 @@
 
 int static_eval();
 
-constexpr int piece_weight_table[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
+constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 
-inline int piece_weight(PieceType pt) { return piece_weight_table[pt]; }
+inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
 
 constexpr int square_score_table[PIECE_TYPE_NB][SQUARE_NB] = 
 {

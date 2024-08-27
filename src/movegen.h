@@ -214,15 +214,16 @@ MoveList<Us>::MoveList() :
     }
   }
 
-  if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
+  if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP)
+  {
     Square to = lsb(b);
     *last = make_move<ENPASSANT>(to - UpRight, to);
     Bitboard ep_toggle = b | shift<-UpRight>(b) | shift<-Up>(b);
     Bitboard o = occupied ^ ep_toggle;
     last += !(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
   }
-
-  if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP) {
+  if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP)
+  {
     Square to = lsb(b);
     *last = make_move<ENPASSANT>(to - UpLeft, to);
     Bitboard ep_toggle = b | shift<-UpLeft>(b) | shift<-Up>(b);

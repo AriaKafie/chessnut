@@ -35,13 +35,19 @@ constexpr uint32_t SEEN_BY_PAWN_MALUS = 50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
-  for (int i = 1; i < size(); i++) {
+
+  for (int i = 1; i < size(); i++)
+  {
     Move key = moves[i];
+
     int j = i - 1;
-    while (j >= 0 && score_of(moves[j]) < score_of(key)) {
+
+    while (j >= 0 && score_of(moves[j]) < score_of(key))
+    {
       moves[j + 1] = moves[j];
       j--;
     }
+
     moves[j + 1] = key;
   }
 }
@@ -51,8 +57,8 @@ void CaptureList<Us>::sort() {
 
   Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
             
-  for (Move& m : *this) {
-    
+  for (Move& m : *this)
+  {  
     uint32_t score = 0x7fff;
     
     Square    from     = from_sq(m);
@@ -62,6 +68,7 @@ void CaptureList<Us>::sort() {
 
     if (square_bb(to) & seen_by_pawn)
       score -= 500;
+
     score += piece_weight(captured) - piece_weight(pt) * bool(square_bb(to) & seen_by_enemy);
 
     m += score << 16;  

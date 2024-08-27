@@ -13,11 +13,6 @@
 
 namespace Bitboards { void init(); }
 
-namespace Magic {
-  void search();
-  void test_magic(Square sq, uint64_t magic);
-}
-
 inline Bitboard RookXray[102400];
 inline Bitboard BishopXray[5248];
 inline Bitboard RookAttacks[102400];
@@ -63,8 +58,6 @@ constexpr Bitboard RANK_5 = RANK_1 << 32;
 constexpr Bitboard RANK_6 = RANK_1 << 40;
 constexpr Bitboard RANK_7 = RANK_1 << 48;
 constexpr Bitboard RANK_8 = RANK_1 << 56;
-constexpr Bitboard NOT_RANK_2 = ~RANK_2;
-constexpr Bitboard NOT_RANK_7 = ~RANK_7;
 
 template<Direction D>
 constexpr Bitboard shift(Bitboard bb) {

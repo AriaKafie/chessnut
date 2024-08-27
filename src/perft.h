@@ -3,8 +3,8 @@
 #define PERFT_H
 
 namespace Perft {
-  void go(int depth);
-  void bench(int depth);
+    void go(int depth);
+    void bench(int depth);
 }
 
 #endif
