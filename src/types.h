@@ -10,6 +10,8 @@
   #define ForceInline __attribute__((always_inline))
 #endif
 
+//#define ForceInline
+
 #define SQUARE_LOOP(sq) for (Square sq = H1; sq <= A8; sq++)
 
 typedef uint64_t Bitboard;
@@ -102,7 +104,7 @@ ForceInline constexpr Move make_move(Square from, Square to) {
 }
 
 enum Moves {
-  NULLMOVE,
+  NO_MOVE,
   W_SCASTLE = make_move<SHORTCASTLE>(E1, G1),
   W_LCASTLE = make_move<LONGCASTLE >(E1, C1),
   B_SCASTLE = make_move<SHORTCASTLE>(E8, G8),

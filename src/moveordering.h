@@ -32,6 +32,7 @@ constexpr uint32_t BAD_CAPTURE_BONUS  = 2000;
 constexpr uint32_t EVASION_BONUS      = 1000;
 constexpr uint32_t KILLER_BONUS       = 4000;
 constexpr uint32_t SEEN_BY_PAWN_MALUS = 50;
+constexpr uint32_t PROMOTION_BONUS    = 50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
@@ -60,7 +61,7 @@ void CaptureList<Us>::sort() {
     for (Move& m : *this)
     {  
         uint32_t score = 0x7fff;
-    
+
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
         PieceType pt       = piece_type_on(from);
@@ -129,6 +130,9 @@ void MoveList<Us>::sort(Move pv, int ply) {
         PieceType pt       = piece_type_on(from);
         PieceType captured = piece_type_on(to);
     
+        if (type_of(m) == PROMOTION)
+            score += PROMOTION_BONUS;
+
         if (captured)
         {
             int material_delta = piece_weight(captured) - piece_weight(pt);
@@ -142,6 +146,8 @@ void MoveList<Us>::sort(Move pv, int ply) {
         {
             if (killer_moves[ply].contains(m))
                 score += KILLER_BONUS;
+
+            //score += Position::endgame() && pt == KING ? (end_king_squares[to] - end_king_squares[from]) / 2 : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
 
             score += (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
         }

@@ -17,8 +17,8 @@ int reductions[MAX_PLY][MAX_PLY], nodes, qnodes;
 
 void Search::init() {
     for (int depth = 0; depth < MAX_PLY; depth++)
-        for (int mn = 0; mn < MAX_PLY; mn++)
-            reductions[depth][mn] = int(std::log(mn + 2) / std::log(std::min(14, depth) + 2));
+        for (int move_num = 0; move_num < MAX_PLY; move_num++)
+            reductions[depth][move_num] = int(std::log(move_num + 2) / std::log(std::min(14, depth) + 2));
 }
 
 template<Color SideToMove>
@@ -91,7 +91,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
             return eval;
     }
 
-    Move     best_move  = NULLMOVE;
+    Move     best_move  = NO_MOVE;
     HashFlag bound_type = UPPER_BOUND;
 
     MoveList<SideToMove> moves;
@@ -126,6 +126,10 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
             if (!piece_on(to_sq(moves[i])))
                 killer_moves[ply_from_root].add(moves[i] & 0xffff);
 
+            /* ply->history += bonus;
+               (ply - 1)->history -= malus;
+            */
+
             return eval;
         }
 
@@ -136,6 +140,9 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
             bound_type = EXACT;
         }
     }
+
+    /*if (bound_type == UPPER_BOUND)
+        (ply - 2)->history -= malus;*/
 
     TranspositionTable::record(depth, bound_type, alpha, best_move, ply_from_root);
 
@@ -218,7 +225,7 @@ void Bench::count_nodes(int depth) {
         std::cout << fen << "  ";
         Position::set(fen);
         TranspositionTable::clear();
-        Move best_move = NULLMOVE;
+        Move best_move = NO_MOVE;
         auto start_time = curr_time_millis();
 
         for (int d = 1; d <= depth; d++) {

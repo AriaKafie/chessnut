@@ -84,7 +84,8 @@ constexpr int square_score(PieceType pt, Square sq) {
         return square_score_table[pt - 2][sq];
 }
 
-constexpr int end_king_squares[] = {
+constexpr int end_king_squares[] =
+{
     -10,-8,-6,-4,-4,-6,-8,-10,
     -6, -4,-2, 0, 0,-2,-4,-6,
     -6, -2, 4, 6, 6, 4,-2,-6,

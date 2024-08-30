@@ -3,11 +3,11 @@
 #include "search.h"
 #include "uci.h"
 
-int main()
-{
-  Bitboards::init();
-  Search::init();
-  Position::init();
+int main() {
 
-  UCI::loop();
+    Bitboards::init();
+    Search::init();
+    Position::init();
+
+    UCI::loop();
 }

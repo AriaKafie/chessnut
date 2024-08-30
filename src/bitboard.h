@@ -29,7 +29,7 @@ inline Bitboard checkray[SQUARE_NB][SQUARE_NB];
 inline Bitboard pinmask[SQUARE_NB][SQUARE_NB];
 inline Bitboard main_diagonal[SQUARE_NB];
 inline Bitboard anti_diagonal[SQUARE_NB];
-inline Bitboard file[SQUARE_NB];
+inline Bitboard file_bitboards[SQUARE_NB];
 inline uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
 inline uint8_t CenterDistance[SQUARE_NB];
 inline int white_kingshield_scores[SQUARE_NB][1 << 6];
@@ -90,7 +90,7 @@ inline Bitboard anti_diag(Square s) {
 }
 
 inline Bitboard file_bb(Square s) {
-  return file[s];
+  return file_bitboards[s];
 }
 
 inline Bitboard double_check(Square ksq) {
@@ -110,12 +110,8 @@ inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
   return square_bb(sq) | square_bb(sqs...);
 }
 
-inline Bitboard rank_of(Square s) {
+inline Bitboard rank_bb(Square s) {
   return RANK_1 << 8 * (s / 8);
-}
-
-inline Bitboard file_of(Square s) {
-  return FILE_H << (s % 8);
 }
 
 inline Bitboard mask(Square s, Direction d) {
@@ -129,11 +125,11 @@ inline Bitboard mask(Square s, Direction d) {
   if (d == NORTH || d == SOUTH) {
     Bitboard m = 0;
     while (is_ok(s += d))
-      m |= rank_of(s);
+      m |= rank_bb(s);
     return m;
   }
   else {
-    Bitboard r = rank_of(s);
+    Bitboard r = rank_bb(s);
     Bitboard m = 0;
     while (square_bb(s += d) & r)
       m |= FILE_H << (s % 8);

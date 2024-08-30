@@ -76,7 +76,7 @@ void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move bes
 
 Move TranspositionTable::lookup_move() {
     const Entry& e = transposition_table[Position::key() & (TT_SIZE - 1)];
-    return e.key == Position::key() ? e.bestmove : NULLMOVE;
+    return e.key == Position::key() ? e.bestmove : NO_MOVE;
 }
 
 void TranspositionTable::clear() {

@@ -18,14 +18,6 @@ Move uci_to_move(const std::string& uci);
 
 namespace UCI { void loop(); }
 
-void handle_uci();
-void handle_debug();
-void handle_newgame();
-void handle_isready();
-
-void move_prompt(std::string move);
 std::string move_to_uci(Move m);
-void trim(std::string& str);
-void make_ai_move();
 
 #endif

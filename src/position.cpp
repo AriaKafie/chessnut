@@ -41,12 +41,12 @@ void Position::set(const std::string& fen) {
     for (char token : pieces)
     {
         if (std::isdigit(token))
-            sq -= token - '0';
+            sq -= token - '0'; 
         else if (size_t piece = piece_to_char.find(token); piece != std::string::npos)
         {
             board[sq] = piece;
-            bitboards[piece] ^= square_bb(sq);
-            bitboards[color_of(piece)] ^= square_bb(sq);
+            bitboards[piece] |= square_bb(sq);
+            bitboards[color_of(piece)] |= square_bb(sq);
             sq--;
         }
     }
@@ -57,7 +57,7 @@ void Position::set(const std::string& fen) {
 
     for (char token : castling)
         if (size_t idx = std::string("qkQK").find(token); idx != std::string::npos)
-            state_ptr->castling_rights ^= 1 << idx;
+            state_ptr->castling_rights |= 1 << idx;
 
     if (enpassant != "-")
         state_ptr->ep_sq = uci_to_square(enpassant);
@@ -84,7 +84,7 @@ std::string Position::to_string() {
             ss << "| " << (sq / 8 + 1) << "\n+---+---+---+---+---+---+---+---+\n";
     }
 
-    ss << "  a   b   c   d   e   f   g   h\n\nFen: " << fen() << "\nKey: " << std::hex << std::uppercase << key() << "\n\n";
+    ss << "  a   b   c   d   e   f   g   h\n\nFen: " << fen() << "\nKey: " << std::hex << std::uppercase << key() << "\n";
 
     return ss.str();
 }
@@ -151,6 +151,7 @@ void set_gamephase() {
     Color us = Position::side_to_move, them = !us;
 
 #define piece_count(pc) popcount(bitboards[pc])
+
     int friendly_material =
         3 * piece_count(make_piece(us, KNIGHT)) +
         3 * piece_count(make_piece(us, BISHOP)) +
@@ -169,7 +170,7 @@ void set_gamephase() {
         Position::gamephase = ENDGAME;
     else
         Position::gamephase = MIDGAME;
+        
 #undef piece_count
-
 }
 

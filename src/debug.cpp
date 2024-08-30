@@ -1,49 +1,85 @@
 
 #include "debug.h"
 
-#include "bench.h"
-#include "movegen.h"
-#include "uci.h"
-
-#include "search.h"
-#include "transpositiontable.h"
-#include "util.h"
-
-#include <sstream>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <algorithm>
 
-// 4q2r/2pk4/Q1n1bp1p/6p1/8/2NP4/PrPB1PPP/R5K1 w - - 0 1
+#include "bench.h"
+#include "movegen.h"
+#include "uci.h"
+#include "transpositiontable.h"
+#include "util.h"
 
+uint64_t perft_nodes;
 
+template<Color SideToMove>
+void expand(int depth)
+{
+    if (depth == 0)
+    {
+        perft_nodes++;
+        return;
+    }
+
+    MoveList<SideToMove> moves;
+
+    if (depth == 1)
+    {
+        perft_nodes += moves.size();
+        return;
+    }
+
+    for (Move m : moves)
+    {
+        do_move<SideToMove>(m);
+        expand<!SideToMove>(depth - 1);
+        undo_move<SideToMove>(m);
+    }
+}
+
+template<Color SideToMove>
+void performance_test(int depth) {
+
+    uint64_t total_nodes = 0;
+
+    MoveList<SideToMove> moves;
+
+    for (Move m : moves)
+    {
+        perft_nodes = 0;
+
+        do_move<SideToMove>(m);
+        expand<!SideToMove>(depth - 1);
+        undo_move<SideToMove>(m);
+
+        std::cout << move_to_uci(m) << ": " << perft_nodes << std::endl;
+
+        total_nodes += perft_nodes;
+    }
+
+    std::cout << "\nnodes searched: " << total_nodes << "\n" << std::endl;
+}
+
+void Debug::perft(std::istringstream& ss) {
+
+    int   depth;
+    ss >> depth;
+
+    if (Position::white_to_move()) performance_test<WHITE>(depth);
+    else                           performance_test<BLACK>(depth);
+}
 
 extern RepInfo repetition_table[];
-extern int reductions[MAX_PLY][MAX_PLY];
-
-int reduction_(int d, int mn) {
-  return std::log(mn + 2) * std::log(std::min(14, d) + 2);
-}
 
 void Debug::go()
 {
   std::cout << lsb(TT_SIZE) << "\n";
 }
 
-std::string brd() {
-
-  std::string board = Position::to_string();
-
-  for (char& c : board)
-    if (c == '\n')
-      c = '?';
-
-  return board;
-}
-
-void gameinfo() {
+void Debug::gameinfo() {
 
   if (RepetitionTable::has_repeated()) {
     std::cout << "draw\n";
