@@ -26,45 +26,39 @@ class Engine:
     
     def __init__(self, path):
         
-        self.path = path
         self.p = subprocess.Popen(path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
 
     def await_stop(self):
-        while True:
-            cmd = input()
-            if cmd == 'stop':
-                self.p.stdin.write("stop\n")
-                self.p.stdin.flush()
-                return
+        
+        cmd = input()
+        self.p.stdin.write("stop\n")
+        self.p.stdin.flush()
         
     def send_message(self, message):
 
-        if "moves" in message:
-            
-            self.p.stdin.write("d\n")
-            self.p.stdin.flush()
+        self.p.stdin.write("d\n")
+        self.p.stdin.flush()
 
-            line = ""
+        line = ""
 
-            while line.find("Fen") == -1:
-                line = self.p.stdout.readline().strip()
+        while line.find("Fen") == -1:
+            line = self.p.stdout.readline().strip()
 
-            fen = line[5:]
+        fen = line[5:]
 
-            line = self.p.stdout.readline()
-            line = self.p.stdout.readline()
-            
-            board = chess.Board(fen)
+        line = self.p.stdout.readline()
+        line = self.p.stdout.readline()
 
-            legal_moves = [move.uci() for move in board.legal_moves]
+        board = chess.Board(fen)
 
-            for move in message.split()[1:]:
-                if move in legal_moves:
-                    board.push_uci(move)
-                    legal_moves = [move.uci() for move in board.legal_moves]
-                else:
-                    print("invalid:", move)
-                    return
+        legal_moves = [move.uci() for move in board.legal_moves]
+
+        if message.strip() in legal_moves:
+
+            self.send_message("moves " + message)
+            self.go()
+
+            return
         
         self.p.stdin.write(message + "\n")
         self.p.stdin.flush()
@@ -89,7 +83,7 @@ class Engine:
 
         line = ""
 
-        while line.find("Fen") == -1:
+        while "Fen" not in line:
             line = self.p.stdout.readline().strip()
 
         color = line.split()[2]
@@ -122,14 +116,14 @@ class Engine:
 
         if color == 'b':
             from_idx ^= 63
-            to_idx ^= 63
+            to_idx   ^= 63
         
         xfrom, yfrom = pixels[from_idx]
         xto, yto = pixels[to_idx]
 
         pyautogui.click(xfrom, yfrom)
         pyautogui.click(xto, yto)
-
+        
 engine = Engine("c:\\users\\14244\\source\\repos\\chess\\x64\\release\\endl.exe")
 
 cmd = ''
