@@ -7,7 +7,6 @@
 #include <cmath>
 #include <algorithm>
 
-#include "bench.h"
 #include "movegen.h"
 #include "uci.h"
 #include "transpositiontable.h"

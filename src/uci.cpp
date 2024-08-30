@@ -14,7 +14,7 @@
 #include "position.h"
 #include "transpositiontable.h"
 #include "search.h"
-#include "bench.h"
+
 #include "debug.h"
 
 void position(std::istringstream& cmd) {
@@ -60,7 +60,7 @@ void go(std::istringstream& args) {
     if (token == "nodes")
     {
         args >> depth;
-        Bench::count_nodes(depth);
+        Search::count_nodes(depth);
     } 
     else if (token == "debug")
     {

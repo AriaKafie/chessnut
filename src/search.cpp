@@ -4,7 +4,7 @@
 #include <cmath>
 #include <thread>
 
-#include "bench.h"
+
 #include "debug.h"
 #include "evaluation.h"
 #include "movegen.h"
@@ -213,7 +213,7 @@ void Search::go(uint64_t thinktime) {
     else                           iterative_deepening<BLACK>();
 }
 
-void Bench::count_nodes(int depth) {
+void Search::count_nodes(int depth) {
 
     int node_sum = 0;
     int q_node_sum = 0;

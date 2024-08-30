@@ -27,6 +27,7 @@ namespace Search {
 
 void init();
 void go(uint64_t thinktime = 0);
+void count_nodes(int depth);
 
 } // namespace Search
 
