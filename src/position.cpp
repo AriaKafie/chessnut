@@ -130,15 +130,13 @@ std::string Position::fen() {
     return fen.str();
 }
 
-void Position::do_commit(Move m) {
+void Position::commit_move(Move m) {
 
     if (piece_on(to_sq(m)) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
         RepetitionTable::clear();
 
-    if (side_to_move == WHITE)
-        do_move<WHITE>(m);
-    else
-        do_move<BLACK>(m);
+    if (white_to_move()) do_move<WHITE>(m);
+    else                 do_move<BLACK>(m);
 
     state_stack[0] = *state_ptr;
     state_ptr = state_stack;

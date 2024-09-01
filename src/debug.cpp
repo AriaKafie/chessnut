@@ -73,23 +73,34 @@ void Debug::perft(std::istringstream& ss) {
 
 extern RepInfo repetition_table[];
 
-void Debug::go()
-{
-  std::cout << lsb(TT_SIZE) << "\n";
+void Debug::go() {
+
+    for (int i = 0; i < RT_SIZE; i++)
+    {
+        const RepInfo& ri = repetition_table[i];
+
+        if (ri.occurrences)
+            std::cout << std::hex << std::uppercase << ri.key << ": " << std::dec << int(ri.occurrences) << std::endl;
+    }
 }
 
 void Debug::gameinfo() {
 
-  if (RepetitionTable::has_repeated()) {
+  if (RepetitionTable::has_repeated())
+  {
     std::cout << "draw\n";
     return;
   }
 
-  int count = 0;
-  for (int i = 0; i < RT_SIZE; i++) {
-    if (repetition_table[i].occurrences)
-      count++;
-    if (count >= 100) {
+  for (int i = 0, count = 0; i < RT_SIZE; i++)
+  {
+    const RepInfo& ri = repetition_table[i];
+  
+    if (ri.occurrences)
+      count += ri.occurrences;
+
+    if (count >= 100)
+    {
       std::cout << "draw\n";
       return;
     }

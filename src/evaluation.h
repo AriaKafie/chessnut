@@ -11,7 +11,7 @@ constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 
 inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
 
-constexpr int square_score_table[PIECE_TYPE_NB][SQUARE_NB] = 
+constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] = 
 {
 // scored from black's pov (promotion = 0-7) with a maximizer perspective
     { // pawn
@@ -78,10 +78,9 @@ constexpr int square_score_table[PIECE_TYPE_NB][SQUARE_NB] =
 
 template<Color Perspective>
 constexpr int square_score(PieceType pt, Square sq) {
-    if constexpr (Perspective == WHITE)
-        return square_score_table[pt - 2][sq ^ 63];
-    else
-        return square_score_table[pt - 2][sq];
+
+    if constexpr (Perspective == WHITE) return square_scores[pt - 2][sq ^ 63];
+    else                                return square_scores[pt - 2][sq     ];
 }
 
 constexpr int end_king_squares[] =

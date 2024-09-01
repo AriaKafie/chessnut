@@ -23,7 +23,7 @@ typedef int      Color;
 typedef int      MoveType;
 typedef int      Direction;
 
-constexpr int MAX_PLY = 128;
+constexpr int MAX_PLY  = 128;
 constexpr int INFINITE = 0x7fffffff;
 
 struct StateInfo {

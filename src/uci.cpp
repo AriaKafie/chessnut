@@ -39,7 +39,7 @@ void position(std::istringstream& cmd) {
     Position::set(fen);
 
     while (cmd >> token)
-        Position::do_commit(uci_to_move(token));
+        Position::commit_move(uci_to_move(token));
 }
 
 void moves(std::istringstream& cmd) {
@@ -47,7 +47,7 @@ void moves(std::istringstream& cmd) {
     std::string token;
 
     while (cmd >> token)
-        Position::do_commit(uci_to_move(token));
+        Position::commit_move(uci_to_move(token));
 }
 
 void go(std::istringstream& args) {

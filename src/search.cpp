@@ -4,7 +4,6 @@
 #include <cmath>
 #include <thread>
 
-
 #include "debug.h"
 #include "evaluation.h"
 #include "movegen.h"
@@ -150,8 +149,8 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
 }
 
 template<Color SideToMove>
-void iterative_deepening()
-{
+void iterative_deepening() {
+
     Move best_move = TranspositionTable::lookup_move();
 
     MoveList<SideToMove> moves;

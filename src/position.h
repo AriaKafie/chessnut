@@ -28,7 +28,7 @@ namespace Position {
 
 void init();
 void set(const std::string& fen);
-void do_commit(Move m);
+void commit_move(Move m);
 std::string fen();
 std::string to_string();
 

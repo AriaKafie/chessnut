@@ -129,9 +129,6 @@ void MoveList<Us>::sort(Move pv, int ply) {
         Square    to       = to_sq(m);
         PieceType pt       = piece_type_on(from);
         PieceType captured = piece_type_on(to);
-    
-        if (type_of(m) == PROMOTION)
-            score += PROMOTION_BONUS;
 
         if (captured)
         {
@@ -147,11 +144,12 @@ void MoveList<Us>::sort(Move pv, int ply) {
             if (killer_moves[ply].contains(m))
                 score += KILLER_BONUS;
 
-            //score += Position::endgame() && pt == KING ? (end_king_squares[to] - end_king_squares[from]) / 2 : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
-
-            score += (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
+            score += Position::endgame() && pt == KING ? (end_king_squares[to] - end_king_squares[from]) / 2 : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
         }
         
+        if (type_of(m) == PROMOTION)
+            score += PROMOTION_BONUS;
+
         if (square_bb(to) & seen_by_pawn)
             score -= SEEN_BY_PAWN_MALUS;
 
