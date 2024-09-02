@@ -10,7 +10,6 @@
 #include "moveordering.h"
 #include "position.h"
 #include "uci.h"
-#include "util.h"
 
 int reductions[MAX_PLY][MAX_PLY], nodes, qnodes;
 

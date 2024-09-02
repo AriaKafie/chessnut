@@ -21,20 +21,20 @@ enum HashFlags {
 
 struct Entry {
     uint64_t key;
-    uint8_t depth;
+    uint8_t  depth;
     HashFlag flag;
-    int eval;
-    uint16_t bestmove;
+    int      eval;
+    uint16_t best_move;
 };
 
 struct RepInfo {
     uint64_t key;
-    uint8_t occurrences;
+    uint8_t  occurrences;
 };
 
 namespace TranspositionTable {
     int lookup(int depth, int alpha, int beta, int ply_from_root);
-    void record(uint8_t depth, HashFlag flag, int eval, Move bestmove, int ply_from_root);
+    void record(uint8_t depth, HashFlag flag, int eval, Move best_move, int ply_from_root);
     Move lookup_move();
     void clear();
 }

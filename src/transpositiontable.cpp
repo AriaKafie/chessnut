@@ -6,7 +6,9 @@ Entry transposition_table[TT_SIZE];
 RepInfo repetition_table[RT_SIZE];
 
 bool RepetitionTable::has_repeated() {
+
     const RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
+
     return ri.key == Position::key() && ri.occurrences >= 3;
 }
 
@@ -60,23 +62,25 @@ int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root
     return FAIL;
 }
 
-void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move bestmove, int ply_from_root) {
+void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move best_move, int ply_from_root) {
 
     eval += ply_from_root * (eval >  90000);
     eval -= ply_from_root * (eval < -90000);
 
     Entry& e = transposition_table[Position::key() & (TT_SIZE - 1)];
 
-    e.key      = Position::key();
-    e.depth    = depth;
-    e.flag     = flag;
-    e.eval     = eval;
-    e.bestmove = bestmove;
+    e.key       = Position::key();
+    e.depth     = depth;
+    e.flag      = flag;
+    e.eval      = eval;
+    e.best_move = best_move;
 }
 
 Move TranspositionTable::lookup_move() {
-    const Entry& e = transposition_table[Position::key() & (TT_SIZE - 1)];
-    return e.key == Position::key() ? e.bestmove : NO_MOVE;
+
+    const Entry& entry = transposition_table[Position::key() & (TT_SIZE - 1)];
+
+    return entry.key == Position::key() ? entry.best_move : NO_MOVE;
 }
 
 void TranspositionTable::clear() {

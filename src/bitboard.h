@@ -2,10 +2,11 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
-#include "types.h"
-
 #include <cmath>
 #include <immintrin.h>
+#include <string>
+
+#include "types.h"
 
 #define pext(b, m) _pext_u64(b, m)
 #define popcount(b) _mm_popcnt_u64(b)
@@ -61,170 +62,200 @@ constexpr Bitboard RANK_8 = RANK_1 << 56;
 
 template<Direction D>
 constexpr Bitboard shift(Bitboard bb) {
-  if constexpr (D == NORTH)      return  bb << 8;
-  if constexpr (D == NORTH_EAST) return (bb & NOT_FILE_H) << 7;
-  if constexpr (D == EAST)       return  bb >> 1;
-  if constexpr (D == SOUTH_EAST) return (bb & NOT_FILE_H) >> 9;
-  if constexpr (D == SOUTH)      return  bb >> 8;
-  if constexpr (D == SOUTH_WEST) return (bb & NOT_FILE_A) >> 7;
-  if constexpr (D == WEST)       return  bb << 1;
-  if constexpr (D == NORTH_WEST) return (bb & NOT_FILE_A) << 9;
-  if constexpr (D == NORTHNORTH) return  bb << 16;
-  if constexpr (D == SOUTHSOUTH) return  bb >> 16;
+
+    if constexpr (D == NORTH)      return  bb << 8;
+    if constexpr (D == NORTH_EAST) return (bb & NOT_FILE_H) << 7;
+    if constexpr (D == EAST)       return  bb >> 1;
+    if constexpr (D == SOUTH_EAST) return (bb & NOT_FILE_H) >> 9;
+    if constexpr (D == SOUTH)      return  bb >> 8;
+    if constexpr (D == SOUTH_WEST) return (bb & NOT_FILE_A) >> 7;
+    if constexpr (D == WEST)       return  bb << 1;
+    if constexpr (D == NORTH_WEST) return (bb & NOT_FILE_A) << 9;
+    if constexpr (D == NORTHNORTH) return  bb << 16;
+    if constexpr (D == SOUTHSOUTH) return  bb >> 16;
 }
 
 inline Bitboard distance_from_center(Square s) {
-  return CenterDistance[s];
+    return CenterDistance[s];
 }
 
 inline Bitboard pin_mask(Square ksq, Square pinned) {
-  return pinmask[ksq][pinned];
+    return pinmask[ksq][pinned];
 }
 
 inline Bitboard main_diag(Square s) {
-  return main_diagonal[s];
+    return main_diagonal[s];
 }
 
 inline Bitboard anti_diag(Square s) {
-  return anti_diagonal[s];
+    return anti_diagonal[s];
 }
 
 inline Bitboard file_bb(Square s) {
-  return file_bitboards[s];
+    return file_bitboards[s];
 }
 
 inline Bitboard double_check(Square ksq) {
-  return doublecheck[ksq];
+    return doublecheck[ksq];
 }
 
 inline Bitboard check_ray(Square ksq, Square checker) {
-  return checkray[ksq][checker];
+    return checkray[ksq][checker];
 }
 
 constexpr Bitboard square_bb(Square s) {
-  return 1ull << s;
+    return 1ull << s;
 }
 
 template<typename... squares>
 inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
-  return square_bb(sq) | square_bb(sqs...);
+    return square_bb(sq) | square_bb(sqs...);
 }
 
 inline Bitboard rank_bb(Square s) {
-  return RANK_1 << 8 * (s / 8);
+    return RANK_1 << 8 * (s / 8);
+}
+
+inline std::string to_string(Bitboard b) {
+
+    std::string l = "+---+---+---+---+---+---+---+---+\n", s = l;
+
+    for (Bitboard bit = square_bb(A8); bit; bit >>= 1)
+    {
+        s += (bit & b) ? "| @ " : "|   ";
+
+        if (bit & FILE_H)
+            s += "|\n" + l;
+    }
+
+    return s + "\n";
 }
 
 inline Bitboard mask(Square s, Direction d) {
-  switch (d) 
-  {
-    case NORTH_EAST: return mask(s, NORTH) & mask(s, EAST);
-    case SOUTH_EAST: return mask(s, SOUTH) & mask(s, EAST);
-    case SOUTH_WEST: return mask(s, SOUTH) & mask(s, WEST);
-    case NORTH_WEST: return mask(s, NORTH) & mask(s, WEST);
-  }
-  if (d == NORTH || d == SOUTH) {
-    Bitboard m = 0;
-    while (is_ok(s += d))
-      m |= rank_bb(s);
-    return m;
-  }
-  else {
-    Bitboard r = rank_bb(s);
-    Bitboard m = 0;
-    while (square_bb(s += d) & r)
-      m |= FILE_H << (s % 8);
-    return m;
-  }
+
+    switch (d) 
+    {
+        case NORTH_EAST: return mask(s, NORTH) & mask(s, EAST);
+        case SOUTH_EAST: return mask(s, SOUTH) & mask(s, EAST);
+        case SOUTH_WEST: return mask(s, SOUTH) & mask(s, WEST);
+        case NORTH_WEST: return mask(s, NORTH) & mask(s, WEST);
+    }
+
+    if (d == NORTH || d == SOUTH)
+    {
+        Bitboard m = 0;
+
+        while (is_ok(s += d))
+            m |= rank_bb(s);
+
+        return m;
+    }
+    else
+    {
+        Bitboard r = rank_bb(s), m = 0;
+
+        while (square_bb(s += d) & r)
+            m |= FILE_H << (s % 8);
+
+        return m;
+    }
 }
 
 inline void pop_lsb(Bitboard& b) {
-  b = _blsr_u64(b);
+    b = _blsr_u64(b);
 }
 
 inline uint64_t more_than_one(Bitboard b) {
-  return _blsr_u64(b);
+    return _blsr_u64(b);
 }
 
 inline Bitboard knight_attacks(Square sq) {
-  return KnightAttacks[sq];
+    return KnightAttacks[sq];
 }
 
 inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
-  return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+    return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
 }
 
 inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
-  return BishopXray[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+    return BishopXray[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
 }
 
 inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
-  return RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+    return RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard rook_xray(Square sq, Bitboard occupied) {
-  return RookXray[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+    return RookXray[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard queen_attacks(Square sq, Bitboard occupied) {
-  return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])] | RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+    return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])] | RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard king_attacks(Square sq) {
-  return KingAttacks[sq];
+    return KingAttacks[sq];
 }
 
 template<Color C>
 constexpr Bitboard pawn_attacks(Square sq) {
-  return PawnAttacks[C][sq];
+    return PawnAttacks[C][sq];
 }
 
 template<Color C>
 constexpr Bitboard pawn_attacks(Bitboard pawns) {
-  if constexpr (C == WHITE)
-    return shift<NORTH_EAST>(pawns) | shift<NORTH_WEST>(pawns);
-  else 
-    return shift<SOUTH_WEST>(pawns) | shift<SOUTH_EAST>(pawns);
+
+    if constexpr (C == WHITE) return shift<NORTH_EAST>(pawns) | shift<NORTH_WEST>(pawns);
+    else                      return shift<SOUTH_WEST>(pawns) | shift<SOUTH_EAST>(pawns);
 }
 
 inline void toggle_square(Bitboard& b, Square s) {
-  b ^= 1ull << s;
+    b ^= 1ull << s;
 }
 
 inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
-  int bitcount = popcount(mask);
-  Bitboard occupancy = 0;
-  for (int bitpos = 0; bitpos < bitcount; bitpos++) {
-    int lsb_index = lsb(mask);
-    if (permutation & (1 << bitpos))
-      occupancy |= 1ull << lsb_index;
-    pop_lsb(mask);
-  }
-  return occupancy;
+
+    int bitcount = popcount(mask);
+
+    Bitboard occupancy = 0;
+
+    for (int bitpos = 0; bitpos < bitcount; bitpos++)
+    {
+        int lsb_index = lsb(mask);
+
+        if (permutation & (1 << bitpos))
+            occupancy |= 1ull << lsb_index;
+
+        pop_lsb(mask);
+    }
+
+    return occupancy;
 }
 
 template<Color C>
 int king_safety(Square ksq, Bitboard occ) {
-  if constexpr (C == WHITE)
-    return white_kingshield_scores[ksq][pext(occ, white_kingshield[ksq])];
-  else
-    return black_kingshield_scores[ksq][pext(occ, black_kingshield[ksq])];
+
+    if constexpr (C == WHITE) return white_kingshield_scores[ksq][pext(occ, white_kingshield[ksq])];
+    else                      return black_kingshield_scores[ksq][pext(occ, black_kingshield[ksq])];
 }
 
 inline int square_distance(Square a, Square b) {
-  return SquareDistance[a][b];
+    return SquareDistance[a][b];
 }
 
 inline int file_distance(Square a, Square b) {
-  return std::abs((a % 8) - (b % 8));
+    return std::abs((a % 8) - (b % 8));
 }
 
 inline int rank_distance(Square a, Square b) {
-  return std::abs((a / 8) - (b / 8));
+    return std::abs((a / 8) - (b / 8));
 }
 
 inline Bitboard safe_step(Square s, int step) {
-  Square to = s + step;
-  return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
+
+    Square to = s + step;
+
+    return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
 }
 
 #endif

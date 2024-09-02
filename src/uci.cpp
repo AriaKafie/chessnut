@@ -3,19 +3,18 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <thread>
 #include <chrono>
 #include <regex>
 
-#include "util.h"
-#include "position.h"
-#include "transpositiontable.h"
-#include "search.h"
-
 #include "debug.h"
+#include "position.h"
+#include "search.h"
+#include "transpositiontable.h"
+
+std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 void position(std::istringstream& cmd) {
 
@@ -42,34 +41,30 @@ void position(std::istringstream& cmd) {
         Position::commit_move(uci_to_move(token));
 }
 
-void moves(std::istringstream& cmd) {
+void moves(std::istringstream& ss) {
 
     std::string token;
 
-    while (cmd >> token)
+    while (ss >> token)
         Position::commit_move(uci_to_move(token));
 }
 
-void go(std::istringstream& args) {
-
-    int depth;
+void go(std::istringstream& ss) {
 
     std::string token;
-    args >> token;
+
+    ss >> token;
 
     if (token == "nodes")
     {
-        args >> depth;
+        int depth;
+        ss >> depth;
         Search::count_nodes(depth);
     } 
-    else if (token == "debug")
-    {
-        Debug::go();
-    }
     else if (token == "movetime")
     {
         uint64_t thinktime;
-        args >> thinktime;
+        ss >> thinktime;
         Search::go(thinktime);
     }
     else
@@ -99,16 +94,13 @@ void UCI::loop()
             RepetitionTable::clear();
         }
 
-        else if (token == "perft")
-            Debug::perft(ss);
-        else if (token == "position")
-            position(ss);
-        else if (token == "go")
-            go(ss);
-        else if (token == "moves")
-            moves(ss);
-        else if (token == "gameinfo")
-            Debug::gameinfo();
+        else if (token == "position") position(ss);
+        else if (token == "go")       go(ss);
+        else if (token == "moves")    moves(ss);
+        else if (token == "perft")    Debug::perft(ss);
+        else if (token == "debug")    Debug::go();
+        else if (token == "gameinfo") Debug::gameinfo();
+        
 
     } while (cmd != "quit");
 }
@@ -126,8 +118,4 @@ Move uci_to_move(const std::string& uci) {
     return Position::white_to_move() ? file_bb(to) & FILE_G ? W_SCASTLE : W_LCASTLE : file_bb(to) & FILE_G ? B_SCASTLE : B_LCASTLE;
 
   return promotion ? make_move<PROMOTION>(from, to) : enpassant ? make_move<ENPASSANT>(from, to) : make_move(from, to);
-}
-
-std::string move_to_uci(Move m) {
-  return square_to_uci(from_sq(m)) + square_to_uci(to_sq(m)) + (type_of(m) == PROMOTION ? "q" : "");
 }

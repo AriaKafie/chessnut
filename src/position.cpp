@@ -8,7 +8,8 @@
 
 #include "transpositiontable.h"
 #include "uci.h"
-#include "util.h"
+
+std::string piece_to_char = "  PNBRQK  pnbrqk";
 
 void set_gamephase();
 
@@ -19,12 +20,12 @@ uint64_t Zobrist::hash[B_KING + 1][SQUARE_NB];
 
 void Position::init() {
 
-  std::mt19937_64 rng(221564671644);
+    std::mt19937_64 rng(221564671644);
 
-  for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
-                    B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING })
-    for (Square sq = H1; sq <= A8; sq++)
-      Zobrist::hash[pc][sq] = rng();
+    for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
+                      B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING })
+        for (Square sq = H1; sq <= A8; sq++)
+            Zobrist::hash[pc][sq] = rng();
 }
 
 void Position::set(const std::string& fen) {
@@ -102,9 +103,12 @@ std::string Position::fen() {
             else
             {
                 int empty_squares = 0, f;
+
                 for (f = file; f >= 0 && !piece_on(rank * 8 + f); f--)
                     empty_squares++;
+
                 fen << empty_squares;
+
                 file = f + 1;
             }
         }

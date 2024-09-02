@@ -12,7 +12,9 @@ struct Killer {
     Move moveB;
 
     void add(Move m) {
-        if (m != moveA) {
+
+        if (m != moveA)
+        {
             moveB = moveA;
             moveA = m;
         }

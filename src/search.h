@@ -2,11 +2,11 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include "types.h"
-#include "util.h"
-
+#include <chrono>
 #include <iostream>
 #include <string>
+
+#include "types.h"
 
 inline constexpr int root_reductions[MAX_PLY] =
 {
@@ -20,6 +20,10 @@ inline constexpr int root_reductions[MAX_PLY] =
     7,7,7,7,7,7,7,7,7,7,
     8,8,8,8,8,8,8,8,8,8,
 };
+
+inline unsigned long long curr_time_millis() {
+    return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count();
+}
 
 constexpr int matescore = 100000;
 
