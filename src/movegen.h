@@ -7,17 +7,22 @@
 #include "position.h"
 
 ForceInline inline Move* make_moves(Move* list, Square from, Bitboard to) {
+
     for (;to; pop_lsb(to))
         *list++ = make_move(from, lsb(to));
+
     return list;
 }
 
 template<Direction D>
 ForceInline Move* make_pawn_moves(Move* list, Bitboard attacks) {
-    for (;attacks; pop_lsb(attacks)) {
+
+    for (;attacks; pop_lsb(attacks))
+    {
         Square to = lsb(attacks);
         *list++ = make_move(to - D, to);
     }
+
     return list;
 }
 
@@ -46,14 +51,9 @@ CaptureList<Us>::CaptureList() :
 
     seen_by_enemy = pawn_attacks<Them>(bb(EnemyPawn)) | king_attacks(lsb(bb(EnemyKing)));
 
-    for (Bitboard b = bb(EnemyKnight); b; pop_lsb(b))
-        seen_by_enemy |= knight_attacks(lsb(b));
-
-    for (Bitboard b = enemy_bishop_queen; b; pop_lsb(b))
-        seen_by_enemy |= bishop_attacks(lsb(b), occupied);
-
-    for (Bitboard b = enemy_rook_queen; b; pop_lsb(b))
-        seen_by_enemy |= rook_attacks(lsb(b), occupied);
+    for (Bitboard b = bb(EnemyKnight);    b; pop_lsb(b)) seen_by_enemy |= knight_attacks(lsb(b));
+    for (Bitboard b = enemy_bishop_queen; b; pop_lsb(b)) seen_by_enemy |= bishop_attacks(lsb(b), occupied);
+    for (Bitboard b = enemy_rook_queen;   b; pop_lsb(b)) seen_by_enemy |= rook_attacks  (lsb(b), occupied);
 
     toggle_square(occupied, ksq);
 
@@ -174,12 +174,9 @@ MoveList<Us>::MoveList() :
 
     seen_by_enemy = pawn_attacks<Them>(bb(EnemyPawn)) | king_attacks(lsb(bb(EnemyKing)));
 
-    for (Bitboard b = bb(EnemyKnight); b; pop_lsb(b))
-        seen_by_enemy |= knight_attacks(lsb(b));
-    for (Bitboard b = enemy_bishop_queen; b; pop_lsb(b))
-        seen_by_enemy |= bishop_attacks(lsb(b), occupied);
-    for (Bitboard b = enemy_rook_queen; b; pop_lsb(b))
-        seen_by_enemy |= rook_attacks(lsb(b), occupied);
+    for (Bitboard b = bb(EnemyKnight);    b; pop_lsb(b)) seen_by_enemy |= knight_attacks(lsb(b));
+    for (Bitboard b = enemy_bishop_queen; b; pop_lsb(b)) seen_by_enemy |= bishop_attacks(lsb(b), occupied);
+    for (Bitboard b = enemy_rook_queen;   b; pop_lsb(b)) seen_by_enemy |= rook_attacks  (lsb(b), occupied);
 
     toggle_square(occupied, ksq);
 
@@ -187,6 +184,7 @@ MoveList<Us>::MoveList() :
 
     for (Bitboard checkers = bishop_attacks(ksq, occupied) & enemy_bishop_queen | rook_attacks(ksq, occupied) & enemy_rook_queen; checkers; pop_lsb(checkers))
         checkmask |= check_ray(ksq, lsb(checkers));
+
     if (more_than_one(checkmask & double_check(ksq)))
     {
         last = make_moves(last, ksq, king_attacks(ksq) & ~(seen_by_enemy | bb(Us)));

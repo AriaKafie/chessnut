@@ -11,7 +11,7 @@
 #include "position.h"
 #include "uci.h"
 
-int reductions[MAX_PLY][MAX_PLY], nodes, qnodes;
+int nodes, reductions[MAX_PLY][MAX_PLY];
 
 void Search::init() {
     for (int depth = 0; depth < MAX_PLY; depth++)
@@ -22,7 +22,7 @@ void Search::init() {
 template<Color SideToMove>
 int qsearch(int alpha, int beta)
 {
-    qnodes++;
+    nodes++;
 
     int eval = static_eval<SideToMove>();
 
@@ -60,7 +60,7 @@ int qsearch(int alpha, int beta)
 }
 
 template<Color SideToMove>
-int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
+int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
 {
     nodes++;
 
@@ -76,7 +76,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool do_null)
     if (int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root); lookup != FAIL)
         return lookup;
 
-    if (do_null && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
+    if (null_ok && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
     {
         state_ptr->key ^= Zobrist::Side;
         int eval = -search<!SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
@@ -184,17 +184,17 @@ void iterative_deepening() {
             }
         }
 
-        std::cout << "info depth " << depth << " score cp " << alpha << " pv " << move_to_uci(best_move) << "\n";
+        std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " pv " << move_to_uci(best_move) << std::endl;
     }
 
-    std::cout << "bestmove " << move_to_uci(best_move) << "\n";
+    std::cout << "bestmove " << move_to_uci(best_move) << std::endl;
 }
 
 void Search::go(uint64_t thinktime) {
 
     search_cancelled = false;
 
-    nodes = qnodes = 0;
+    nodes = 0;
 
     if (thinktime)
     {
@@ -219,7 +219,7 @@ void Search::count_nodes(int depth) {
 
     for (std::string fen : fens) {
 
-        nodes = qnodes = 0;
+        nodes = 0;
         std::cout << fen << "  ";
         Position::set(fen);
         TranspositionTable::clear();
@@ -266,10 +266,9 @@ void Search::count_nodes(int depth) {
         auto duration_ms = curr_time_millis() - start_time;
         total_time += duration_ms;
 
-        std::cout << nodes << " nodes and " << qnodes << " qnodes\nsearched in " << duration_ms << " ms\n\n";
+        std::cout << nodes << " nodes\nsearched in " << duration_ms << " ms\n\n";
         node_sum += nodes;
-        q_node_sum += qnodes;
 
     }
-    std::cout << "total nodes: " << node_sum << "\ntotal qnodes: " << q_node_sum << "\nin: " << total_time << " ms\n";
+    std::cout << "nodes: " << node_sum << "\nin: " << total_time << " ms\n";
 }
