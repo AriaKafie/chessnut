@@ -1,15 +1,11 @@
 
 #include "uci.h"
 
-#include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <thread>
-#include <chrono>
-#include <regex>
 
 #include "debug.h"
+#include "movegen.h"
 #include "position.h"
 #include "search.h"
 #include "transpositiontable.h"
@@ -101,21 +97,27 @@ void UCI::loop()
         else if (token == "debug")    Debug::go();
         else if (token == "gameinfo") Debug::gameinfo();
         
-
     } while (cmd != "quit");
 }
 
 Move uci_to_move(const std::string& uci) {
 
-  Square from = uci_to_square(uci.substr(0, 2));
-  Square to   = uci_to_square(uci.substr(2, 2));
+    if (Position::white_to_move())
+    {
+        MoveList<WHITE> moves;
 
-  bool castling  = piece_type_on(from) == KING && std::regex_match(uci, std::regex("e[18][cg][18]"));
-  bool promotion = uci.find('q') != std::string::npos;
-  bool enpassant = piece_type_on(from) == PAWN && file_bb(to) != file_bb(from) && !piece_on(to);
+        for (Move m : moves)
+            if (move_to_uci(m) == uci)
+                return m;
+    }
+    else
+    {
+        MoveList<BLACK> moves;
 
-  if (castling)
-    return Position::white_to_move() ? file_bb(to) & FILE_G ? W_SCASTLE : W_LCASTLE : file_bb(to) & FILE_G ? B_SCASTLE : B_LCASTLE;
+        for (Move m : moves)
+            if (move_to_uci(m) == uci)
+                return m;
+    }
 
-  return promotion ? make_move<PROMOTION>(from, to) : enpassant ? make_move<ENPASSANT>(from, to) : make_move(from, to);
+    return NO_MOVE;
 }

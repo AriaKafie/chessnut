@@ -27,10 +27,11 @@ constexpr int MAX_PLY  = 128;
 constexpr int INFINITE = 0x7fffffff;
 
 struct StateInfo {
-  uint8_t  castling_rights;
-  uint64_t key;
-  Square   ep_sq;
-  Piece    captured;
+    //Color    side_to_move;
+    uint8_t  castling_rights;
+    uint64_t key;
+    Square   ep_sq;
+    Piece    captured;
 };
 
 enum GamePhase { MIDGAME, ENDGAME, MOPUP };

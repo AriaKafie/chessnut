@@ -75,9 +75,12 @@ extern RepInfo repetition_table[];
 
 void Debug::go() {
 
-    for (int i = 0; i < B_KING + 1; i++)
+    for (Square s = A8; s >= H1; s--)
     {
-        std::cout << to_string(bitboards[i]) << "\n";
+        std::cout << square_distance(s, E4) << " ";
+
+        if (square_bb(s) & FILE_H)
+            std::cout << "\n";
     }
 }
 
@@ -117,6 +120,6 @@ void Debug::gameinfo() {
 
     if      (moves.size())     std::cout << "nonterminal" << std::endl;
     else if (moves.in_check()) std::cout << "mate"        << std::endl;
-    else                       std::cout << "draw" << std::endl;
+    else                       std::cout << "draw"        << std::endl;
   }
 }
