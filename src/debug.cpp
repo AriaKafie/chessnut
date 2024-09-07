@@ -75,12 +75,9 @@ extern RepInfo repetition_table[];
 
 void Debug::go() {
 
-    for (Square s = A8; s >= H1; s--)
+    for (Square s = H1; s <= A8; s++)
     {
-        std::cout << square_distance(s, E4) << " ";
-
-        if (square_bb(s) & FILE_H)
-            std::cout << "\n";
+        std::cout << to_string(knight_attacks(s)) << std::endl;
     }
 }
 

@@ -113,13 +113,27 @@ void MoveList<Us>::quicksort(int low, int high) {
 }
 
 template<Color Us>
-void MoveList<Us>::sort(Move pv, int ply) {
+void MoveList<Us>::put_first(Move best_move) {
+    
+    int idx;
+
+    for (idx = 0; idx < this->size(); idx++)
+        if ((moves[idx] & 0xffff) == (best_move & 0xffff))
+            break;
+
+    if (idx < this->size())
+        for (;idx; idx--)
+            std::swap(moves[idx], moves[idx - 1]);
+}
+
+template<Color Us>
+void MoveList<Us>::sort(Move best_move, int ply) {
 
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
 
     for (Move& m : *this)
     {
-        if (m == (pv & 0xffff))
+        if (m == (best_move & 0xffff))
         {
             m += MAX_SCORE;
             continue;

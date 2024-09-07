@@ -156,10 +156,10 @@ void iterative_deepening() {
 
     for (int depth = 1; depth < MAX_PLY && !search_cancelled; depth++)
     {
+        int alpha = -INFINITE;
+
         for (Move& m : moves)
             m &= 0xffff;
-
-        int alpha = -INFINITE;
 
         moves.sort(best_move, 0);
 
