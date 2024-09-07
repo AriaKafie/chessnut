@@ -30,5 +30,5 @@ uci.o: uci.cpp $(HFILES)
 	g++ $(FLAGS) uci.cpp
 
 clean:
-	rm *.o *~ chess
+	rm -rf *.o *~ chess
 
