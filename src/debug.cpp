@@ -9,6 +9,7 @@
 
 #include "movegen.h"
 #include "position.h"
+#include "search.h"
 #include "transpositiontable.h"
 #include "uci.h"
 
@@ -75,10 +76,7 @@ extern RepInfo repetition_table[];
 
 void Debug::go() {
 
-    for (Square s = H1; s <= A8; s++)
-    {
-        std::cout << to_string(knight_attacks(s)) << std::endl;
-    }
+    std::cout << sizeof(int) << "";
 }
 
 void Debug::gameinfo() {

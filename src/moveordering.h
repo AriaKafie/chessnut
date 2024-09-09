@@ -2,9 +2,10 @@
 #ifndef MOVEORDERING_H
 #define MOVEORDERING_H
 
-#include "position.h"
-#include "movelist.h"
 #include "evaluation.h"
+#include "movelist.h"
+#include "position.h"
+#include "search.h"
 
 struct Killer {
 
@@ -35,6 +36,7 @@ constexpr uint32_t EVASION_BONUS      = 1000;
 constexpr uint32_t KILLER_BONUS       = 4000;
 constexpr uint32_t SEEN_BY_PAWN_MALUS = 50;
 constexpr uint32_t PROMOTION_BONUS    = 50;
+constexpr uint32_t GIVES_CHECK_BONUS  = 200;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
@@ -113,20 +115,6 @@ void MoveList<Us>::quicksort(int low, int high) {
 }
 
 template<Color Us>
-void MoveList<Us>::put_first(Move best_move) {
-    
-    int idx;
-
-    for (idx = 0; idx < this->size(); idx++)
-        if ((moves[idx] & 0xffff) == (best_move & 0xffff))
-            break;
-
-    if (idx < this->size())
-        for (;idx; idx--)
-            std::swap(moves[idx], moves[idx - 1]);
-}
-
-template<Color Us>
 void MoveList<Us>::sort(Move best_move, int ply) {
 
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
@@ -145,6 +133,18 @@ void MoveList<Us>::sort(Move best_move, int ply) {
         Square    to       = to_sq(m);
         PieceType pt       = piece_type_on(from);
         PieceType captured = piece_type_on(to);
+
+        Bitboard enemy_king = bitboard<make_piece(!Us, KING)>();
+
+        if
+        (
+            pt == PAWN   && (pawn_attacks<WHITE>(to)           & enemy_king)
+        ||  pt == KNIGHT && (knight_attacks(to)                & enemy_king)
+        ||  pt == BISHOP && (bishop_attacks(to, occupied_bb()) & enemy_king)
+        ||  pt == ROOK   && (rook_attacks  (to, occupied_bb()) & enemy_king)
+        ||  pt == QUEEN  && (queen_attacks (to, occupied_bb()) & enemy_king)
+        )
+            score += GIVES_CHECK_BONUS;
 
         if (captured)
         {

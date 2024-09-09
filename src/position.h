@@ -90,7 +90,11 @@ ForceInline void update_castling_rights()
 {
     constexpr Bitboard mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
 
+    // state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
+
     state_ptr->castling_rights &= castle_masks[JustMoved][pext(bitboards[JustMoved], mask)];
+
+    // state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
 }
 
 template<Color Us>

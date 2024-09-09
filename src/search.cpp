@@ -1,6 +1,7 @@
 
 #include "search.h"
 
+#include <algorithm>
 #include <cmath>
 #include <thread>
 
@@ -20,8 +21,8 @@ void Search::init() {
 }
 
 template<Color SideToMove>
-int qsearch(int alpha, int beta)
-{
+int qsearch(int alpha, int beta) {
+
     nodes++;
 
     int eval = static_eval<SideToMove>();
@@ -60,8 +61,8 @@ int qsearch(int alpha, int beta)
 }
 
 template<Color SideToMove>
-int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
-{
+int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
+
     nodes++;
 
     if (search_cancelled) [[unlikely]]
@@ -124,10 +125,6 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
             if (!piece_on(to_sq(moves[i])))
                 killer_moves[ply_from_root].add(moves[i] & 0xffff);
 
-            /* ply->history += bonus;
-               (ply - 1)->history -= malus;
-            */
-
             return eval;
         }
 
@@ -138,9 +135,6 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
             bound_type = EXACT;
         }
     }
-
-    /*if (bound_type == UPPER_BOUND)
-        (ply - 2)->history -= malus;*/
 
     TranspositionTable::record(depth, bound_type, alpha, best_move, ply_from_root);
 
@@ -211,64 +205,66 @@ void Search::go(uint64_t thinktime) {
     else                           iterative_deepening<BLACK>();
 }
 
-void Search::count_nodes(int depth) {
+template<Color SideToMove>
+void go_depth(int depth) {
 
-    int node_sum = 0;
-    int q_node_sum = 0;
-    uint64_t total_time = 0;
+    Move best_move = NO_MOVE;
 
-    for (std::string fen : fens) {
+    for (int d = 1; d <= depth; d++)
+    {
+        int alpha = -INFINITE;
 
-        nodes = 0;
-        std::cout << fen << "  ";
-        Position::set(fen);
-        TranspositionTable::clear();
-        Move best_move = NO_MOVE;
-        auto start_time = curr_time_millis();
+        MoveList<SideToMove> moves;
+        moves.sort(best_move, 0);
 
-        for (int d = 1; d <= depth; d++) {
-            if (Position::white_to_move()) {
+        for (int i = 0; i < moves.size(); i++)
+        {
+            do_move<SideToMove>(moves[i]);
 
-                int alpha = -INFINITE;
-                MoveList<WHITE> moves;
-                moves.sort(best_move, 0);
+            int eval = -search<!SideToMove>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
 
-                for (int i = 0; i < moves.size(); i++) {
-                    do_move<WHITE>(moves[i]);
-                    int eval = -search<BLACK>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
-                    if (eval > alpha && root_reductions[i])
-                        eval = -search<BLACK>(-INFINITE, -alpha, d - 1, 0, true);
-                    undo_move<WHITE>(moves[i]);
-                    if (eval > alpha) {
-                        alpha = eval;
-                        best_move = moves[i];
-                    }
-                }
-            } else {
-                int alpha = -INFINITE;
-                MoveList<BLACK> moves;
-                moves.sort(best_move, 0);
+            if (eval > alpha && root_reductions[i])
+                eval = -search<!SideToMove>(-INFINITE, -alpha, d - 1, 0, true);
 
-                for (int i = 0; i < moves.size(); i++) {
-                    do_move<BLACK>(moves[i]);
-                    int eval = -search<WHITE>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
-                    if (eval > alpha && root_reductions[i])
-                        eval = -search<WHITE>(-INFINITE, -alpha, d - 1, 0, true);
-                    undo_move<BLACK>(moves[i]);
-                    if (eval > alpha) {
-                        alpha = eval;
-                        best_move = moves[i];
-                    }
-                }
+            undo_move<SideToMove>(moves[i]);
+
+            if (eval > alpha)
+            {
+                alpha = eval;
+                best_move = moves[i];
             }
         }
-
-        auto duration_ms = curr_time_millis() - start_time;
-        total_time += duration_ms;
-
-        std::cout << nodes << " nodes\nsearched in " << duration_ms << " ms\n\n";
-        node_sum += nodes;
-
     }
-    std::cout << "nodes: " << node_sum << "\nin: " << total_time << " ms\n";
+}
+
+void Search::count_nodes(int depth) {
+
+    int maxlen = 0;
+
+    for (const std::string& fen : Debug::fens)
+        maxlen = std::max(maxlen, int(fen.size()));
+
+    std::cout << std::left << std::setw(maxlen + 1) << "Fen" << "Nodes" << std::endl;
+
+    int node_sum = 0;
+
+    for (const std::string& fen : Debug::fens)
+    {
+        nodes = 0;
+
+        std::cout << std::left << std::setw(maxlen + 1) << fen;
+
+        Position::set(fen);
+
+        TranspositionTable::clear();
+
+        if (Position::white_to_move()) go_depth<WHITE>(depth);
+        else                           go_depth<BLACK>(depth);
+
+        std::cout << nodes << std::endl;
+
+        node_sum += nodes;
+    }
+
+    std::cout << "total: " << node_sum << std::endl;
 }

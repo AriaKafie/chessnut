@@ -6,37 +6,44 @@
 #include <string>
 #include <vector>
 
-#include "types.h"
-
-inline std::vector<std::string> fens = {
-  "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10",
-  "r4rk1/pppbqppp/2np1n2/2b1p1B1/2B1P3/2NP1N2/PPP1QPPP/3R1RK1 w - - 0 1",
-  "2rqkb1r/ppp2p2/2npb1p1/1N1Nn2p/2P1PP2/8/PP2B1PP/R1BQK2R b KQ - 0 11",
-  "r1bq1rk1/ppp1nppp/4n3/3p3Q/3P4/1BP1B3/PP1N2PP/R4RK1 w - - 1 16",
-  "r2qk2r/pp2bppp/3pbn2/2p3B1/4P3/2NB4/PPP2PPP/R2QK2R b KQkq - 7 10",
-  "3Q1rk1/7p/1p4p1/4pp2/1pP5/1P4P1/P4P1P/1R4K1 b - - 0 23",
-  "rn1q1rk1/1b2bppp/nPp1p3/p1ppP3/3P4/2NB4/P4PPP/R1BQNRK1 w - - 1 14",
-  "3rr3/pp1nnpkp/1q4p1/3pPpN1/3p4/2P1Q3/PP2NPPP/R4RK1 w - - 0 17",
-  "r1bqkb1r/p5pp/2pppn2/8/4PP2/2N5/PP4PP/R1BQKB1R b KQkq - 1 11",
-  "r1bq1rk1/3nbppp/p1p2n2/1p2p3/4P3/P1N2N2/BPP2PPP/R1BQR1K1 w - - 0 11",
-  "1r2k2r/1p1q1p2/p1p4p/3p2p1/3Pb3/1NP1P1P1/P4QPP/2R2RK1 b k - 1 22",
-  "3rkb1r/6p1/2p3Q1/8/4p3/2n1P1Pp/P1qB1P1P/3RKR2 b k - 5 27",
-  "rnb1kb1r/ppp1pppp/8/3q4/8/8/PPPP1PPP/R1BQKBNR w KQkq - 0 5",
-  "rnb1k2r/ppp1bppp/5n2/8/2BpN3/5N2/PPP2PPP/R1B1K2R w KQkq - 3 8",
-  "r1bqkbnr/pp1ppppp/2n5/1Bp5/4P3/2P5/PP1P1PPP/RNBQK1NR b KQkq - 2 3",
-  "r2qkb1r/pp1b1ppp/2n1pn2/2p1P3/2B5/5N2/PBPP1PPP/RN1Q1RK1 b kq - 0 8",
-  "r2qkbnr/pp1b2pp/2n1pp2/3p4/1P1P4/P3P3/3B1PPP/RN1QKBNR b KQkq - 0 8",
-  "2rq1rk1/4ppbp/n2p2p1/p2nP1B1/1p1P4/5NN1/PP3PPP/R2QR1K1 w - - 1 16",
-  "r4rk1/pp1n1ppp/1qpb1n2/3p3b/3P4/2N1PN1P/PPQ1BPP1/R1B2RK1 w - - 7 13",
-  "rnbqk1nr/ppp1ppbp/6p1/3p4/P1PP4/4P3/1P3PPP/RNBQKBNR b KQkq c3 0 4",
-  "r1b1k1nr/ppp2ppp/1b3q2/1B1Pp3/4P3/PQN2P2/6PP/R1B2K1R b kq - 2 15",
-  "rn1qkb1r/ppp2ppp/4pn2/3p4/3P2b1/3BPN2/PPP2PPP/RNBQK2R w KQkq - 0 5",
-  "r2qkb1r/pp1n1ppp/4pn2/3p1b2/3P4/2N1PN2/PP2BPPP/R1BQ1RK1 b kq - 1 8",
-  "1r3k1r/ppp3pp/2npbq2/1Q6/3pP3/5N2/PPP2PPP/R1B1K2R w KQ - 8 14",
-  "r1bq1rk1/ppp1bppp/2np3n/4P3/5P2/2NB1N1P/PPP3P1/R1BQ1RK1 b - - 1 11"
-};
+#include "types.h",
 
 namespace Debug {
+
+inline std::vector<std::string> fens =
+{
+    "r1bqr1k1/ppp2ppp/2pb1n2/4p3/P3P3/2NPBN2/1PP2PPP/R2Q1RK1 b - - 0 10",
+    "rn1q1rk1/1bp1bpp1/1p2pn1p/p2p4/1PPP4/P4NP1/2QNPPBP/R1B2RK1 w - - 0 11",
+    "r3k2r/pbppq1pp/1pn1p2n/1N3p2/2PPP3/P3BP2/1P4PP/R2QKB1R b KQkq - 4 10",
+    "r1bqr1k1/pp1nbppp/2p2n2/3p4/3P4/2N2NP1/PPQBPPBP/R4RK1 w - - 0 11",
+    "r1bq1rk1/1pp2ppp/pnpb4/4p3/4P3/2NP1N1P/PPP2PP1/R1BQ1RK1 b - - 4 10",
+    "r2q1rk1/1ppb1ppp/4pn2/p1b5/2Pn1B2/2NP1NP1/PP3PBP/R2Q1RK1 w - - 4 11",
+    "r1bqkb1r/p4ppp/p3pn2/2P5/N2p4/1Q3N2/PP1P1PPP/R1B2RK1 b kq - 1 10",
+    "r1bqk2r/ppp2ppp/2n2n2/4p3/2P5/3PPNPP/PP4B1/RN1Q1RK1 b kq - 0 10",
+    "r1bq1rk1/ppp2ppp/3p1n2/4p1B1/2B1P2n/2PP4/P1P2PPP/R2Q1RK1 w - - 0 11",
+    "r1bqr1k1/pp1p1pp1/2pb1n1p/4p3/2BNP3/P1NP4/1PP2PPP/R1BQ1RK1 b - - 0 10",
+    "r2qk2r/1p2bpp1/2p1pn1p/p2pNb2/Pn6/1P1PP1P1/1BPN1PBP/R2QK2R w KQkq - 0 11",
+    "r1bqr1k1/pp3pp1/2n1pn1p/2bp4/8/2PBPNB1/PP1N1PPP/R2Q1RK1 w - - 0 11",
+    "r1bqk2r/1p2bppp/p1n1pn2/8/P2P4/2NB1N2/1P3PPP/R1BQ1RK1 b kq - 0 10",
+    "r1bq1rk1/1pp1ppbp/p1n3p1/8/P2Pp3/3BBN1P/1PP2PP1/R2QK2R w KQ - 0 11",
+    "rnb1k2r/1p2bppp/p3pn2/8/1PB5/P3PN2/3N1PPP/R1BK3R b kq - 0 10",
+    "r2qk2r/ppp2pp1/2np3p/2b5/2P1b2P/4PNP1/PP3PB1/R1BQK2R w KQkq - 0 11",
+    "rnbq1rk1/pp3pp1/4pn1p/3p4/2PN3B/2Q1P3/PP3PPP/R3KB1R b KQ - 0 10",
+    "r1bqr1k1/p2n1ppp/1pp1pn2/3p4/1bPP4/1PNQ1NP1/PB2PPBP/R4RK1 b - - 2 10",
+    "r1bq1rk1/1pp2ppp/1bnp1n2/4p3/1pB1P3/P1N2N1P/2PP1PP1/1RBQ1RK1 w - - 0 11",
+    "r1bq1rk1/pp1n1ppp/2pbpn2/3p4/2PP3P/1P2PN2/PBRN1PP1/3QKB1R b K - 6 10",
+    "r1b1kb1r/ppp2pp1/2n1qn1p/8/8/2NQ2P1/PPN1PPBP/R1B1K2R b KQkq - 0 10",
+    "rn1q1rk1/pbp1bpp1/1p2pn1p/3p4/2PP4/PP3NP1/1B1NPPBP/R2Q1RK1 b - - 2 10",
+    "r3k2r/p1p1qppp/p2b1n2/3p1b2/3P4/1P2P2P/P2N1PP1/RNBQ1RK1 w kq - 3 11",
+    "2kr1bnr/pppq1ppp/2n5/4pbN1/8/2NPB1PP/PPP2PB1/R2QK2R b KQ - 2 10",
+    "r1bq1rk1/p3bpp1/1p2pn1p/2ppB3/P7/3P2P1/1PP1PPBP/RN1QR1K1 w - - 0 11",
+    "r2q1rk1/1pp1ppbp/2n3p1/3n4/p5b1/P1NP1NP1/1PQ1PPBP/R1B2RK1 w - - 2 11",
+    "r2q1rk1/1pp2pp1/p1npbn1p/2bNp3/P1B1P3/3P1N2/1PP1QPPP/R1B2RK1 w - - 2 11",
+    "r2qkb1r/1p1n1pp1/2p1pn1p/p1PpNb2/3P4/1Q4PP/PP1NPPB1/R1B1K2R w KQkq - 1 11",
+    "r2q1rk1/pbpnbppp/1p2pn2/8/P1pP4/2B2NP1/1P1NPPBP/R2Q1RK1 w - - 6 11",
+    "r1bq1rk1/p1pn1pp1/1p2p2p/3n4/3P4/P1B1PN2/1PQ2PPP/R3KB1R w KQ - 0 11",
+    "r1bq1rk1/1p2npbp/2np2p1/p1p1p3/Q1P5/P1NPP1P1/1P2NPBP/R1B2RK1 b - - 3 10"
+};
 
 void go();
 void gameinfo();
