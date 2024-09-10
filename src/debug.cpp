@@ -78,7 +78,7 @@ void Debug::go() {
 
     for (int i = 0; i < 1 << popcount(bishop_masks[E4]); i++)
     {
-        std::cout << to_string(bishop_attacks(E4, generate_occupancy(bishop_masks[E4], i)));
+        std::cout << to_string(_pdep_u64(i, bishop_masks[E4]));
     }
 }
 
