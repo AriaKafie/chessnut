@@ -7,6 +7,24 @@ int score_kingshield(Square ksq, Bitboard occ, Color c);
 
 void init_magics();
 
+Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
+
+    Direction rook_dir  [4] = { NORTH, EAST, SOUTH, WEST };
+    Direction bishop_dir[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
+
+    Bitboard atk = 0;
+
+    for (Direction d : (pt == ROOK) ? rook_dir : bishop_dir)
+    {
+        Square s = sq;
+
+        while (safe_step(s, d) && !(square_bb(s) & occupied))
+            atk |= square_bb(s += d);
+    }
+
+    return atk;
+}
+
 void Bitboards::init() {
 
     for (Square s1 = H1; s1 <= A8; s1++)
@@ -27,9 +45,7 @@ void Bitboards::init() {
 
         for (Square s = H1; s <= A8; s++)
             for (Bitboard occupied = 0, i = 0; i < 1 << popcount(masks[s]); occupied = generate_occupancy(masks[s], ++i))
-                *table_ptr++ = pt == BISHOP
-        ? bishop_attacks(s, occupied ^ (bishop_attacks(s, occupied) & occupied))
-        : rook_attacks  (s, occupied ^ (rook_attacks  (s, occupied) & occupied));
+                *table_ptr++ = sliding_attacks(pt, s, occupied ^ (sliding_attacks(pt, s, occupied) & occupied));
     }
 
 #define mdiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST)))
@@ -114,24 +130,6 @@ void Bitboards::init() {
         for (Bitboard occupied = 0, i = 0; i < 1 << popcount(black_kingshield[sq]); occupied = generate_occupancy(black_kingshield[sq], ++i))
             black_kingshield_scores[sq][pext(occupied, black_kingshield[sq])] = score_kingshield(sq, occupied, BLACK);
     }
-}
-
-Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
-
-    Direction rook_dir  [4] = { NORTH, EAST, SOUTH, WEST };
-    Direction bishop_dir[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
-
-    Bitboard atk = 0;
-
-    for (Direction d : (pt == ROOK) ? rook_dir : bishop_dir)
-    {
-        Square s = sq;
-
-        while (safe_step(s, d) && !(square_bb(s) & occupied))
-            atk |= square_bb(s += d);
-    }
-
-    return atk;
 }
 
 void init_magics() {
