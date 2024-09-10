@@ -14,14 +14,15 @@
 
 namespace Bitboards { void init(); }
 
-inline Bitboard RookXray[102400];
-inline Bitboard BishopXray[5248];
-inline Bitboard RookAttacks[102400];
-inline Bitboard BishopAttacks[5248];
+inline Bitboard pext_table[0x1a480];
+inline Bitboard xray_table[0x1a480];
+
 inline Bitboard bishop_masks[SQUARE_NB];
 inline Bitboard rook_masks[SQUARE_NB];
-inline int rook_hash[SQUARE_NB];
-inline int bishop_hash[SQUARE_NB];
+
+inline int bishop_base[SQUARE_NB];
+inline int rook_base[SQUARE_NB];
+
 inline Bitboard doublecheck[SQUARE_NB];
 inline Bitboard KnightAttacks[SQUARE_NB];
 inline Bitboard KingAttacks[SQUARE_NB];
@@ -174,23 +175,23 @@ inline Bitboard knight_attacks(Square sq) {
 }
 
 inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
-    return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+    return pext_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
 }
 
 inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
-    return BishopXray[bishop_hash[sq] + pext(occupied, bishop_masks[sq])];
+    return xray_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
 }
 
 inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
-    return RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+    return pext_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard rook_xray(Square sq, Bitboard occupied) {
-    return RookXray[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+    return xray_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard queen_attacks(Square sq, Bitboard occupied) {
-    return BishopAttacks[bishop_hash[sq] + pext(occupied, bishop_masks[sq])] | RookAttacks[rook_hash[sq] + pext(occupied, rook_masks[sq])];
+    return pext_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])] | pext_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
 }
 
 inline Bitboard king_attacks(Square sq) {

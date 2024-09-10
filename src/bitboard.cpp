@@ -5,7 +5,7 @@
 
 int score_kingshield(Square ksq, Bitboard occ, Color c);
 
-void init_magics(PieceType pt, int* base, Bitboard* masks, Bitboard* attacks, Bitboard* xray);
+void init_magics();
 
 void Bitboards::init() {
 
@@ -17,8 +17,20 @@ void Bitboards::init() {
             SquareDistance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
     }
 
-    init_magics(BISHOP, bishop_hash, bishop_masks, BishopAttacks, BishopXray);
-    init_magics(ROOK,   rook_hash,   rook_masks,   RookAttacks,   RookXray  );
+    init_magics();
+    
+    Bitboard* table_ptr = xray_table;
+
+    for (PieceType pt : { BISHOP, ROOK })
+    {
+        Bitboard* masks = pt == BISHOP ? bishop_masks : rook_masks;
+
+        for (Square s = H1; s <= A8; s++)
+            for (Bitboard occupied = 0, i = 0; i < 1 << popcount(masks[s]); occupied = generate_occupancy(masks[s], ++i))
+                *table_ptr++ = pt == BISHOP
+        ? bishop_attacks(s, occupied ^ (bishop_attacks(s, occupied) & occupied))
+        : rook_attacks  (s, occupied ^ (rook_attacks  (s, occupied) & occupied));
+    }
 
 #define mdiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_WEST) | mask(s, SOUTH_EAST)))
 #define adiag(s) (square_bb(s) | bishop_attacks(s, 0) & (mask(s, NORTH_EAST) | mask(s, SOUTH_WEST)))
@@ -122,91 +134,90 @@ void Bitboards::init() {
     }
 }
 
-int score_kingshield(Square ksq, Bitboard occ, Color c) {
-
-  constexpr int MAX_SCORE =  50;
-  constexpr int MIN_SCORE = -50;
-
-  Bitboard home_rank = (c == WHITE) ? RANK_1 : RANK_8;
-
-  if (!(square_bb(ksq) & home_rank) || (popcount(occ) < 2))
-    return MIN_SCORE;
-  if (square_bb(ksq) & (FILE_E | FILE_D))
-    return 10;
-
-  constexpr int pawn_weights[8][6] = 
-  { // [H1..A1][LSB..MSB]
-    {10, 20, 15, 5, 10, 5},{5,  25, 15, 0, 0,  5},
-    {20, 15, 10, 0, 0,  0},{0,  0,  0,  0, 0,  0},
-    {0,  0,  0,  0, 0,  0},{10, 15, 20, 0, 0,  0},
-    {15, 25, 5,  5, 0,  0},{15, 20, 10, 5, 10, 5}
-  };
-
-  constexpr int file_weights[8][3] =
-  { // [H1..A1][right, middle, left]
-    {40, 50, 45},{40, 50, 45},
-    {50, 45, 40},{0,  0,   0},
-    {0,  0,   0},{40, 45, 50},
-    {45, 50, 40},{45, 50, 40}
-  };
-
-  Bitboard shield_mask = (c == WHITE) ? white_kingshield[ksq] : black_kingshield[ksq];
-
-  Bitboard file_right = file_bb(lsb(shield_mask));
-  Bitboard file_mid   = file_right << 1;
-  Bitboard file_left  = file_right << 2;
-
-  int score = 0;
-  if (c == BLACK) ksq -= 56;
-  if ((occ & file_right) == 0) score -= file_weights[ksq][0];
-  if ((occ & file_mid)   == 0) score -= file_weights[ksq][1];
-  if ((occ & file_left)  == 0) score -= file_weights[ksq][2];
-
-  for (int i = 0; shield_mask; i++) {
-    int index = (c == WHITE) ? i : ((i < 3) ? (i + 3) : (i - 3));
-    Square sq = lsb(shield_mask);
-    if (occ & square_bb(sq))
-      score += pawn_weights[ksq][index];
-    pop_lsb(shield_mask);
-  }
-  return std::max(MIN_SCORE, std::min(MAX_SCORE, score));
-}
-
 Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
-  Direction rook_dir  [4] = { NORTH,EAST,SOUTH,WEST };
-  Direction bishop_dir[4] = { NORTH_EAST,SOUTH_EAST,
-                              SOUTH_WEST,NORTH_WEST };
-  Bitboard atk = 0;
-  for (Direction d : (pt == ROOK) ? rook_dir : bishop_dir) {
-    Square s = sq;
-    while (safe_step(s, d) && !(square_bb(s) & occupied))
-      atk |= square_bb(s += d);
-  }
-  return atk;
+    Direction rook_dir  [4] = { NORTH, EAST, SOUTH, WEST };
+    Direction bishop_dir[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST,NORTH_WEST };
 
+    Bitboard atk = 0;
+
+    for (Direction d : (pt == ROOK) ? rook_dir : bishop_dir)
+    {
+        Square s = sq;
+
+        while (safe_step(s, d) && !(square_bb(s) & occupied))
+            atk |= square_bb(s += d);
+    }
+
+    return atk;
 }
 
-void init_magics(PieceType pt, int* base, Bitboard* masks, Bitboard* attacks, Bitboard* xray)
-{
-  int permutations, all_permutations = 0;
+void init_magics() {
 
-  for (Square sq = H1; sq <= A8; sq++) {
+    Bitboard* table_ptr = pext_table;
 
-    base[sq] = all_permutations;
+    for (PieceType pt : { BISHOP, ROOK })
+    {
+        int*      base = pt == BISHOP ? bishop_base  : rook_base;
+        Bitboard* mask = pt == BISHOP ? bishop_masks : rook_masks;
 
-    Bitboard edges = (FILE_A | FILE_H) & ~file_bb(sq) | (RANK_1 | RANK_8) & ~rank_bb(sq);
-    Bitboard mask = sliding_attacks(pt, sq, 0) & ~edges;
-    masks[sq] = mask;
+        for (Square s = H1; s <= A8; s++)
+        {
+            base[s] = table_ptr - pext_table;
+            mask[s] = sliding_attacks(pt, s, 0) & ~((FILE_A | FILE_H) & ~file_bb(s) | (RANK_1 | RANK_8) & ~rank_bb(s));
 
-    all_permutations += permutations = 1 << popcount(mask);
-
-    for (int p = 0; p < permutations; p++) {
-      Bitboard occupied = generate_occupancy(mask, p);
-      Bitboard attack_mask = sliding_attacks(pt, sq, occupied);
-      int hash = pext(occupied, mask);
-      attacks[base[sq] + hash] = attack_mask;
-      xray[base[sq] + hash] = sliding_attacks(pt, sq, occupied ^ (attack_mask & occupied));
+            for (int i = 0; i < 1 << popcount(mask[s]); i++)
+                *table_ptr++ = sliding_attacks(pt, s, generate_occupancy(mask[s], i));
+        }
     }
-  }
+}
+
+int score_kingshield(Square ksq, Bitboard occ, Color c) {
+
+    constexpr int MAX_SCORE =  50;
+    constexpr int MIN_SCORE = -50;
+
+    Bitboard home_rank = (c == WHITE) ? RANK_1 : RANK_8;
+
+    if (!(square_bb(ksq) & home_rank) || (popcount(occ) < 2))
+        return MIN_SCORE;
+    if (square_bb(ksq) & (FILE_E | FILE_D))
+        return 10;
+
+    constexpr int pawn_weights[8][6] = 
+    { // [H1..A1][LSB..MSB]
+        {10, 20, 15, 5, 10, 5},{5,    25, 15, 0, 0,    5},
+        {20, 15, 10, 0, 0,    0},{0,    0,    0,    0, 0,    0},
+        {0,    0,    0,    0, 0,    0},{10, 15, 20, 0, 0,    0},
+        {15, 25, 5,    5, 0,    0},{15, 20, 10, 5, 10, 5}
+    };
+
+    constexpr int file_weights[8][3] =
+    { // [H1..A1][right, middle, left]
+        {40, 50, 45},{40, 50, 45},
+        {50, 45, 40},{0,    0,     0},
+        {0,    0,     0},{40, 45, 50},
+        {45, 50, 40},{45, 50, 40}
+    };
+
+    Bitboard shield_mask = (c == WHITE) ? white_kingshield[ksq] : black_kingshield[ksq];
+
+    Bitboard file_right = file_bb(lsb(shield_mask));
+    Bitboard file_mid     = file_right << 1;
+    Bitboard file_left    = file_right << 2;
+
+    int score = 0;
+    if (c == BLACK) ksq -= 56;
+    if ((occ & file_right) == 0) score -= file_weights[ksq][0];
+    if ((occ & file_mid)     == 0) score -= file_weights[ksq][1];
+    if ((occ & file_left)    == 0) score -= file_weights[ksq][2];
+
+    for (int i = 0; shield_mask; i++) {
+        int index = (c == WHITE) ? i : ((i < 3) ? (i + 3) : (i - 3));
+        Square sq = lsb(shield_mask);
+        if (occ & square_bb(sq))
+            score += pawn_weights[ksq][index];
+        pop_lsb(shield_mask);
+    }
+    return std::max(MIN_SCORE, std::min(MAX_SCORE, score));
 }

@@ -76,7 +76,10 @@ extern RepInfo repetition_table[];
 
 void Debug::go() {
 
-    std::cout << sizeof(int) << "";
+    for (int i = 0; i < 1 << popcount(bishop_masks[E4]); i++)
+    {
+        std::cout << to_string(bishop_attacks(E4, generate_occupancy(bishop_masks[E4], i)));
+    }
 }
 
 void Debug::gameinfo() {
