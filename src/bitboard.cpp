@@ -47,23 +47,10 @@ void Bitboards::init() {
         for (Square s2 = H1; s2 <= A8; s2++)
             pinmask[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
 
-        for (Square ksq = H1; ksq <= A8; ksq++)
-        {
-            for (Direction d : { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST })
-            {
-                Bitboard bishop_ray = bishop_attacks(ksq, square_bb(s1)) & mask(ksq, d);
-
-                if (bishop_ray & square_bb(s1))
-                    checkray[ksq][s1] = bishop_ray;
-            }
+        for (Square ksq = s1, checker = H1; checker <= A8; checker++)
             for (Direction d : { NORTH, EAST, SOUTH, WEST })
-            {
-                Bitboard rook_ray = rook_attacks(ksq, square_bb(s1)) & mask(ksq, d);
-
-                if (rook_ray & square_bb(s1))
-                    checkray[ksq][s1] = rook_ray;
-            }
-        }
+                if (Bitboard ray = queen_attacks(ksq, square_bb(checker)) & mask(ksq, d) & pinmask[ksq][checker]; ray & square_bb(checker))
+                    checkray[ksq][checker] = ray;
 
         for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
             KingAttacks[s1] |= safe_step(s1, d);
