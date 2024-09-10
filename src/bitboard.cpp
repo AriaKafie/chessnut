@@ -108,23 +108,18 @@ void Bitboards::init() {
 
     for (Square sq = H1; sq <= A8; sq++)
     {
-        for (int i = 0; i < 1 << popcount(white_kingshield[sq]); i++)
-        {
-            Bitboard occ = generate_occupancy(white_kingshield[sq], i);
-            white_kingshield_scores[sq][pext(occ, white_kingshield[sq])] = score_kingshield(sq, occ, WHITE);
-        }
-        for (int i = 0; i < 1 << popcount(black_kingshield[sq]); i++)
-        {
-            Bitboard occ = generate_occupancy(black_kingshield[sq], i);
-            black_kingshield_scores[sq][pext(occ, black_kingshield[sq])] = score_kingshield(sq, occ, BLACK);
-        }
+        for (Bitboard occupied = 0, i = 0; i < 1 << popcount(white_kingshield[sq]); occupied = generate_occupancy(white_kingshield[sq], ++i))
+            white_kingshield_scores[sq][pext(occupied, white_kingshield[sq])] = score_kingshield(sq, occupied, WHITE);
+
+        for (Bitboard occupied = 0, i = 0; i < 1 << popcount(black_kingshield[sq]); occupied = generate_occupancy(black_kingshield[sq], ++i))
+            black_kingshield_scores[sq][pext(occupied, black_kingshield[sq])] = score_kingshield(sq, occupied, BLACK);
     }
 }
 
 Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
     Direction rook_dir  [4] = { NORTH, EAST, SOUTH, WEST };
-    Direction bishop_dir[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST,NORTH_WEST };
+    Direction bishop_dir[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
 
     Bitboard atk = 0;
 
@@ -168,6 +163,7 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
 
     if (!(square_bb(ksq) & home_rank) || (popcount(occ) < 2))
         return MIN_SCORE;
+
     if (square_bb(ksq) & (FILE_E | FILE_D))
         return 10;
 
