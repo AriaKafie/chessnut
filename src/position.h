@@ -72,6 +72,12 @@ bool in_check()
 
     Square ksq = lsb(bitboard<make_piece(SideToMove, KING)>());
 
+    /*return
+        pawn_attacks<SideToMove>(ksq)      &  bb(EnemyPawn)
+     || knight_attacks(ksq)                &  bb(EnemyKnight)
+     || bishop_attacks(ksq, occupied_bb()) & (bb(EnemyQueen) | bb(EnemyBishop))
+     || rook_attacks  (ksq, occupied_bb()) & (bb(EnemyQueen) | bb(EnemyRook));*/
+
     return
         pawn_attacks<SideToMove>(ksq)      &  bb(EnemyPawn)
       | knight_attacks(ksq)                &  bb(EnemyKnight)
@@ -84,6 +90,36 @@ bool in_check()
 inline Piece piece_on(Square sq) { return board[sq]; }
 
 inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
+
+template<Color SideToMove>
+bool is_quiet(Move m) {
+    
+    return !(piece_on(to_sq(m)) || type_of(m));
+
+    /*if (piece_on(to_sq(m)) || type_of(m))
+        return false;
+
+    Square   ksq     = lsb(bitboard<make_piece(!SideToMove, KING)>());
+    Square   from    = from_sq(m);
+    Bitboard from_to = square_bb(from, to_sq(m));
+    
+    bitboards[board[from]] ^= from_to;
+    bitboards[SideToMove]  ^= from_to;
+
+    Bitboard bishop_queen = bitboard<make_piece(SideToMove, BISHOP)>() | bitboard<make_piece(SideToMove, QUEEN)>();
+    Bitboard rook_queen   = bitboard<make_piece(SideToMove, ROOK  )>() | bitboard<make_piece(SideToMove, QUEEN)>();
+
+    bool gives_check = 
+        pawn_attacks<!SideToMove>(ksq)     & bitboard<make_piece(SideToMove, PAWN)>()
+      | knight_attacks(ksq)                & bitboard<make_piece(SideToMove, KNIGHT)>()
+      | bishop_attacks(ksq, occupied_bb()) & bishop_queen
+      | rook_attacks  (ksq, occupied_bb()) & rook_queen;
+
+    bitboards[board[from]] ^= from_to;
+    bitboards[SideToMove]  ^= from_to;
+
+    return !gives_check;*/
+}
 
 template<Color JustMoved>
 ForceInline void update_castling_rights()
