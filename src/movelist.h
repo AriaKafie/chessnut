@@ -24,8 +24,7 @@ public:
 private:
     void quicksort(int low, int high);
 
-    Move     moves[MAX_MOVES];
-    Move    *last;
+    Move     moves[MAX_MOVES], *last = moves;
     Bitboard checkmask;
     Bitboard seen_by_enemy;
     int      partition(int low, int high);
