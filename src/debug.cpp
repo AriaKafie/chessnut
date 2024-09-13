@@ -76,9 +76,9 @@ extern RepInfo repetition_table[];
 
 void Debug::go() {
 
-    for (int i = 0; i < 1 << popcount(bishop_masks[E4]); i++)
+    for (Square ksq = E4, checker = H1; checker <= A8; checker++)
     {
-        std::cout << to_string(_pdep_u64(i, bishop_masks[E4]));
+        std::cout << to_string(checkray[ksq][checker]);
     }
 }
 

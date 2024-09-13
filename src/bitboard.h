@@ -216,8 +216,6 @@ inline void toggle_square(Bitboard& b, Square s) {
 
 inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
 
-    // return _pdep_u64(permutation, mask);
-
     int bitcount = popcount(mask);
 
     Bitboard occupancy = 0;

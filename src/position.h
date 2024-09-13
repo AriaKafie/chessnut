@@ -92,16 +92,10 @@ inline Piece piece_on(Square sq) { return board[sq]; }
 inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
 
 template<Color SideToMove>
-bool is_quiet(Move m) {
-    
-    return !(piece_on(to_sq(m)) || type_of(m));
-
-    /*if (piece_on(to_sq(m)) || type_of(m))
-        return false;
+bool gives_check(Square from, Square to) {
 
     Square   ksq     = lsb(bitboard<make_piece(!SideToMove, KING)>());
-    Square   from    = from_sq(m);
-    Bitboard from_to = square_bb(from, to_sq(m));
+    Bitboard from_to = square_bb(from, to);
     
     bitboards[board[from]] ^= from_to;
     bitboards[SideToMove]  ^= from_to;
@@ -109,7 +103,7 @@ bool is_quiet(Move m) {
     Bitboard bishop_queen = bitboard<make_piece(SideToMove, BISHOP)>() | bitboard<make_piece(SideToMove, QUEEN)>();
     Bitboard rook_queen   = bitboard<make_piece(SideToMove, ROOK  )>() | bitboard<make_piece(SideToMove, QUEEN)>();
 
-    bool gives_check = 
+    bool in_check = 
         pawn_attacks<!SideToMove>(ksq)     & bitboard<make_piece(SideToMove, PAWN)>()
       | knight_attacks(ksq)                & bitboard<make_piece(SideToMove, KNIGHT)>()
       | bishop_attacks(ksq, occupied_bb()) & bishop_queen
@@ -118,7 +112,7 @@ bool is_quiet(Move m) {
     bitboards[board[from]] ^= from_to;
     bitboards[SideToMove]  ^= from_to;
 
-    return !gives_check;*/
+    return in_check;
 }
 
 template<Color JustMoved>

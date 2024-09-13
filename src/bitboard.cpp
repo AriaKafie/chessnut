@@ -64,9 +64,17 @@ void Bitboards::init() {
             pinmask[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
 
         for (Square ksq = s1, checker = H1; checker <= A8; checker++)
-            for (Direction d : { NORTH, EAST, SOUTH, WEST })
-                if (Bitboard ray = queen_attacks(ksq, square_bb(checker)) & mask(ksq, d) & pinmask[ksq][checker]; ray & square_bb(checker))
+        {
+            for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
+            {
+                Bitboard ray = 0;
+
+                for (Square s = ksq; safe_step(s, d) && !(square_bb(s) & square_bb(checker)); ray |= square_bb(s += d));
+
+                if (ray & square_bb(checker))
                     checkray[ksq][checker] = ray;
+            }
+        }
 
         for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
             KingAttacks[s1] |= safe_step(s1, d);
@@ -200,5 +208,7 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
             score += pawn_weights[ksq][index];
         pop_lsb(shield_mask);
     }
+    
     return std::max(MIN_SCORE, std::min(MAX_SCORE, score));
 }
+

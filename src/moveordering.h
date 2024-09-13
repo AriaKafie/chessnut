@@ -136,14 +136,7 @@ void MoveList<Us>::sort(Move best_move, int ply) {
 
         Bitboard enemy_king = bitboard<make_piece(!Us, KING)>();
 
-        /*if
-        (
-            pt == PAWN   && (pawn_attacks<Us>(to)                & enemy_king)
-        ||  pt == KNIGHT && (knight_attacks  (to)                & enemy_king)
-        ||  pt == BISHOP && (bishop_attacks  (to, occupied_bb()) & enemy_king)
-        ||  pt == ROOK   && (rook_attacks    (to, occupied_bb()) & enemy_king)
-        ||  pt == QUEEN  && (queen_attacks   (to, occupied_bb()) & enemy_king)
-        )
+        /*if (gives_check<Us>(from, to))
             score += GIVES_CHECK_BONUS;*/
 
         if (captured)

@@ -103,20 +103,9 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 
     int extension = moves.in_check();
 
-    int static_evaluation = FAIL;
-
     for (int i = 0; i < moves.size(); i++)
     {
         int reduction = reductions[depth][i];
-
-        if (depth - 1 - reduction + extension <= 0)
-        {
-            if (static_evaluation == FAIL)
-                static_evaluation = static_eval<SideToMove>();
-
-            if ((static_evaluation + 100) <= alpha && is_quiet<SideToMove>(moves[i]))
-                continue;
-        }
 
         do_move<SideToMove>(moves[i]);
 
