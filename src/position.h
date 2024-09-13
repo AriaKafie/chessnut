@@ -216,7 +216,7 @@ void do_move(Move m)
     memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
     state_ptr++;
     state_ptr->captured = piece_on(to);
-    state_ptr->ep_sq = (from + Up) * !(to - from ^ Up2 | piece_type_on(from) ^ PAWN);
+    state_ptr->ep_sq = (from + Up) * !(to - from ^ Up2 | piece_on(from) ^ Pawn);
 
     Bitboard zero_to = ~square_bb(to);
     Bitboard from_to =  square_bb(from, to);

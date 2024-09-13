@@ -179,10 +179,10 @@ void iterative_deepening() {
             }
         }
 
-        std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " pv " << move_to_uci(best_move) << "\n";
+        std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " pv " << move_to_uci(best_move) << std::endl;
     }
 
-    std::cout << "bestmove " << move_to_uci(best_move) << "\n";
+    std::cout << "bestmove " << move_to_uci(best_move) << std::endl;
 }
 
 void Search::go(uint64_t thinktime) {
