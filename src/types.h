@@ -68,17 +68,15 @@ enum MoveTypes {
   LONGCASTLE  = 4 << 12,
 };
 
-enum Directions {
-  NORTH =  8,
-  EAST  = -1,
-  SOUTH = -8,
-  WEST  =  1,
-  NORTH_EAST = NORTH + EAST,
-  SOUTH_EAST = SOUTH + EAST,
-  NORTH_WEST = NORTH + WEST,
-  SOUTH_WEST = SOUTH + WEST,
-  NORTHNORTH = NORTH + NORTH,
-  SOUTHSOUTH = SOUTH + SOUTH
+enum {
+    NORTH =  8,
+    EAST  = -1,
+    SOUTH = -8,
+    WEST  =  1,
+    NORTH_EAST = NORTH + EAST,
+    SOUTH_EAST = SOUTH + EAST,
+    NORTH_WEST = NORTH + WEST,
+    SOUTH_WEST = SOUTH + WEST,
 };
 
 constexpr Piece make_piece(Color c, PieceType pt) {

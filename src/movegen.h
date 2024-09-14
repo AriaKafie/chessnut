@@ -75,7 +75,7 @@ MoveList<Us>::MoveList()
         pinned |= check_ray(ksq, lsb(pinners));
 
     constexpr Direction Up        = Us == WHITE ? NORTH      : SOUTH;
-    constexpr Direction Up2       = Us == WHITE ? NORTHNORTH : SOUTHSOUTH;
+    constexpr Direction Up2       = Us == WHITE ? NORTH * 2  : SOUTH * 2;
     constexpr Direction UpRight   = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
     constexpr Direction UpLeft    = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
     constexpr Bitboard  FriendEP  = Us == WHITE ? RANK_3     : RANK_6;

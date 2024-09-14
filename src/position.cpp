@@ -98,7 +98,7 @@ std::string Position::fen() {
     {
         for (int file = 7; file >= 0; file--)
         {
-            if (Piece pc = piece_on(rank * 8 + file); pc != NO_PIECE)
+            if (Piece pc = piece_on(rank * 8 + file))
                 fen << piece_to_char[pc];
             else
             {

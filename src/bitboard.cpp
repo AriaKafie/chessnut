@@ -79,17 +79,17 @@ void Bitboards::init() {
         for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
             KingAttacks[s1] |= safe_step(s1, d);
 
-        for (Direction d : { NORTHNORTH+EAST, NORTH_EAST+EAST, SOUTH_EAST+EAST, SOUTHSOUTH+EAST,
-                             SOUTHSOUTH+WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTHNORTH+WEST })
+        for (Direction d : { NORTH+NORTH_EAST, NORTH_EAST+EAST, SOUTH_EAST+EAST, SOUTH+SOUTH_EAST,
+                             SOUTH+SOUTH_WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTH+NORTH_WEST })
             KnightAttacks[s1] |= safe_step(s1, d);
 
         Square sq = 8 * (s1 / 8) + 1;
 
         white_kingshield[s1] =
-            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTHNORTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
+            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
 
         black_kingshield[s1] =
-            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTHSOUTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
+            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
 
         doublecheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
 
