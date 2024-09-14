@@ -132,6 +132,11 @@ MoveList<Us>::MoveList()
 
     Bitboard legal = checkmask &~ bb(Us);
 
+    for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b))
+    {
+        Square from = lsb(b);
+        last = make_moves(last, from, knight_attacks(from) & legal);
+    }
     for (Bitboard b = bb(FriendlyBishop) | bb(FriendlyQueen); b; pop_lsb(b))
     {
         Square from = lsb(b);
