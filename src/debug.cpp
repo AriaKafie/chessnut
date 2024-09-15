@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <vector>
 
 #include "movegen.h"
 #include "position.h"
@@ -43,7 +44,7 @@ void search(int depth)
 template<Color SideToMove>
 void performance_test(int depth) {
 
-    uint64_t total_nodes = 0;
+    uint64_t total_ms = 0, total_nodes = 0;
 
     MoveList<SideToMove> moves;
 
@@ -51,16 +52,22 @@ void performance_test(int depth) {
     {
         perft_nodes = 0;
 
+        auto start = curr_time_millis();
+
         do_move<SideToMove>(m);
         search<!SideToMove>(depth - 1);
         undo_move<SideToMove>(m);
+
+        auto end = curr_time_millis();
+
+        total_ms += end - start;
 
         std::cout << move_to_uci(m) << ": " << perft_nodes << std::endl;
 
         total_nodes += perft_nodes;
     }
 
-    std::cout << "\nnodes searched: " << total_nodes << "\n" << std::endl;
+    std::cout << "\nnodes searched: " << total_nodes << "\nin " << total_ms << " ms\n" << std::endl;
 }
 
 void Debug::perft(std::istringstream& ss) {
@@ -76,48 +83,47 @@ extern RepInfo repetition_table[];
 
 void Debug::go() {
 
-    for (Square ksq = E4, checker = H1; checker <= A8; checker++)
-    {
-        std::cout << to_string(checkray[ksq][checker]);
-    }
+    
+
+    
 }
 
 void Debug::gameinfo() {
 
-  if (RepetitionTable::has_repeated())
-  {
-    std::cout << "draw" << std::endl;
-    return;
-  }
-
-  for (int i = 0, count = 0; i < RT_SIZE; i++)
-  {
-    const RepInfo& ri = repetition_table[i];
-  
-    if (ri.occurrences)
-      count += ri.occurrences;
-
-    if (count >= 100)
+    if (RepetitionTable::has_repeated())
     {
-      std::cout << "draw" << std::endl;
-      return;
+        std::cout << "draw" << std::endl;
+        return;
     }
-  }
 
-  if (Position::white_to_move())
-  {
-    MoveList<WHITE> moves;
+    for (int i = 0, count = 0; i < RT_SIZE; i++)
+    {
+        const RepInfo& ri = repetition_table[i];
+    
+        if (ri.occurrences)
+            count += ri.occurrences;
 
-    if      (moves.size())     std::cout << "nonterminal" << std::endl;
-    else if (moves.in_check()) std::cout << "mate"        << std::endl;
-    else                       std::cout << "draw"        << std::endl;
-  }
-  else
-  {
-    MoveList<BLACK> moves;
+        if (count >= 100)
+        {
+            std::cout << "draw" << std::endl;
+            return;
+        }
+    }
 
-    if      (moves.size())     std::cout << "nonterminal" << std::endl;
-    else if (moves.in_check()) std::cout << "mate"        << std::endl;
-    else                       std::cout << "draw"        << std::endl;
-  }
+    if (Position::white_to_move())
+    {
+        MoveList<WHITE> moves;
+
+        if      (moves.size())     std::cout << "nonterminal" << std::endl;
+        else if (moves.in_check()) std::cout << "mate"        << std::endl;
+        else                       std::cout << "draw"        << std::endl;
+    }
+    else
+    {
+        MoveList<BLACK> moves;
+
+        if      (moves.size())     std::cout << "nonterminal" << std::endl;
+        else if (moves.in_check()) std::cout << "mate"        << std::endl;
+        else                       std::cout << "draw"        << std::endl;
+    }
 }

@@ -216,7 +216,9 @@ inline void toggle_square(Bitboard& b, Square s) {
 
 inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
 
-    int bitcount = popcount(mask);
+    return _pdep_u64(permutation, mask);
+
+    /*int bitcount = popcount(mask);
 
     Bitboard occupancy = 0;
 
@@ -230,7 +232,7 @@ inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
         pop_lsb(mask);
     }
 
-    return occupancy;
+    return occupancy;*/
 }
 
 template<Color C>

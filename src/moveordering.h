@@ -136,9 +136,6 @@ void MoveList<Us>::sort(Move best_move, int ply) {
 
         Bitboard enemy_king = bitboard<make_piece(!Us, KING)>();
 
-        /*if (gives_check<Us>(from, to))
-            score += GIVES_CHECK_BONUS;*/
-
         if (captured)
         {
             int material_delta = piece_weight(captured) - piece_weight(pt);
