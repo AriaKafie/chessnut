@@ -13,6 +13,8 @@
 #include "position.h"
 #include "uci.h"
 
+Move best_root_move;
+
 int nodes, reductions[MAX_PLY][MAX_PLY];
 
 void Search::init() {
@@ -99,13 +101,13 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     if (moves.size() == 0)
         return moves.in_check() ? -matescore + ply_from_root : 0;
 
-    moves.sort(TranspositionTable::lookup_move(), ply_from_root);
+    moves.sort(ply_from_root ? TranspositionTable::lookup_move() : best_root_move, ply_from_root);
 
     int extension = moves.in_check();
 
     for (int i = 0; i < moves.size(); i++)
     {
-        int reduction = reductions[depth][i];
+        int reduction = ply_from_root ? reductions[depth][i] : root_reductions[i];
 
         do_move<SideToMove>(moves[i]);
 
@@ -131,6 +133,9 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 
         if (eval > alpha)
         {
+            if (ply_from_root == 0)
+                best_root_move = moves[i];
+
             best_move = moves[i];
             alpha = eval;
             bound_type = EXACT;
@@ -144,46 +149,62 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 
 template<Color SideToMove>
 void iterative_deepening() {
-
-    Move best_move = TranspositionTable::lookup_move();
-
-    MoveList<SideToMove> moves;
-
-    for (int depth = 1; depth < MAX_PLY && !search_cancelled; depth++)
+    
+    for (int depth = 1; depth < MAX_PLY; depth++)
     {
-        int alpha = -INFINITE;
+        int eval = search<SideToMove>(-INFINITE, INFINITE, depth, 0, false);
 
-        for (Move& m : moves)
-            m &= 0xffff;
+        if (search_cancelled)
+            break;
 
-        moves.sort(best_move, 0);
-
-        for (int i = 0; i < moves.size(); i++)
-        {
-            do_move<SideToMove>(moves[i]);
-
-            int eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1 - root_reductions[i], 0, true);
-
-            if (eval > alpha && root_reductions[i])
-                eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1, 0, true);
-
-            undo_move<SideToMove>(moves[i]);
-
-            if (search_cancelled)
-                break;
-
-            if (eval > alpha)
-            {
-                alpha = eval;
-                best_move = moves[i];
-            }
-        }
-
-        std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " pv " << move_to_uci(best_move) << std::endl;
+        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(best_root_move) << std::endl;
     }
 
-    std::cout << "bestmove " << move_to_uci(best_move) << std::endl;
+    std::cout << "bestmove " << move_to_uci(best_root_move) << std::endl;
 }
+
+//template<Color SideToMove>
+//void iterative_deepening() {
+//
+//    Move best_move = TranspositionTable::lookup_move();
+//
+//    MoveList<SideToMove> moves;
+//
+//    for (int depth = 1; depth < MAX_PLY && !search_cancelled; depth++)
+//    {
+//        int alpha = -INFINITE;
+//
+//        for (Move& m : moves)
+//            m &= 0xffff;
+//
+//        moves.sort(best_move, 0);
+//
+//        for (int i = 0; i < moves.size(); i++)
+//        {
+//            do_move<SideToMove>(moves[i]);
+//
+//            int eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1 - root_reductions[i], 0, true);
+//
+//            if (eval > alpha && root_reductions[i])
+//                eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1, 0, true);
+//
+//            undo_move<SideToMove>(moves[i]);
+//
+//            if (search_cancelled)
+//                break;
+//
+//            if (eval > alpha)
+//            {
+//                alpha = eval;
+//                best_move = moves[i];
+//            }
+//        }
+//
+//        std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " pv " << move_to_uci(best_move) << std::endl;
+//    }
+//
+//    std::cout << "bestmove " << move_to_uci(best_move) << std::endl;
+//}
 
 void Search::go(uint64_t thinktime) {
 
