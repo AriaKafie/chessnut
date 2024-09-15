@@ -108,9 +108,9 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     if (moves.size() == 0)
         return moves.in_check() ? -matescore + ply_from_root : 0;
 
-    moves.sort(ply_from_root ? TranspositionTable::lookup_move() : root_move, ply_from_root);
+    moves.sort(root_node ? root_move : TranspositionTable::lookup_move(), ply_from_root);
 
-    int extension = moves.in_check();
+    int extension = root_node ? 0 : moves.in_check();
 
     for (int i = 0; i < moves.size(); i++)
     {
@@ -157,12 +157,24 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 template<Color SideToMove>
 void iterative_deepening() {
     
+    const int window = 50;
+
+    int alpha = -INFINITE, beta = INFINITE;
+
     for (int depth = 1; depth < MAX_PLY; depth++)
     {
-        int eval = search<ROOT, SideToMove>(-INFINITE, INFINITE, depth, 0, false);
+        int eval = search<ROOT, SideToMove>(alpha, beta, depth, 0, false);
+
+        if (eval <= alpha || eval >= beta)
+        {
+            eval = search<ROOT, SideToMove>(-INFINITE, INFINITE, depth, 0, false);
+        }
 
         if (search_cancelled)
             break;
+
+        alpha = eval - window;
+        beta  = eval + window;
 
         //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
