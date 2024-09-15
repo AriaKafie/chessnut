@@ -13,7 +13,7 @@
 #include "position.h"
 #include "uci.h"
 
-Move best_root_move;
+Move root_move;
 
 int nodes, reductions[MAX_PLY][MAX_PLY];
 
@@ -63,8 +63,10 @@ int qsearch(int alpha, int beta) {
     return best_eval;
 }
 
-template<Color SideToMove>
+template<NodeType Node, Color SideToMove>
 int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
+
+    constexpr bool root_node = Node == ROOT;
 
     nodes++;
 
@@ -78,12 +80,17 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
         return qsearch<SideToMove>(alpha, beta);
 
     if (int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root); lookup != FAIL)
+    {
+        if constexpr (root_node)
+            root_move = TranspositionTable::lookup_move();
+
         return lookup;
+    }
 
     if (null_ok && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
     {
         state_ptr->key ^= Zobrist::Side;
-        int eval = -search<!SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
+        int eval = -search<NONROOT, !SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
         state_ptr->key ^= Zobrist::Side;
 
         if (search_cancelled) [[unlikely]]
@@ -101,20 +108,20 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     if (moves.size() == 0)
         return moves.in_check() ? -matescore + ply_from_root : 0;
 
-    moves.sort(ply_from_root ? TranspositionTable::lookup_move() : best_root_move, ply_from_root);
+    moves.sort(ply_from_root ? TranspositionTable::lookup_move() : root_move, ply_from_root);
 
     int extension = moves.in_check();
 
     for (int i = 0; i < moves.size(); i++)
     {
-        int reduction = ply_from_root ? reductions[depth][i] : root_reductions[i];
+        int reduction = root_node ? root_reductions[i] : reductions[depth][i];
 
         do_move<SideToMove>(moves[i]);
 
-        int eval = -search<!SideToMove>(-beta, -alpha, depth - 1 - reduction + extension, ply_from_root + 1, true);
+        int eval = -search<NONROOT, !SideToMove>(-beta, -alpha, depth - 1 - reduction + extension, ply_from_root + 1, true);
 
         if (eval > alpha && reduction && depth - 1 + extension > 0)
-            eval = -search<!SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true);
+            eval = -search<NONROOT, !SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true);
         
         undo_move<SideToMove>(moves[i]);
 
@@ -133,12 +140,12 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 
         if (eval > alpha)
         {
-            if (ply_from_root == 0)
-                best_root_move = moves[i];
-
             best_move = moves[i];
             alpha = eval;
             bound_type = EXACT;
+
+            if constexpr (root_node)
+                root_move = best_move;
         }
     }
 
@@ -152,15 +159,15 @@ void iterative_deepening() {
     
     for (int depth = 1; depth < MAX_PLY; depth++)
     {
-        int eval = search<SideToMove>(-INFINITE, INFINITE, depth, 0, false);
+        int eval = search<ROOT, SideToMove>(-INFINITE, INFINITE, depth, 0, false);
 
         if (search_cancelled)
             break;
 
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(best_root_move) << std::endl;
+        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 
-    std::cout << "bestmove " << move_to_uci(best_root_move) << std::endl;
+    std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
 }
 
 //template<Color SideToMove>
@@ -243,10 +250,10 @@ void go_depth(int depth) {
         {
             do_move<SideToMove>(moves[i]);
 
-            int eval = -search<!SideToMove>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
+            int eval = -search<NONROOT, !SideToMove>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
 
             if (eval > alpha && root_reductions[i])
-                eval = -search<!SideToMove>(-INFINITE, -alpha, d - 1, 0, true);
+                eval = -search<NONROOT, !SideToMove>(-INFINITE, -alpha, d - 1, 0, true);
 
             undo_move<SideToMove>(moves[i]);
 
