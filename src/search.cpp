@@ -155,13 +155,13 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 }
 
 template<Color SideToMove>
-void iterative_deepening() {
-    
-    const int window = 50;
+void iterative_deepening(int max_depth = MAX_PLY) {
+
+    int window = 50;
 
     int alpha = -INFINITE, beta = INFINITE;
 
-    for (int depth = 1; depth < MAX_PLY; depth++)
+    for (int depth = 1; depth < max_depth; depth++)
     {
         int eval = search<ROOT, SideToMove>(alpha, beta, depth, 0, false);
 
@@ -179,7 +179,7 @@ void iterative_deepening() {
         //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 
-    std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
+    //std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
 }
 
 //template<Color SideToMove>
@@ -299,8 +299,8 @@ void Search::count_nodes(int depth) {
 
         TranspositionTable::clear();
 
-        if (Position::white_to_move()) go_depth<WHITE>(depth);
-        else                           go_depth<BLACK>(depth);
+        if (Position::white_to_move()) iterative_deepening<WHITE>(depth + 1);
+        else                           iterative_deepening<BLACK>(depth + 1);
 
         std::cout << nodes << std::endl;
 
