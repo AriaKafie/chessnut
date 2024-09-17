@@ -63,10 +63,8 @@ int qsearch(int alpha, int beta) {
     return best_eval;
 }
 
-template<NodeType Node, Color SideToMove>
+template<Color SideToMove>
 int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
-
-    constexpr bool root_node = Node == ROOT;
 
     nodes++;
 
@@ -79,18 +77,13 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     if (depth <= 0)
         return qsearch<SideToMove>(alpha, beta);
 
-    if (int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root); lookup != FAIL)
-    {
-        if constexpr (root_node)
-            root_move = TranspositionTable::lookup_move();
-
+    if (int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root); lookup != NO_EVAL)
         return lookup;
-    }
 
     if (null_ok && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
     {
         state_ptr->key ^= Zobrist::Side;
-        int eval = -search<NONROOT, !SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
+        int eval = -search<!SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
         state_ptr->key ^= Zobrist::Side;
 
         if (search_cancelled) [[unlikely]]
@@ -100,28 +93,28 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
             return eval;
     }
 
-    Move     best_move  = NO_MOVE;
-    HashFlag bound_type = UPPER_BOUND;
+    Move      best_move  = NO_MOVE;
+    BoundType bound_type = UPPER_BOUND;
 
     MoveList<SideToMove> moves;
 
     if (moves.size() == 0)
         return moves.in_check() ? -matescore + ply_from_root : 0;
 
-    moves.sort(root_node ? root_move : TranspositionTable::lookup_move(), ply_from_root);
+    moves.sort(TranspositionTable::lookup_move(), ply_from_root);
 
-    int extension = root_node ? 0 : moves.in_check();
+    int extension = moves.in_check();
 
     for (int i = 0; i < moves.size(); i++)
     {
-        int reduction = root_node ? root_reductions[i] : reductions[depth][i];
+        int reduction = reductions[depth][i];
 
         do_move<SideToMove>(moves[i]);
 
-        int eval = -search<NONROOT, !SideToMove>(-beta, -alpha, depth - 1 - reduction + extension, ply_from_root + 1, true);
+        int eval = -search<!SideToMove>(-beta, -alpha, depth - 1 - reduction + extension, ply_from_root + 1, true);
 
         if (eval > alpha && reduction && depth - 1 + extension > 0)
-            eval = -search<NONROOT, !SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true);
+            eval = -search<!SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true);
         
         undo_move<SideToMove>(moves[i]);
 
@@ -143,9 +136,6 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
             best_move = moves[i];
             alpha = eval;
             bound_type = EXACT;
-
-            if constexpr (root_node)
-                root_move = best_move;
         }
     }
 
@@ -154,76 +144,68 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     return alpha;
 }
 
-template<Color SideToMove>
-void iterative_deepening(int max_depth = MAX_PLY) {
-
-    int window = 50;
-
-    int alpha = -INFINITE, beta = INFINITE;
-
-    for (int depth = 1; depth < max_depth; depth++)
-    {
-        int eval = search<ROOT, SideToMove>(alpha, beta, depth, 0, false);
-
-        if (eval <= alpha || eval >= beta)
-        {
-            eval = search<ROOT, SideToMove>(-INFINITE, INFINITE, depth, 0, false);
-        }
-
-        if (search_cancelled)
-            break;
-
-        alpha = eval - window;
-        beta  = eval + window;
-
-        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
-    }
-
-    //std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
-}
-
 //template<Color SideToMove>
-//void iterative_deepening() {
+//void iterative_deepening(int max_depth = MAX_PLY - 1) {
 //
-//    Move best_move = TranspositionTable::lookup_move();
-//
-//    MoveList<SideToMove> moves;
-//
-//    for (int depth = 1; depth < MAX_PLY && !search_cancelled; depth++)
+//    for (int depth = 1; depth <= max_depth; depth++)
 //    {
-//        int alpha = -INFINITE;
+//        int eval = search<SideToMove>(-INFINITE, INFINITE, depth, 0, false);
 //
-//        for (Move& m : moves)
-//            m &= 0xffff;
+//        if (search_cancelled)
+//            break;
 //
-//        moves.sort(best_move, 0);
-//
-//        for (int i = 0; i < moves.size(); i++)
-//        {
-//            do_move<SideToMove>(moves[i]);
-//
-//            int eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1 - root_reductions[i], 0, true);
-//
-//            if (eval > alpha && root_reductions[i])
-//                eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1, 0, true);
-//
-//            undo_move<SideToMove>(moves[i]);
-//
-//            if (search_cancelled)
-//                break;
-//
-//            if (eval > alpha)
-//            {
-//                alpha = eval;
-//                best_move = moves[i];
-//            }
-//        }
-//
-//        std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " pv " << move_to_uci(best_move) << std::endl;
+//        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
 //    }
 //
-//    std::cout << "bestmove " << move_to_uci(best_move) << std::endl;
+//    //std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
 //}
+
+template<Color SideToMove>
+void iterative_deepening(int max_depth = MAX_PLY - 1) {
+
+    Move best_move = TranspositionTable::lookup_move();
+
+    //MoveList<SideToMove> moves;
+
+    for (int depth = 1; depth <= max_depth && !search_cancelled; depth++)
+    {
+        nodes++;
+
+        int alpha = -INFINITE;
+
+        /*for (Move& m : moves)
+            m &= 0xffff;*/
+
+        MoveList<SideToMove> moves;
+
+        moves.sort(best_move, 0);
+
+        for (int i = 0; i < moves.size(); i++)
+        {
+            do_move<SideToMove>(moves[i]);
+
+            int eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1 - root_reductions[i], 0, true);
+
+            if (eval > alpha && root_reductions[i] && depth - 1 > 0)
+                eval = -search<!SideToMove>(-INFINITE, -alpha, depth - 1, 0, true);
+
+            undo_move<SideToMove>(moves[i]);
+
+            if (search_cancelled)
+                break;
+
+            if (eval > alpha)
+            {
+                alpha = eval;
+                best_move = moves[i];
+            }
+        }
+
+        //std::cout << "info depth " << depth << " score cp " << alpha << " nodes " << nodes << " pv " << move_to_uci(best_move) << std::endl;
+    }
+
+    //std::cout << "bestmove " << move_to_uci(best_move) << std::endl;
+}
 
 void Search::go(uint64_t thinktime) {
 
@@ -246,38 +228,6 @@ void Search::go(uint64_t thinktime) {
     else                           iterative_deepening<BLACK>();
 }
 
-template<Color SideToMove>
-void go_depth(int depth) {
-
-    Move best_move = NO_MOVE;
-
-    for (int d = 1; d <= depth; d++)
-    {
-        int alpha = -INFINITE;
-
-        MoveList<SideToMove> moves;
-        moves.sort(best_move, 0);
-
-        for (int i = 0; i < moves.size(); i++)
-        {
-            do_move<SideToMove>(moves[i]);
-
-            int eval = -search<NONROOT, !SideToMove>(-INFINITE, -alpha, d - 1 - root_reductions[i], 0, true);
-
-            if (eval > alpha && root_reductions[i])
-                eval = -search<NONROOT, !SideToMove>(-INFINITE, -alpha, d - 1, 0, true);
-
-            undo_move<SideToMove>(moves[i]);
-
-            if (eval > alpha)
-            {
-                alpha = eval;
-                best_move = moves[i];
-            }
-        }
-    }
-}
-
 void Search::count_nodes(int depth) {
 
     int maxlen = 0;
@@ -297,10 +247,13 @@ void Search::count_nodes(int depth) {
 
         Position::set(fen);
 
+        for (int i = 0; i < MAX_PLY; i++)
+            killer_moves[i].moveA = killer_moves[i].moveB = 0;
+
         TranspositionTable::clear();
 
-        if (Position::white_to_move()) iterative_deepening<WHITE>(depth + 1);
-        else                           iterative_deepening<BLACK>(depth + 1);
+        if (Position::white_to_move()) iterative_deepening<WHITE>(depth);
+        else                           iterative_deepening<BLACK>(depth);
 
         std::cout << nodes << std::endl;
 
