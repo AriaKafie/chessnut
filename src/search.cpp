@@ -170,7 +170,7 @@ void iterative_deepening(int max_depth = MAX_PLY - 1) {
         alpha = eval - window;
         beta  = eval + window;
 
-        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
+        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 
     std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
@@ -206,7 +206,7 @@ void Search::count_nodes(int depth) {
 
     std::cout << std::left << std::setw(maxlen + 1) << "Fen" << "Nodes" << std::endl;
 
-    int node_sum = 0;
+    int total_nodes = 0;
 
     for (const std::string& fen : Debug::fens)
     {
@@ -215,8 +215,10 @@ void Search::count_nodes(int depth) {
         std::cout << std::left << std::setw(maxlen + 1) << fen;
 
         Position::set(fen);
+
         for (int i = 0; i < MAX_PLY; i++)
             killer_moves[i].moveA = killer_moves[i].moveB = 0;
+
         TranspositionTable::clear();
 
         if (Position::white_to_move()) iterative_deepening<WHITE>(depth);
@@ -224,8 +226,8 @@ void Search::count_nodes(int depth) {
 
         std::cout << nodes << std::endl;
 
-        node_sum += nodes;
+        total_nodes += nodes;
     }
 
-    std::cout << "total: " << node_sum << std::endl;
+    std::cout << "total: " << total_nodes << std::endl;
 }
