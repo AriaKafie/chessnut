@@ -17,7 +17,7 @@ extern Bitboard bitboards[];
 
 inline StateInfo state_stack[MAX_PLY], *state_ptr = state_stack;
 
-namespace Zobrist { constexpr uint64_t Side = 17200288208102703589ull; extern uint64_t hash[B_KING + 1][SQUARE_NB]; }
+namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; extern uint64_t hash[B_KING + 1][SQUARE_NB]; }
 
 template<Piece P>
 Bitboard bitboard() { return bitboards[P]; }

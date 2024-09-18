@@ -81,16 +81,18 @@ void Debug::perft(std::istringstream& ss) {
 
 extern RepInfo repetition_table[];
 
+extern int reductions[MAX_PLY][128];
+
 void Debug::go() {
 
-    
+    uint64_t i = 0;
 
-    
+    std::cout << _tzcnt_u64(i) << "\n";
 }
 
 void Debug::gameinfo() {
 
-    if (RepetitionTable::has_repeated())
+    if (RepetitionTable::draw())
     {
         std::cout << "draw" << std::endl;
         return;

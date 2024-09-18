@@ -19,7 +19,7 @@ public:
     bool   in_check()        const { return ~checkmask; }
     Move   operator[](int i) const { return moves[i]; }
 
-    void   sort(Move best_move, int ply);
+    void   sort(Move best_move, int ply_from_root);
 
 private:
     void quicksort(int low, int high);

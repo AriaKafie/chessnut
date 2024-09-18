@@ -130,9 +130,6 @@ MoveList<Us>::MoveList()
         last += !(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
     }
 
-    Bitboard bishop_queen = bb(FriendlyBishop) | bb(FriendlyQueen);
-    Bitboard rook_queen   = bb(FriendlyRook)   | bb(FriendlyQueen);
-
     Bitboard legal = checkmask &~ bb(Us);
 
     for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; pop_lsb(b))
@@ -140,6 +137,10 @@ MoveList<Us>::MoveList()
         Square from = lsb(b);
         last = make_moves(last, from, knight_attacks(from) & legal);
     }
+
+    Bitboard bishop_queen = bb(FriendlyBishop) | bb(FriendlyQueen);
+    Bitboard rook_queen   = bb(FriendlyRook)   | bb(FriendlyQueen);
+
     for (Bitboard b = bishop_queen & not_pinned; b; pop_lsb(b))
     {
         Square from = lsb(b);

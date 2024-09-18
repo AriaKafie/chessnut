@@ -73,7 +73,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     if (search_cancelled) [[unlikely]]
         return 0;
         
-    if (RepetitionTable::has_repeated())
+    if (RepetitionTable::draw())
         return 0;
 
     if (depth <= 0)
@@ -170,10 +170,10 @@ void iterative_deepening(int max_depth = MAX_PLY - 1) {
         alpha = eval - window;
         beta  = eval + window;
 
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
+        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 
-    std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
+    //std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
 }
 
 void Search::go(uint64_t thinktime) {

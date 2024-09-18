@@ -8,6 +8,10 @@
 
 #include "types.h"
 
+typedef int NodeType;
+
+enum { ROOT, NONROOT };
+
 inline constexpr int root_reductions[MAX_PLY] =
 {
     0,1,1,1,1,2,2,2,2,2,

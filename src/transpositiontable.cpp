@@ -2,10 +2,12 @@
 #include "transpositiontable.h"
 #include "position.h"
 
+#include <iostream>
+
 Entry transposition_table[TT_SIZE];
 RepInfo repetition_table[RT_SIZE];
 
-bool RepetitionTable::has_repeated() {
+bool RepetitionTable::draw() {
 
     const RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
 
@@ -40,7 +42,7 @@ void RepetitionTable::clear() {
 int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root) {
 
     if (const RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)]; ri.key == Position::key() && ri.occurrences > 1)
-        return FAIL;
+        return NO_EVAL;
 
     const Entry& entry = transposition_table[Position::key() & (TT_SIZE - 1)];
 
@@ -59,10 +61,10 @@ int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root
             return beta;
     }
 
-    return FAIL;
+    return NO_EVAL;
 }
 
-void TranspositionTable::record(uint8_t depth, HashFlag flag, int eval, Move best_move, int ply_from_root) {
+void TranspositionTable::record(uint8_t depth, BoundType flag, int eval, Move best_move, int ply_from_root) {
 
     eval += ply_from_root * (eval >  90000);
     eval -= ply_from_root * (eval < -90000);
