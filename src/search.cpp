@@ -216,10 +216,9 @@ void Search::count_nodes(int depth) {
 
         Position::set(fen);
 
-        for (int i = 0; i < MAX_PLY; i++)
-            killers[i].moveA = killers[i].moveB = 0;
-
+        clear();
         TranspositionTable::clear();
+        RepetitionTable::clear();
 
         if (Position::white_to_move()) iterative_deepening<WHITE>(depth);
         else                           iterative_deepening<BLACK>(depth);

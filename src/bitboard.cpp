@@ -9,19 +9,14 @@ void init_magics();
 
 Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
-    Direction rook_dir  [4] = { NORTH, EAST, SOUTH, WEST };
-    Direction bishop_dir[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
+    Direction rook_directions  [4] = { NORTH, EAST, SOUTH, WEST };
+    Direction bishop_directions[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
 
     Bitboard atk = 0;
 
-    for (Direction d : (pt == ROOK) ? rook_dir : bishop_dir)
-    {
-        Square s = sq;
-
-        while (safe_step(s, d) && !(square_bb(s) & occupied))
-            atk |= square_bb(s += d);
-    }
-
+    for (Direction d : (pt == ROOK) ? rook_directions : bishop_directions)
+        for (Square s = sq; safe_step(s, d) && !(square_bb(s) & occupied); atk |= square_bb(s += d));
+    
     return atk;
 }
 

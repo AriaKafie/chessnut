@@ -212,7 +212,7 @@ CaptureList<Us>::CaptureList() :
 
     Bitboard enemy_unprotected = bb(Them) &~ seen_by_enemy;
 
-    checkmask = knight_attacks(ksq) & bb(EnemyKnight) | pawn_attacks<Us>(ksq) & bb(EnemyPawn);
+    Bitboard checkmask = knight_attacks(ksq) & bb(EnemyKnight) | pawn_attacks<Us>(ksq) & bb(EnemyPawn);
 
     for (Bitboard checkers = bishop_attacks(ksq, occupied) & enemy_bishop_queen | rook_attacks(ksq, occupied) & enemy_rook_queen; checkers; pop_lsb(checkers))
         checkmask |= check_ray(ksq, lsb(checkers));

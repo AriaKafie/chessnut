@@ -42,14 +42,13 @@ public:
     size_t size()          const { return last - moves; }
     Move operator[](int i) const { return moves[i]; }
 
-    void     sort();
+    void   sort();
 
 private:
-    void insertion_sort();
+    void   insertion_sort();
 
     Move     moves[MAX_CAPTURES];
     Move    *last;
-    Bitboard checkmask;
     Bitboard seen_by_enemy;
 
 };

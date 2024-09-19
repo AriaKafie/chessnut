@@ -5,7 +5,6 @@
 #include "evaluation.h"
 #include "movelist.h"
 #include "position.h"
-#include "search.h"
 
 struct Killer {
 
@@ -140,8 +139,6 @@ void MoveList<Us>::sort(Move best_move, int ply) {
                 score += (material_delta >= 0 ? GOOD_CAPTURE_BONUS : BAD_CAPTURE_BONUS) + material_delta;
             else
                 score += GOOD_CAPTURE_BONUS + material_delta;
-
-            //score += see<Us>(to);
         }
         else
         {

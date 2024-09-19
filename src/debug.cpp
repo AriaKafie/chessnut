@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "movegen.h"
+#include "moveordering.h"
 #include "position.h"
 #include "search.h"
 #include "transpositiontable.h"
@@ -85,6 +86,8 @@ extern int reductions[MAX_PLY][128];
 
 void Debug::go() {
 
+    for (int ply = 0; ply < MAX_PLY; ply++)
+        std::cout << "ply " << ply << " " << move_to_uci(killers[ply].moveA) << " " << move_to_uci(killers[ply].moveB) << std::endl;
 }
 
 void Debug::gameinfo() {
