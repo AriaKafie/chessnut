@@ -13,9 +13,7 @@ struct Killer {
     Move moveB;
 
     void add(Move m) {
-
-        if (m != moveA)
-        {
+        if (m != moveA) {
             moveB = moveA;
             moveA = m;
         }
@@ -24,10 +22,9 @@ struct Killer {
     bool contains(Move m) const {
         return (m == moveA) || (m == moveB);
     }
-
 };
 
-inline Killer killer_moves[MAX_PLY];
+inline Killer killers[MAX_PLY];
 
 constexpr uint32_t MAX_SCORE          = 0xffff0000;
 constexpr uint32_t GOOD_CAPTURE_BONUS = 8000;
@@ -36,7 +33,6 @@ constexpr uint32_t EVASION_BONUS      = 1000;
 constexpr uint32_t KILLER_BONUS       = 4000;
 constexpr uint32_t SEEN_BY_PAWN_MALUS = 50;
 constexpr uint32_t PROMOTION_BONUS    = 50;
-constexpr uint32_t GIVES_CHECK_BONUS  = 200;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort() {
@@ -144,10 +140,12 @@ void MoveList<Us>::sort(Move best_move, int ply) {
                 score += (material_delta >= 0 ? GOOD_CAPTURE_BONUS : BAD_CAPTURE_BONUS) + material_delta;
             else
                 score += GOOD_CAPTURE_BONUS + material_delta;
+
+            //score += see<Us>(to);
         }
         else
         {
-            if (killer_moves[ply].contains(m))
+            if (killers[ply].contains(m))
                 score += KILLER_BONUS;
 
             score += Position::endgame() && pt == KING ? (end_king_squares[to] - end_king_squares[from]) / 2 : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;

@@ -72,12 +72,6 @@ bool in_check()
 
     Square ksq = lsb(bitboard<make_piece(SideToMove, KING)>());
 
-    /*return
-        pawn_attacks<SideToMove>(ksq)      &  bb(EnemyPawn)
-     || knight_attacks(ksq)                &  bb(EnemyKnight)
-     || bishop_attacks(ksq, occupied_bb()) & (bb(EnemyQueen) | bb(EnemyBishop))
-     || rook_attacks  (ksq, occupied_bb()) & (bb(EnemyQueen) | bb(EnemyRook));*/
-
     return
         pawn_attacks<SideToMove>(ksq)      &  bb(EnemyPawn)
       | knight_attacks(ksq)                &  bb(EnemyKnight)
@@ -91,40 +85,12 @@ inline Piece piece_on(Square sq) { return board[sq]; }
 
 inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
 
-template<Color SideToMove>
-bool gives_check(Square from, Square to) {
-
-    Square   ksq     = lsb(bitboard<make_piece(!SideToMove, KING)>());
-    Bitboard from_to = square_bb(from, to);
-    
-    bitboards[board[from]] ^= from_to;
-    bitboards[SideToMove]  ^= from_to;
-
-    Bitboard bishop_queen = bitboard<make_piece(SideToMove, BISHOP)>() | bitboard<make_piece(SideToMove, QUEEN)>();
-    Bitboard rook_queen   = bitboard<make_piece(SideToMove, ROOK  )>() | bitboard<make_piece(SideToMove, QUEEN)>();
-
-    bool in_check = 
-        pawn_attacks<!SideToMove>(ksq)     & bitboard<make_piece(SideToMove, PAWN)>()
-      | knight_attacks(ksq)                & bitboard<make_piece(SideToMove, KNIGHT)>()
-      | bishop_attacks(ksq, occupied_bb()) & bishop_queen
-      | rook_attacks  (ksq, occupied_bb()) & rook_queen;
-
-    bitboards[board[from]] ^= from_to;
-    bitboards[SideToMove]  ^= from_to;
-
-    return in_check;
-}
-
 template<Color JustMoved>
 ForceInline void update_castling_rights()
 {
     constexpr Bitboard mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
 
-    // state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
-
     state_ptr->castling_rights &= castle_masks[JustMoved][pext(bitboards[JustMoved], mask)];
-
-    // state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
 }
 
 template<Color Us>

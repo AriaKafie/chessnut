@@ -2,8 +2,6 @@
 #include "transpositiontable.h"
 #include "position.h"
 
-#include <iostream>
-
 Entry transposition_table[TT_SIZE];
 RepInfo repetition_table[RT_SIZE];
 

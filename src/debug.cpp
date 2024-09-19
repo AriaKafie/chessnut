@@ -85,9 +85,6 @@ extern int reductions[MAX_PLY][128];
 
 void Debug::go() {
 
-    uint64_t i = 0;
-
-    std::cout << _tzcnt_u64(i) << "\n";
 }
 
 void Debug::gameinfo() {

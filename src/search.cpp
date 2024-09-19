@@ -129,7 +129,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
             TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], ply_from_root);
 
             if (!piece_on(to_sq(moves[i])))
-                killer_moves[ply_from_root].add(moves[i] & 0xffff);
+                killers[ply_from_root].add(moves[i] & 0xffff);
 
             return eval;
         }
@@ -170,10 +170,10 @@ void iterative_deepening(int max_depth = MAX_PLY - 1) {
         alpha = eval - window;
         beta  = eval + window;
 
-        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
+        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 
-    //std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
+    std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
 }
 
 void Search::go(uint64_t thinktime) {
@@ -217,7 +217,7 @@ void Search::count_nodes(int depth) {
         Position::set(fen);
 
         for (int i = 0; i < MAX_PLY; i++)
-            killer_moves[i].moveA = killer_moves[i].moveB = 0;
+            killers[i].moveA = killers[i].moveB = 0;
 
         TranspositionTable::clear();
 

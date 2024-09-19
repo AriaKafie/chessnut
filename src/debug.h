@@ -12,7 +12,6 @@ namespace Debug {
 
 inline std::vector<std::string> fens =
 {
-    "r1bq1rk1/ppp2ppp/3p1n2/4p1B1/2B1P2n/2PP4/P1P2PPP/R2Q1RK1 w - - 0 11",
     "r1bqr1k1/ppp2ppp/2pb1n2/4p3/P3P3/2NPBN2/1PP2PPP/R2Q1RK1 b - - 0 10",
     "rn1q1rk1/1bp1bpp1/1p2pn1p/p2p4/1PPP4/P4NP1/2QNPPBP/R1B2RK1 w - - 0 11",
     "r3k2r/pbppq1pp/1pn1p2n/1N3p2/2PPP3/P3BP2/1P4PP/R2QKB1R b KQkq - 4 10",
