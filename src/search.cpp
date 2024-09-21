@@ -30,10 +30,10 @@ int qsearch(int alpha, int beta) {
 
     int eval = static_eval<SideToMove>();
 
-    alpha = std::max(alpha, eval);
+    if (eval >= beta)
+        return eval;
 
-    if (alpha >= beta)
-        return alpha;
+    alpha = std::max(alpha, eval);
 
     CaptureList<SideToMove> captures;
 
