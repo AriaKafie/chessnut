@@ -30,12 +30,10 @@ int qsearch(int alpha, int beta) {
 
     int eval = static_eval<SideToMove>();
 
-    if (eval >= beta)
-        return beta;
-
     alpha = std::max(alpha, eval);
 
-    int best_eval = -INFINITE;
+    if (alpha >= beta)
+        return alpha;
 
     CaptureList<SideToMove> captures;
 
@@ -55,12 +53,10 @@ int qsearch(int alpha, int beta) {
         if (eval >= beta)
             return eval;
 
-        best_eval = std::max(eval, best_eval);
-
         alpha = std::max(alpha, eval);
     }
 
-    return best_eval;
+    return alpha;
 }
 
 template<Color SideToMove>
@@ -153,24 +149,14 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 template<Color SideToMove>
 void iterative_deepening(int max_depth = MAX_PLY - 1) {
 
-    const int window = 50;
-
-    int alpha = -INFINITE, beta = INFINITE;
-
     for (int depth = 1; depth <= max_depth; depth++)
     {
-        int eval = search<SideToMove>(alpha, beta, depth, 0, false);
-
-        if (eval <= alpha || eval >= beta)
-            eval = search<SideToMove>(-INFINITE, INFINITE, depth, 0, false);
+        int eval = search<SideToMove>(-INFINITE, INFINITE, depth, 0, false);
 
         if (search_cancelled)
             break;
 
-        alpha = eval - window;
-        beta  = eval + window;
-
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
+        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 
     std::cout << "bestmove " << move_to_uci(root_move) << std::endl;

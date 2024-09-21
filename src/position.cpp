@@ -4,7 +4,6 @@
 #include <cstring>
 #include <random>
 #include <sstream>
-#include <vector>
 
 #include "transpositiontable.h"
 #include "uci.h"
@@ -102,12 +101,12 @@ std::string Position::fen() {
                 fen << piece_to_char[pc];
             else
             {
-                int empty_squares = 0, f;
+                int empty = 0, f;
 
                 for (f = file; f >= 0 && !piece_on(rank * 8 + f); f--)
-                    empty_squares++;
+                    empty++;
 
-                fen << empty_squares;
+                fen << empty;
 
                 file = f + 1;
             }

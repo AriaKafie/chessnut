@@ -92,9 +92,9 @@ void Bitboards::init() {
         PawnAttacks[BLACK][s1] = pawn_attacks<BLACK>(square_bb(s1));
     }
 
-#undef fdiag
-#undef bdiag
 #undef md
+#undef adiag
+#undef mdiag
 
     uint8_t clearK = 0b0111;
     uint8_t clearQ = 0b1011;

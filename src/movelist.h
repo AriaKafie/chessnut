@@ -5,7 +5,7 @@
 #include "types.h"
 
 constexpr int MAX_MOVES    = 128;
-constexpr int MAX_CAPTURES = 16;
+constexpr int MAX_CAPTURES = 32;
 
 template<Color Us>
 class MoveList {
