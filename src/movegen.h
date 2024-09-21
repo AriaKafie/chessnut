@@ -179,8 +179,7 @@ MoveList<Us>::MoveList()
 }
 
 template<Color Us>
-CaptureList<Us>::CaptureList() :
-  last(moves)
+CaptureList<Us>::CaptureList()
 {
     constexpr Color Them           = !Us;
     constexpr Piece FriendlyPawn   = make_piece(Us,   PAWN);

@@ -47,8 +47,7 @@ public:
 private:
     void   insertion_sort();
 
-    Move     moves[MAX_CAPTURES];
-    Move    *last;
+    Move     moves[MAX_CAPTURES], *last = moves;
     Bitboard seen_by_enemy;
 
 };
