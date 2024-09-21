@@ -2,8 +2,6 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-#include <iostream>
-
 #include <cstring>
 #include <string>
 #include <vector>
