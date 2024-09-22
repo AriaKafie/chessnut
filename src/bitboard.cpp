@@ -56,7 +56,7 @@ void Bitboards::init() {
         CenterDistance[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
 
         for (Square s2 = H1; s2 <= A8; s2++)
-            pinmask[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
+            pin_masks[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
 
         for (Square ksq = s1, checker = H1; checker <= A8; checker++)
         {
@@ -67,7 +67,7 @@ void Bitboards::init() {
                 for (Square s = ksq; safe_step(s, d) && !(square_bb(s) & square_bb(checker)); ray |= square_bb(s += d));
 
                 if (ray & square_bb(checker))
-                    checkray[ksq][checker] = ray;
+                    check_rays[ksq][checker] = ray;
             }
         }
 

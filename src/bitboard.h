@@ -27,8 +27,8 @@ inline Bitboard doublecheck[SQUARE_NB];
 inline Bitboard KnightAttacks[SQUARE_NB];
 inline Bitboard KingAttacks[SQUARE_NB];
 inline Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
-inline Bitboard checkray[SQUARE_NB][SQUARE_NB];
-inline Bitboard pinmask[SQUARE_NB][SQUARE_NB];
+inline Bitboard check_rays[SQUARE_NB][SQUARE_NB];
+inline Bitboard pin_masks[SQUARE_NB][SQUARE_NB];
 inline Bitboard main_diagonal[SQUARE_NB];
 inline Bitboard anti_diagonal[SQUARE_NB];
 inline Bitboard file_bitboards[SQUARE_NB];
@@ -81,7 +81,7 @@ inline Bitboard distance_from_center(Square s) {
 }
 
 inline Bitboard pin_mask(Square ksq, Square pinned) {
-    return pinmask[ksq][pinned];
+    return pin_masks[ksq][pinned];
 }
 
 inline Bitboard main_diag(Square s) {
@@ -101,7 +101,7 @@ inline Bitboard double_check(Square ksq) {
 }
 
 inline Bitboard check_ray(Square ksq, Square checker) {
-    return checkray[ksq][checker];
+    return check_rays[ksq][checker];
 }
 
 constexpr Bitboard square_bb(Square s) {

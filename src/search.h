@@ -38,7 +38,7 @@ inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA
 
 } // namespace Search
 
-inline bool search_cancelled;
+inline volatile bool search_cancelled;
 
 inline void start_timer(uint64_t thinktime) {
 

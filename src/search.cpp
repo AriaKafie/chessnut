@@ -147,7 +147,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 }
 
 template<Color SideToMove>
-void iterative_deepening(int max_depth = MAX_PLY - 1) {
+void iterative_deepening(int max_depth = 64) {
 
     for (int depth = 1; depth <= max_depth; depth++)
     {
@@ -158,6 +158,9 @@ void iterative_deepening(int max_depth = MAX_PLY - 1) {
 
         std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
+
+    while (!search_cancelled)
+    {}
 
     std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
 }
