@@ -155,8 +155,6 @@ int endgame()
     int score = material_count<Us>();
 
     constexpr Color Them         = !Us;
-    constexpr Piece FriendlyPawn = make_piece(Us,   PAWN);
-    constexpr Piece EnemyPawn    = make_piece(Them, PAWN);
     constexpr Piece FriendlyKing = make_piece(Us,   KING);
     constexpr Piece EnemyKing    = make_piece(Them, KING);
 
@@ -170,14 +168,17 @@ int endgame()
     constexpr Bitboard RANK6 = Us == WHITE ? RANK_6 : RANK_3;
     constexpr Bitboard RANK7 = Us == WHITE ? RANK_7 : RANK_2;
 
-    score += 10 * popcount(bb(FriendlyPawn) & RANK4);
-    score -= 10 * popcount(bb(EnemyPawn)    & RANK5);
-    score += 20 * popcount(bb(FriendlyPawn) & RANK5);
-    score -= 20 * popcount(bb(EnemyPawn)    & RANK4);
-    score += 50 * popcount(bb(FriendlyPawn) & RANK6);
-    score -= 50 * popcount(bb(EnemyPawn)    & RANK3);
-    score += 90 * popcount(bb(FriendlyPawn) & RANK7);
-    score -= 90 * popcount(bb(EnemyPawn)    & RANK2);
+    Bitboard friendly_pawn = bitboard<make_piece(Us,   PAWN)>();
+    Bitboard enemy_pawn    = bitboard<make_piece(Them, PAWN)>();
+
+    score += 10 * popcount(friendly_pawn & RANK4);
+    score -= 10 * popcount(enemy_pawn    & RANK5);
+    score += 20 * popcount(friendly_pawn & RANK5);
+    score -= 20 * popcount(enemy_pawn    & RANK4);
+    score += 50 * popcount(friendly_pawn & RANK6);
+    score -= 50 * popcount(enemy_pawn    & RANK3);
+    score += 90 * popcount(friendly_pawn & RANK7);
+    score -= 90 * popcount(enemy_pawn    & RANK2);
 
     return score;
 }

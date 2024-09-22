@@ -86,8 +86,12 @@ extern int reductions[MAX_PLY][128];
 
 void Debug::go() {
 
-    for (int ply = 0; ply < MAX_PLY; ply++)
-        std::cout << "ply " << ply << " " << move_to_uci(killers[ply].moveA) << " " << move_to_uci(killers[ply].moveB) << std::endl;
+    for (Piece p = 0; p <= B_KING; p++)
+    {
+        Bitboard b = bitboards[p];
+
+        std::cout << to_string(_blsi_u64(b));
+    }
 }
 
 void Debug::gameinfo() {
