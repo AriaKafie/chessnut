@@ -8,23 +8,19 @@
 
 using BoundType = uint8_t;
 
+enum { EXACT, UPPER_BOUND, LOWER_BOUND };
+
 constexpr int NO_EVAL = 0x7fffffff;
 
 constexpr int TT_SIZE = 1 << 24;
 constexpr int RT_SIZE = 1 << 15;
 
-enum BoundTypes {
-    EXACT,
-    UPPER_BOUND,
-    LOWER_BOUND
-};
-
 struct Entry {
-    uint64_t key;
-    uint8_t  depth;
+    uint64_t  key;
+    int       eval;
+    uint16_t  best_move;
+    uint8_t   depth;
     BoundType flag;
-    int      eval;
-    uint16_t best_move;
 };
 
 struct RepInfo {

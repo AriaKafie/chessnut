@@ -86,12 +86,9 @@ extern int reductions[MAX_PLY][128];
 
 void Debug::go() {
 
-    for (Piece p = 0; p <= B_KING; p++)
-    {
-        Bitboard b = bitboards[p];
+    StateInfo si = *state_ptr;
 
-        std::cout << to_string(_blsi_u64(b));
-    }
+    std::cout << "sup";
 }
 
 void Debug::gameinfo() {
