@@ -102,11 +102,20 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
 
     moves.sort(TranspositionTable::lookup_move(), ply_from_root);
 
-    int extension = root_node ? 0 : moves.in_check();
+    int static_evaluation = NO_EVAL, extension = root_node ? 0 : moves.in_check();
 
     for (int i = 0; i < moves.size(); i++)
     {
         int reduction = root_node ? root_reductions[i] : reductions[depth][i];
+
+        /*if (((depth - 1 - reduction + extension) <= 0) && type_of(moves[i]) == NORMAL && !piece_on(to_sq(moves[i])))
+        {
+            if (static_evaluation == NO_EVAL)
+                static_evaluation = static_eval<SideToMove>();
+
+            if (static_evaluation + 200 <= alpha)
+                continue;
+        }*/
 
         do_move<SideToMove>(moves[i]);
 

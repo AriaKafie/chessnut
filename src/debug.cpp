@@ -86,9 +86,10 @@ extern int reductions[MAX_PLY][128];
 
 void Debug::go() {
 
-    StateInfo si = *state_ptr;
-
-    std::cout << "sup";
+    for (Square s = H1; s <= A8; s++)
+    {
+        printf("%d\n", s);
+    }
 }
 
 void Debug::gameinfo() {

@@ -116,7 +116,7 @@ void MoveList<Us>::sort(Move best_move, int ply) {
 
     for (Move& m : *this)
     {
-        if (m == (best_move & 0xffff))
+        if (m == best_move)
         {
             m += MAX_SCORE;
             continue;
@@ -128,8 +128,6 @@ void MoveList<Us>::sort(Move best_move, int ply) {
         Square    to       = to_sq(m);
         PieceType pt       = piece_type_on(from);
         PieceType captured = piece_type_on(to);
-
-        Bitboard enemy_king = bitboard<make_piece(!Us, KING)>();
 
         if (captured)
         {
