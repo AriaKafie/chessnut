@@ -126,20 +126,20 @@ class Engine:
         if "q" in bestmove:
             pyautogui.click(xto, yto)
         
-engine = Engine("c:\\users\\14244\\source\\repos\\chess\\x64\\release\\endl.exe")
+engine = Engine("c:\\users\\14244\\source\\repos\\search_root\\x64\\release\\search_root.exe")
 
 while True:
     
     cmd = input()
-
-    if cmd == "quit":
-        break
-    elif cmd == "d":
-        engine.print_board()
-    elif cmd == "go":
-        engine.go()
-    else:
-        engine.send_message(cmd)
+    if cmd:
+        if cmd == "quit":
+            break
+        elif cmd == "d":
+            engine.print_board()
+        elif cmd == "go":
+            engine.go()
+        else:
+            engine.send_message(cmd)
 
 engine.send_message("quit")
     
