@@ -80,10 +80,6 @@ void Debug::perft(std::istringstream& ss) {
     else                           performance_test<BLACK>(depth);
 }
 
-extern RepInfo repetition_table[];
-
-extern int reductions[MAX_PLY][128];
-
 void Debug::go() {
 
     for (Square s = H1; s <= A8; s++)
@@ -91,6 +87,8 @@ void Debug::go() {
         printf("%d\n", s);
     }
 }
+
+extern RepInfo repetition_table[];
 
 void Debug::gameinfo() {
 

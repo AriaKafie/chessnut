@@ -101,12 +101,12 @@ int MoveList<Us>::partition(int low, int high) {
 template<Color Us>
 void MoveList<Us>::quicksort(int low, int high) {
 
-  if (low < high)
-  {
-    int pivot_index = partition(low, high);
-    quicksort(low, pivot_index - 1);
-    quicksort(pivot_index + 1, high);
-  }
+    if (low < high)
+    {
+        int pivot_index = partition(low, high);
+        quicksort(low, pivot_index - 1);
+        quicksort(pivot_index + 1, high);
+    }
 }
 
 template<Color Us>

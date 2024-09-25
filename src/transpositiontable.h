@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-using BoundType = uint8_t;
+typedef uint8_t BoundType;
 
 enum { EXACT, UPPER_BOUND, LOWER_BOUND };
 
@@ -29,17 +29,21 @@ struct RepInfo {
 };
 
 namespace TranspositionTable {
-    int lookup(int depth, int alpha, int beta, int ply_from_root);
-    void record(uint8_t depth, BoundType flag, int eval, Move best_move, int ply_from_root);
-    Move lookup_move();
-    void clear();
-}
+
+int lookup(int depth, int alpha, int beta, int ply_from_root);
+void record(uint8_t depth, BoundType flag, int eval, Move best_move, int ply_from_root);
+Move lookup_move();
+void clear();
+
+} //namespace TranspositionTable
 
 namespace RepetitionTable {
-    bool draw();
-    void increment();
-    void decrement();
-    void clear();
-}
+
+bool draw();
+void increment();
+void decrement();
+void clear();
+
+} // namespace RepetitionTable 
 
 #endif

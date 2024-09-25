@@ -108,14 +108,14 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     {
         int reduction = root_node ? root_reductions[i] : reductions[depth][i];
 
-        /*if (((depth - 1 - reduction + extension) <= 0) && type_of(moves[i]) == NORMAL && !piece_on(to_sq(moves[i])))
+        if (((depth - 1 - reduction + extension) <= 0) && type_of(moves[i]) == NORMAL && !piece_on(to_sq(moves[i])))
         {
             if (static_evaluation == NO_EVAL)
                 static_evaluation = static_eval<SideToMove>();
 
             if (static_evaluation + 200 <= alpha)
                 continue;
-        }*/
+        }
 
         do_move<SideToMove>(moves[i]);
 
@@ -199,12 +199,12 @@ void Search::count_nodes(int depth) {
 
     search_cancelled = false;
 
-    int maxlen = 0;
+    int maxw = 0;
 
     for (const std::string& fen : Debug::fens)
-        maxlen = std::max(maxlen, int(fen.size()));
+        maxw = std::max(maxw, int(fen.size()));
 
-    std::cout << std::left << std::setw(maxlen + 1) << "Fen" << "Nodes" << std::endl;
+    std::cout << std::left << std::setw(maxw + 1) << "Fen" << "Nodes" << std::endl;
 
     int total_nodes = 0;
 
@@ -212,7 +212,7 @@ void Search::count_nodes(int depth) {
     {
         nodes = 0;
 
-        std::cout << std::left << std::setw(maxlen + 1) << fen;
+        std::cout << std::left << std::setw(maxw + 1) << fen;
 
         Position::set(fen);
 
