@@ -108,7 +108,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
     {
         int reduction = root_node ? root_reductions[i] : reductions[depth][i];
 
-        if (((depth - 1 - reduction + extension) <= 0) && type_of(moves[i]) == NORMAL && !piece_on(to_sq(moves[i])))
+        if (depth - 1 - reduction + extension <= 0 && type_of(moves[i]) == NORMAL && !piece_on(to_sq(moves[i])))
         {
             if (static_evaluation == NO_EVAL)
                 static_evaluation = static_eval<SideToMove>();

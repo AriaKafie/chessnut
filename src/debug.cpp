@@ -82,9 +82,14 @@ void Debug::perft(std::istringstream& ss) {
 
 void Debug::go() {
 
-    for (Square s = H1; s <= A8; s++)
+    char buffer[4];
+
+    char c, *ptr = buffer;
+
+    for (int i = 0; i < 4; i++)
     {
-        printf("%d\n", s);
+        std::cin >> c;
+        *ptr++ = c;
     }
 }
 
