@@ -15,14 +15,14 @@
 #include "transpositiontable.h"
 #include "uci.h"
 
-uint64_t perft_nodes;
+static uint64_t nodes;
 
 template<Color SideToMove>
 void search(int depth)
 {
     if (depth == 0)
     {
-        perft_nodes++;
+        nodes++;
         return;
     }
 
@@ -30,7 +30,7 @@ void search(int depth)
 
     if (depth == 1)
     {
-        perft_nodes += moves.size();
+        nodes += moves.size();
         return;
     }
 
@@ -51,7 +51,7 @@ void performance_test(int depth) {
 
     for (Move m : moves)
     {
-        perft_nodes = 0;
+        nodes = 0;
 
         auto start = curr_time_millis();
 
@@ -63,9 +63,9 @@ void performance_test(int depth) {
 
         total_ms += end - start;
 
-        std::cout << move_to_uci(m) << ": " << perft_nodes << std::endl;
+        std::cout << move_to_uci(m) << ": " << nodes << std::endl;
 
-        total_nodes += perft_nodes;
+        total_nodes += nodes;
     }
 
     std::cout << "\nnodes searched: " << total_nodes << "\nin " << total_ms << " ms\n" << std::endl;
