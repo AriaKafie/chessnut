@@ -28,7 +28,7 @@ inline Bitboard KnightAttacks[SQUARE_NB];
 inline Bitboard KingAttacks[SQUARE_NB];
 inline Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 inline Bitboard check_rays[SQUARE_NB][SQUARE_NB];
-inline Bitboard pin_masks[SQUARE_NB][SQUARE_NB];
+inline Bitboard align_masks[SQUARE_NB][SQUARE_NB];
 inline Bitboard main_diagonal[SQUARE_NB];
 inline Bitboard anti_diagonal[SQUARE_NB];
 inline Bitboard file_bitboards[SQUARE_NB];
@@ -80,8 +80,8 @@ inline Bitboard distance_from_center(Square s) {
     return CenterDistance[s];
 }
 
-inline Bitboard pin_mask(Square ksq, Square pinned) {
-    return pin_masks[ksq][pinned];
+inline Bitboard align_mask(Square ksq, Square pinned) {
+    return align_masks[ksq][pinned];
 }
 
 inline Bitboard main_diag(Square s) {
@@ -162,7 +162,7 @@ inline Bitboard mask(Square s, Direction d) {
     }
 }
 
-inline void pop_lsb(Bitboard& b) {
+inline void clear_lsb(Bitboard& b) {
     b = _blsr_u64(b);
 }
 
@@ -229,7 +229,7 @@ inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
         if (permutation & (1 << bitpos))
             occupancy |= 1ull << lsb_index;
 
-        pop_lsb(mask);
+        clear_lsb(mask);
     }
 
     return occupancy;*/

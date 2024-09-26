@@ -9,7 +9,7 @@ void init_magics();
 
 Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
-    Direction rook_directions  [4] = { NORTH, EAST, SOUTH, WEST };
+    Direction rook_directions[4] = { NORTH, EAST, SOUTH, WEST };
     Direction bishop_directions[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
 
     Bitboard atk = 0;
@@ -56,7 +56,7 @@ void Bitboards::init() {
         CenterDistance[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
 
         for (Square s2 = H1; s2 <= A8; s2++)
-            pin_masks[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
+            align_masks[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
 
         for (Square ksq = s1, checker = H1; checker <= A8; checker++)
         {
@@ -201,7 +201,7 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
         Square sq = lsb(shield_mask);
         if (occ & square_bb(sq))
             score += pawn_weights[ksq][index];
-        pop_lsb(shield_mask);
+        clear_lsb(shield_mask);
     }
     
     return std::max(MIN_SCORE, std::min(MAX_SCORE, score));

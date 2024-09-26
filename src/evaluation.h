@@ -139,10 +139,10 @@ int midgame()
 
     for (PieceType pt : { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING })
     {
-        for (Bitboard b = bitboards[make_piece(Us, pt)]; b; pop_lsb(b))
+        for (Bitboard b = bitboards[make_piece(Us, pt)]; b; clear_lsb(b))
             score += square_score<Us>(pt, lsb(b));
 
-        for (Bitboard b = bitboards[make_piece(Them, pt)]; b; pop_lsb(b))
+        for (Bitboard b = bitboards[make_piece(Them, pt)]; b; clear_lsb(b))
             score -= square_score<Them>(pt, lsb(b));
     }
 
