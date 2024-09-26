@@ -57,7 +57,7 @@ enum {
     B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
 };
 
-enum Colors { WHITE, BLACK, COLOR_NB = 2 };
+enum { WHITE, BLACK, COLOR_NB = 2 };
 
 enum {
     NORMAL,
