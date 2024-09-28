@@ -10,6 +10,8 @@
 
 namespace Debug {
 
+// 6rk/7p/Q2R1p2/1p2n3/4b3/1P4NP/P1P2PPK/2q5 b - - 0 1
+
 inline std::vector<std::string> fens =
 {
     "r1bqr1k1/ppp2ppp/2pb1n2/4p3/P3P3/2NPBN2/1PP2PPP/R2Q1RK1 b - - 0 10",

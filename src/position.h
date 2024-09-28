@@ -83,6 +83,10 @@ bool in_check()
 
 inline Piece piece_on(Square sq) { return board[sq]; }
 
+inline bool is_capture(Move m) { return piece_on(to_sq(m)); }
+
+inline bool is_quiet(Move m) { return !piece_on(to_sq(m)); }
+
 inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
 
 template<Color JustMoved>

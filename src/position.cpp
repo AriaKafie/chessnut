@@ -135,7 +135,7 @@ std::string Position::fen() {
 
 void Position::commit_move(Move m) {
 
-    if (piece_on(to_sq(m)) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
+    if (is_capture(m) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
         RepetitionTable::clear();
 
     if (white_to_move()) do_move<WHITE>(m);
