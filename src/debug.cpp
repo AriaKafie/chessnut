@@ -82,15 +82,6 @@ void Debug::perft(std::istringstream& ss) {
 
 void Debug::go() {
 
-    char buffer[4];
-
-    char c, *ptr = buffer;
-
-    for (int i = 0; i < 4; i++)
-    {
-        std::cin >> c;
-        *ptr++ = c;
-    }
 }
 
 extern RepInfo repetition_table[];

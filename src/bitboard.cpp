@@ -24,7 +24,7 @@ void Bitboards::init() {
 
     for (Square s1 = H1; s1 <= A8; s1++)
     {
-        file_bitboards[s1] = FILE_H << (s1 % 8);
+        FileBB[s1] = FILE_H << (s1 % 8);
 
         for (Square s2 = H1; s2 <= A8; s2++)
             SquareDistance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
@@ -50,13 +50,13 @@ void Bitboards::init() {
 
     for (Square s1 = H1; s1 <= A8; s1++)
     {
-        main_diagonal[s1] = mdiag(s1);
-        anti_diagonal[s1] = adiag(s1);
+        MainDiag[s1] = mdiag(s1);
+        AntiDiag[s1] = adiag(s1);
             
         CenterDistance[s1] = std::min({ md(s1, E4), md(s1, E5), md(s1, D4), md(s1, D5) });
 
         for (Square s2 = H1; s2 <= A8; s2++)
-            align_masks[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
+            AlignMask[s1][s2] = mdiag(s1) & mdiag(s2) | adiag(s1) & adiag(s2) | rank_bb(s1) & rank_bb(s2) | file_bb(s1) & file_bb(s2);
 
         for (Square ksq = s1, checker = H1; checker <= A8; checker++)
         {
@@ -67,7 +67,7 @@ void Bitboards::init() {
                 for (Square s = ksq; safe_step(s, d) && !(square_bb(s) & square_bb(checker)); ray |= square_bb(s += d));
 
                 if (ray & square_bb(checker))
-                    check_rays[ksq][checker] = ray;
+                    CheckRay[ksq][checker] = ray;
             }
         }
 
@@ -86,7 +86,7 @@ void Bitboards::init() {
         black_kingshield[s1] =
             ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
 
-        doublecheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
+        DoubleCheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
 
         PawnAttacks[WHITE][s1] = pawn_attacks<WHITE>(square_bb(s1));
         PawnAttacks[BLACK][s1] = pawn_attacks<BLACK>(square_bb(s1));

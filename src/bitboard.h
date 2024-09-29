@@ -23,15 +23,15 @@ inline Bitboard rook_masks[SQUARE_NB];
 inline int bishop_base[SQUARE_NB];
 inline int rook_base[SQUARE_NB];
 
-inline Bitboard doublecheck[SQUARE_NB];
+inline Bitboard DoubleCheck[SQUARE_NB];
 inline Bitboard KnightAttacks[SQUARE_NB];
 inline Bitboard KingAttacks[SQUARE_NB];
 inline Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
-inline Bitboard check_rays[SQUARE_NB][SQUARE_NB];
-inline Bitboard align_masks[SQUARE_NB][SQUARE_NB];
-inline Bitboard main_diagonal[SQUARE_NB];
-inline Bitboard anti_diagonal[SQUARE_NB];
-inline Bitboard file_bitboards[SQUARE_NB];
+inline Bitboard CheckRay[SQUARE_NB][SQUARE_NB];
+inline Bitboard AlignMask[SQUARE_NB][SQUARE_NB];
+inline Bitboard MainDiag[SQUARE_NB];
+inline Bitboard AntiDiag[SQUARE_NB];
+inline Bitboard FileBB[SQUARE_NB];
 inline uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
 inline uint8_t CenterDistance[SQUARE_NB];
 inline int white_kingshield_scores[SQUARE_NB][1 << 6];
@@ -81,27 +81,27 @@ inline Bitboard distance_from_center(Square s) {
 }
 
 inline Bitboard align_mask(Square ksq, Square pinned) {
-    return align_masks[ksq][pinned];
+    return AlignMask[ksq][pinned];
 }
 
 inline Bitboard main_diag(Square s) {
-    return main_diagonal[s];
+    return MainDiag[s];
 }
 
 inline Bitboard anti_diag(Square s) {
-    return anti_diagonal[s];
+    return AntiDiag[s];
 }
 
 inline Bitboard file_bb(Square s) {
-    return file_bitboards[s];
+    return FileBB[s];
 }
 
 inline Bitboard double_check(Square ksq) {
-    return doublecheck[ksq];
+    return DoubleCheck[ksq];
 }
 
 inline Bitboard check_ray(Square ksq, Square checker) {
-    return check_rays[ksq][checker];
+    return CheckRay[ksq][checker];
 }
 
 constexpr Bitboard square_bb(Square s) {
