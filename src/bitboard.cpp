@@ -14,7 +14,7 @@ Bitboard sliding_attacks(PieceType pt, Square sq, Bitboard occupied) {
 
     Bitboard atk = 0;
 
-    for (Direction d : (pt == ROOK) ? rook_directions : bishop_directions)
+    for (Direction d : pt == ROOK ? rook_directions : bishop_directions)
         for (Square s = sq; safe_step(s, d) && !(square_bb(s) & occupied); atk |= square_bb(s += d));
     
     return atk;
@@ -81,10 +81,10 @@ void Bitboards::init() {
         Square sq = 8 * (s1 / 8) + 1;
 
         white_kingshield[s1] =
-            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
+            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);
 
         black_kingshield[s1] =
-            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::min(5, std::max(0, (s1 % 8) - 1));
+            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);
 
         DoubleCheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
 
