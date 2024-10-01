@@ -13,7 +13,7 @@
 #include "position.h"
 #include "uci.h"
 
-Move root_move;
+static Move root_move;
 
 int nodes, reductions[MAX_PLY][MAX_PLY];
 
@@ -172,7 +172,6 @@ void iterative_deepening(int max_depth = 64) {
 void Search::go(uint64_t thinktime) {
 
     search_cancelled = false;
-
     nodes = 0;
 
     if (thinktime)

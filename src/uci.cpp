@@ -15,7 +15,6 @@ std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 void position(std::istringstream& cmd) {
 
     std::string fen, token;
-
     cmd >> token;
 
     if (token == "startpos")
@@ -28,8 +27,7 @@ void position(std::istringstream& cmd) {
         while (cmd >> token && token != "moves")
             fen += token + " ";
     }
-    else
-        return;
+    else return;
 
     Position::set(fen);
 
