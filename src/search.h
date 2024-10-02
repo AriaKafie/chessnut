@@ -57,7 +57,6 @@ inline void handle_search_stop(uint64_t thinktime) {
     while (in != "stop");
 
     search_cancelled = true;
-    return;
 }
 
 #endif
