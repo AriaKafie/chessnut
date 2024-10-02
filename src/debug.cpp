@@ -82,13 +82,7 @@ void Debug::perft(std::istringstream& ss) {
 
 void Debug::go() {
 
-    for (int i = 0; i < 0x1a480; i++)
-    {
-        if (i % 20 == 0)
-            std::cout << std::endl;
-
-        std::cout << pext_table[i];
-    }
+    std::cout << to_string(0);
 }
 
 extern RepInfo repetition_table[];

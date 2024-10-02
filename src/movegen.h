@@ -208,8 +208,6 @@ CaptureList<Us>::CaptureList()
 
     toggle_square(occupied, ksq);
 
-    Bitboard enemy_unprotected = bb(Them) &~ seen_by_enemy;
-
     Bitboard checkmask = knight_attacks(ksq) & bb(EnemyKnight) | pawn_attacks<Us>(ksq) & bb(EnemyPawn);
 
     for (Bitboard checkers = bishop_attacks(ksq, occupied) & enemy_bishop_queen | rook_attacks(ksq, occupied) & enemy_rook_queen; checkers; clear_lsb(checkers))
@@ -217,13 +215,11 @@ CaptureList<Us>::CaptureList()
 
     if (more_than_one(checkmask & double_check(ksq)))
     {
-        last = make_moves(last, ksq, king_attacks(ksq) & enemy_unprotected);
+        last = make_moves(last, ksq, king_attacks(ksq) & bb(Them) & ~seen_by_enemy);
         return;
     }
 
-    checkmask |= -!checkmask;
-
-    checkmask &= bb(Them);
+    checkmask = (checkmask | -!checkmask) & bb(Them);
 
     Bitboard pinned = 0;
 
@@ -279,7 +275,7 @@ CaptureList<Us>::CaptureList()
         last = make_moves(last, from, rook_attacks(from, occupied) & checkmask & align_mask(ksq, from));
     }
 
-    last = make_moves(last, ksq, king_attacks(ksq) & enemy_unprotected);
+    last = make_moves(last, ksq, king_attacks(ksq) & bb(Them) & ~seen_by_enemy);
 }
 
 #endif
