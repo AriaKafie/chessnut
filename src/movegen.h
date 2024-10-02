@@ -95,21 +95,20 @@ MoveList<Us>::MoveList()
     constexpr Bitboard  Promote   = Us == WHITE ? RANK_7     : RANK_2;
     constexpr Bitboard  NoPromote = ~Promote;
 
-    Bitboard empty      = ~occupied;
-    Bitboard not_pinned = ~pinned;
-    Bitboard pawns      = bb(FriendlyPawn) & NoPromote;
-    Bitboard e          = shift<Up>(FriendEP & empty) & empty;
+    Bitboard pawns = bb(FriendlyPawn) & NoPromote;
+    Bitboard empty = ~occupied;
+    Bitboard e     = shift<Up>(FriendEP & empty) & empty;
 
-    last = make_pawn_moves<NORMAL, UpRight>(last, shift<UpRight>(pawns & (not_pinned | anti_diag(ksq))) & bb(Them) & checkmask);
-    last = make_pawn_moves<NORMAL, UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | main_diag(ksq))) & bb(Them) & checkmask);
-    last = make_pawn_moves<NORMAL, Up     >(last, shift<Up     >(pawns & (not_pinned | file_bb  (ksq))) & empty    & checkmask);
-    last = make_pawn_moves<NORMAL, Up2    >(last, shift<Up2    >(pawns & (not_pinned | file_bb  (ksq))) & e        & checkmask);
+    last = make_pawn_moves<NORMAL, UpRight>(last, shift<UpRight>(pawns & (~pinned | anti_diag(ksq))) & bb(Them) & checkmask);
+    last = make_pawn_moves<NORMAL, UpLeft >(last, shift<UpLeft >(pawns & (~pinned | main_diag(ksq))) & bb(Them) & checkmask);
+    last = make_pawn_moves<NORMAL, Up     >(last, shift<Up     >(pawns & (~pinned | file_bb  (ksq))) & empty    & checkmask);
+    last = make_pawn_moves<NORMAL, Up2    >(last, shift<Up2    >(pawns & (~pinned | file_bb  (ksq))) & e        & checkmask);
 
     if (Bitboard promotable = bb(FriendlyPawn) & Promote)
     {
-        last = make_pawn_moves<PROMOTION, UpRight>(last, shift<UpRight>(promotable & (not_pinned | anti_diag(ksq))) & bb(Them) & checkmask);
-        last = make_pawn_moves<PROMOTION, UpLeft >(last, shift<UpLeft >(promotable & (not_pinned | main_diag(ksq))) & bb(Them) & checkmask);
-        last = make_pawn_moves<PROMOTION, Up     >(last, shift<Up     >(promotable &  not_pinned                  ) & empty    & checkmask);
+        last = make_pawn_moves<PROMOTION, UpRight>(last, shift<UpRight>(promotable & (~pinned | anti_diag(ksq))) & bb(Them) & checkmask);
+        last = make_pawn_moves<PROMOTION, UpLeft >(last, shift<UpLeft >(promotable & (~pinned | main_diag(ksq))) & bb(Them) & checkmask);
+        last = make_pawn_moves<PROMOTION, Up     >(last, shift<Up     >(promotable &  ~pinned                  ) & empty    & checkmask);
     }
 
     if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP)
@@ -131,7 +130,7 @@ MoveList<Us>::MoveList()
 
     Bitboard legal = checkmask &~ bb(Us);
 
-    for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; clear_lsb(b))
+    for (Bitboard b = bb(FriendlyKnight) & ~pinned; b; clear_lsb(b))
     {
         Square from = lsb(b);
         last = make_moves(last, from, knight_attacks(from) & legal);
@@ -140,7 +139,7 @@ MoveList<Us>::MoveList()
     Bitboard bishop_queen = bb(FriendlyBishop) | bb(FriendlyQueen);
     Bitboard rook_queen   = bb(FriendlyRook)   | bb(FriendlyQueen);
 
-    for (Bitboard b = bishop_queen & not_pinned; b; clear_lsb(b))
+    for (Bitboard b = bishop_queen & ~pinned; b; clear_lsb(b))
     {
         Square from = lsb(b);
         last = make_moves(last, from, bishop_attacks(from, occupied) & legal);
@@ -150,7 +149,7 @@ MoveList<Us>::MoveList()
         Square from = lsb(b);
         last = make_moves(last, from, bishop_attacks(from, occupied) & legal & align_mask(ksq, from));
     }
-    for (Bitboard b = rook_queen & not_pinned; b; clear_lsb(b))
+    for (Bitboard b = rook_queen & ~pinned; b; clear_lsb(b))
     {
         Square from = lsb(b);
         last = make_moves(last, from, rook_attacks(from, occupied) & legal);
@@ -232,20 +231,18 @@ CaptureList<Us>::CaptureList()
     constexpr Bitboard  Promote   = Us == WHITE ? RANK_7     : RANK_2;
     constexpr Bitboard  NoPromote = ~Promote;
 
-    Bitboard not_pinned = ~pinned;
-
     if (Bitboard promotable = bb(FriendlyPawn) & Promote)
     {
-        last = make_pawn_moves<PROMOTION, UpRight>(last, shift<UpRight>(promotable & (not_pinned | anti_diag(ksq))) & checkmask);
-        last = make_pawn_moves<PROMOTION, UpLeft >(last, shift<UpLeft >(promotable & (not_pinned | main_diag(ksq))) & checkmask);
+        last = make_pawn_moves<PROMOTION, UpRight>(last, shift<UpRight>(promotable & (~pinned | anti_diag(ksq))) & checkmask);
+        last = make_pawn_moves<PROMOTION, UpLeft >(last, shift<UpLeft >(promotable & (~pinned | main_diag(ksq))) & checkmask);
     }
 
     Bitboard pawns = bb(FriendlyPawn) & NoPromote;
 
-    last = make_pawn_moves<NORMAL, UpRight>(last, shift<UpRight>(pawns & (not_pinned | anti_diag(ksq))) & checkmask);
-    last = make_pawn_moves<NORMAL, UpLeft >(last, shift<UpLeft >(pawns & (not_pinned | main_diag(ksq))) & checkmask);
+    last = make_pawn_moves<NORMAL, UpRight>(last, shift<UpRight>(pawns & (~pinned | anti_diag(ksq))) & checkmask);
+    last = make_pawn_moves<NORMAL, UpLeft >(last, shift<UpLeft >(pawns & (~pinned | main_diag(ksq))) & checkmask);
 
-    for (Bitboard b = bb(FriendlyKnight) & not_pinned; b; clear_lsb(b))
+    for (Bitboard b = bb(FriendlyKnight) & ~pinned; b; clear_lsb(b))
     {
         Square from = lsb(b);
         last = make_moves(last, from, knight_attacks(from) & checkmask);
@@ -254,7 +251,7 @@ CaptureList<Us>::CaptureList()
     Bitboard bishop_queen = bb(FriendlyBishop) | bb(FriendlyQueen);
     Bitboard rook_queen   = bb(FriendlyRook)   | bb(FriendlyQueen);
 
-    for (Bitboard b = bishop_queen & not_pinned; b; clear_lsb(b))
+    for (Bitboard b = bishop_queen & ~pinned; b; clear_lsb(b))
     {
         Square from = lsb(b);
         last = make_moves(last, from, bishop_attacks(from, occupied) & checkmask);
@@ -264,7 +261,7 @@ CaptureList<Us>::CaptureList()
         Square from = lsb(b);
         last = make_moves(last, from, bishop_attacks(from, occupied) & checkmask & align_mask(ksq, from));
     }
-    for (Bitboard b = rook_queen & not_pinned; b; clear_lsb(b))
+    for (Bitboard b = rook_queen & ~pinned; b; clear_lsb(b))
     {
         Square from = lsb(b);
         last = make_moves(last, from, rook_attacks(from, occupied) & checkmask);
