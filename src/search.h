@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "moveordering.h"
 #include "types.h"
@@ -40,30 +41,23 @@ inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA
 
 inline volatile bool search_cancelled;
 
-inline void start_timer(uint64_t thinktime) {
+inline void handle_search_stop(uint64_t thinktime) {
 
-    auto start_time = curr_time_millis();
-
-    while (true)
+    if (thinktime)
     {
-        if (curr_time_millis() - start_time > thinktime)
-        {
-            search_cancelled = true;
-            return;
-        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(thinktime));
+        search_cancelled = true;
+        return;
     }
-}
-
-inline void await_stop() {
 
     std::string in;
 
     do
-    {
         std::getline(std::cin, in);
-    } while (in != "stop");
+    while (in != "stop");
 
     search_cancelled = true;
+    return;
 }
 
 #endif

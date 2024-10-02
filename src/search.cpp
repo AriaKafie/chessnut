@@ -165,7 +165,7 @@ void iterative_deepening(int max_depth = 64) {
         if (search_cancelled)
             break;
 
-        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
+        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 }
 
@@ -174,16 +174,8 @@ void Search::go(uint64_t thinktime) {
     search_cancelled = false;
     nodes = 0;
 
-    if (thinktime)
-    {
-        std::thread timer([thinktime]() { start_timer(thinktime); });
-        timer.detach();
-    }
-    else
-    {
-        std::thread t([]() { await_stop(); });
-        t.detach();
-    }
+    std::thread t([thinktime]() { handle_search_stop(thinktime); });
+    t.detach();
 
     if (Position::white_to_move()) iterative_deepening<WHITE>();
     else                           iterative_deepening<BLACK>();
