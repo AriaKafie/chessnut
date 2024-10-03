@@ -85,33 +85,32 @@ MoveList<Us>::MoveList()
     for (Bitboard pinners = bishop_xray(ksq, occupied) & enemy_bishop_queen | rook_xray(ksq, occupied) & enemy_rook_queen; pinners; clear_lsb(pinners))
         pinned |= check_ray(ksq, lsb(pinners));
 
-    constexpr Direction Up        = Us == WHITE ? NORTH      : SOUTH;
-    constexpr Direction Up2       = Us == WHITE ? NORTH * 2  : SOUTH * 2;
-    constexpr Direction UpRight   = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
-    constexpr Direction UpLeft    = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
-    constexpr Bitboard  FriendEP  = Us == WHITE ? RANK_3     : RANK_6;
-    constexpr Bitboard  EnemyEP   = Us == WHITE ? RANK_6     : RANK_3;
-    constexpr Bitboard  Start     = Us == WHITE ? RANK_2     : RANK_7;
-    constexpr Bitboard  Promote   = Us == WHITE ? RANK_7     : RANK_2;
-    constexpr Bitboard  NoPromote = ~Promote;
+    constexpr Direction Up      = Us == WHITE ? NORTH      : SOUTH;
+    constexpr Direction Up2     = Us == WHITE ? NORTH * 2  : SOUTH * 2;
+    constexpr Direction UpRight = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
+    constexpr Direction UpLeft  = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
+    constexpr Bitboard  Rank2   = Us == WHITE ? RANK_2     : RANK_7;
+    constexpr Bitboard  Rank3   = Us == WHITE ? RANK_3     : RANK_6;
+    constexpr Bitboard  Rank6   = Us == WHITE ? RANK_6     : RANK_3;
+    constexpr Bitboard  Rank7   = Us == WHITE ? RANK_7     : RANK_2;
 
-    Bitboard pawns = bb(FriendlyPawn) & NoPromote;
     Bitboard empty = ~occupied;
-    Bitboard e     = shift<Up>(FriendEP & empty) & empty;
+    Bitboard e     = shift<Up>(Rank3 & empty) & empty;
+    Bitboard pawns = bb(FriendlyPawn) & ~Rank7;
 
     last = make_pawn_moves<NORMAL, UpRight>(last, shift<UpRight>(pawns & (~pinned | anti_diag(ksq))) & bb(Them) & checkmask);
     last = make_pawn_moves<NORMAL, UpLeft >(last, shift<UpLeft >(pawns & (~pinned | main_diag(ksq))) & bb(Them) & checkmask);
     last = make_pawn_moves<NORMAL, Up     >(last, shift<Up     >(pawns & (~pinned | file_bb  (ksq))) & empty    & checkmask);
     last = make_pawn_moves<NORMAL, Up2    >(last, shift<Up2    >(pawns & (~pinned | file_bb  (ksq))) & e        & checkmask);
 
-    if (Bitboard promotable = bb(FriendlyPawn) & Promote)
+    if (Bitboard promotable = bb(FriendlyPawn) & Rank7)
     {
         last = make_pawn_moves<PROMOTION, UpRight>(last, shift<UpRight>(promotable & (~pinned | anti_diag(ksq))) & bb(Them) & checkmask);
         last = make_pawn_moves<PROMOTION, UpLeft >(last, shift<UpLeft >(promotable & (~pinned | main_diag(ksq))) & bb(Them) & checkmask);
         last = make_pawn_moves<PROMOTION, Up     >(last, shift<Up     >(promotable &  ~pinned                  ) & empty    & checkmask);
     }
 
-    if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP)
+    if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & Rank6)
     {
         Square to = lsb(b);
         *last = make_move<ENPASSANT>(to - UpRight, to);
@@ -119,7 +118,7 @@ MoveList<Us>::MoveList()
         Bitboard o = occupied ^ ep_toggle;
         last += !(bishop_attacks(ksq, o) & enemy_bishop_queen | rook_attacks(ksq, o) & enemy_rook_queen);
     }
-    if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & EnemyEP)
+    if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & Rank6)
     {
         Square to = lsb(b);
         *last = make_move<ENPASSANT>(to - UpLeft, to);
@@ -225,19 +224,18 @@ CaptureList<Us>::CaptureList()
     for (Bitboard pinners = bishop_xray(ksq, occupied) & enemy_bishop_queen | rook_xray(ksq, occupied) & enemy_rook_queen; pinners; clear_lsb(pinners))
         pinned |= check_ray(ksq, lsb(pinners));
 
-    constexpr Direction UpRight   = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
-    constexpr Direction UpLeft    = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
-    constexpr Bitboard  Start     = Us == WHITE ? RANK_2     : RANK_7;
-    constexpr Bitboard  Promote   = Us == WHITE ? RANK_7     : RANK_2;
-    constexpr Bitboard  NoPromote = ~Promote;
+    constexpr Direction UpRight = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
+    constexpr Direction UpLeft  = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
+    constexpr Bitboard  Rank2   = Us == WHITE ? RANK_2     : RANK_7;
+    constexpr Bitboard  Rank7   = Us == WHITE ? RANK_7     : RANK_2;
 
-    if (Bitboard promotable = bb(FriendlyPawn) & Promote)
+    if (Bitboard promotable = bb(FriendlyPawn) & Rank7)
     {
         last = make_pawn_moves<PROMOTION, UpRight>(last, shift<UpRight>(promotable & (~pinned | anti_diag(ksq))) & checkmask);
         last = make_pawn_moves<PROMOTION, UpLeft >(last, shift<UpLeft >(promotable & (~pinned | main_diag(ksq))) & checkmask);
     }
 
-    Bitboard pawns = bb(FriendlyPawn) & NoPromote;
+    Bitboard pawns = bb(FriendlyPawn) & ~Rank7;
 
     last = make_pawn_moves<NORMAL, UpRight>(last, shift<UpRight>(pawns & (~pinned | anti_diag(ksq))) & checkmask);
     last = make_pawn_moves<NORMAL, UpLeft >(last, shift<UpLeft >(pawns & (~pinned | main_diag(ksq))) & checkmask);
@@ -249,7 +247,7 @@ CaptureList<Us>::CaptureList()
     }
 
     Bitboard bishop_queen = bb(FriendlyBishop) | bb(FriendlyQueen);
-    Bitboard rook_queen   = bb(FriendlyRook)   | bb(FriendlyQueen);
+    Bitboard rook_queen = bb(FriendlyRook) | bb(FriendlyQueen);
 
     for (Bitboard b = bishop_queen & ~pinned; b; clear_lsb(b))
     {

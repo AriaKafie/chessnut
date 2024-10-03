@@ -12,7 +12,7 @@ std::string piece_to_char = "  PNBRQK  pnbrqk";
 
 void set_gamephase();
 
-Bitboard bitboards[B_KING + 1];
+Bitboard bitboards[16];
 Piece board[SQUARE_NB];
 
 uint64_t Zobrist::hash[B_KING + 1][SQUARE_NB];
@@ -30,7 +30,7 @@ void Position::init() {
 void Position::set(const std::string& fen) {
 
     memset(board, NO_PIECE, 64 * sizeof(Piece));
-    memset(bitboards, 0, 16 * sizeof(Bitboard));
+    memset(bitboards, 0ull, 16 * sizeof(Bitboard));
 
     Square             sq = A8;
     std::istringstream is(fen);
