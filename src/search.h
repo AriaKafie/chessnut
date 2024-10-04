@@ -23,10 +23,6 @@ inline constexpr int root_reductions[MAX_PLY] =
     8,8,8,8,8,8,8,8,8,8,
 };
 
-inline unsigned long long curr_time_millis() {
-    return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count();
-}
-
 constexpr int matescore = 100000;
 
 namespace Search {

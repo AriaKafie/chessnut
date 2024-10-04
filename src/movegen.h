@@ -6,23 +6,23 @@
 #include "movelist.h"
 #include "position.h"
 
-template<MoveType move_type, Direction d>
+template<MoveType Type, Direction D>
 ForceInline Move* make_pawn_moves(Move* list, Bitboard attacks) {
 
-    if constexpr (move_type == NORMAL)
+    if constexpr (Type == NORMAL)
     {
         for (;attacks; clear_lsb(attacks))
         {
             Square to = lsb(attacks);
-            *list++ = make_move(to - d, to);
+            *list++ = make_move(to - D, to);
         }
     }
-    else if constexpr (move_type == PROMOTION)
+    else if constexpr (Type == PROMOTION)
     {
         for (;attacks; clear_lsb(attacks))
         {
             Square to = lsb(attacks);
-            *list++ = make_move<PROMOTION>(to - d, to);
+            *list++ = make_move<PROMOTION>(to - D, to);
         }
     }
 

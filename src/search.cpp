@@ -165,7 +165,7 @@ void iterative_deepening(int max_depth = 64) {
         if (search_cancelled)
             break;
 
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
+        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << move_to_uci(root_move) << std::endl;
     }
 }
 

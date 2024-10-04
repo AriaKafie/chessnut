@@ -1,6 +1,7 @@
 
 #include "debug.h"
 
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
@@ -11,7 +12,6 @@
 #include "movegen.h"
 #include "moveordering.h"
 #include "position.h"
-#include "search.h"
 #include "transpositiontable.h"
 #include "uci.h"
 
@@ -45,7 +45,7 @@ void search(int depth)
 template<Color SideToMove>
 void performance_test(int depth) {
 
-    uint64_t total_ms = 0, total_nodes = 0;
+    uint64_t elapsed = 0, total_nodes = 0;
 
     MoveList<SideToMove> moves;
 
@@ -53,22 +53,22 @@ void performance_test(int depth) {
     {
         nodes = 0;
 
-        auto start = curr_time_millis();
+        auto start = std::chrono::steady_clock::now();
 
         do_move<SideToMove>(m);
         search<!SideToMove>(depth - 1);
         undo_move<SideToMove>(m);
 
-        auto end = curr_time_millis();
+        auto end = std::chrono::steady_clock::now();
 
-        total_ms += end - start;
+        elapsed += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
         std::cout << move_to_uci(m) << ": " << nodes << std::endl;
 
         total_nodes += nodes;
     }
 
-    std::cout << "\nnodes searched: " << total_nodes << "\nin " << total_ms << " ms\n" << std::endl;
+    std::cout << "\nnodes searched: " << total_nodes << "\nin " << (elapsed / 1000) << " ms\n" << std::endl;
 }
 
 void Debug::perft(std::istringstream& ss) {
