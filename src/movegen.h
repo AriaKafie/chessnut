@@ -226,7 +226,6 @@ CaptureList<Us>::CaptureList()
 
     constexpr Direction UpRight = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
     constexpr Direction UpLeft  = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
-    constexpr Bitboard  Rank2   = Us == WHITE ? RANK_2     : RANK_7;
     constexpr Bitboard  Rank7   = Us == WHITE ? RANK_7     : RANK_2;
 
     if (Bitboard promotable = bb(FriendlyPawn) & Rank7)
