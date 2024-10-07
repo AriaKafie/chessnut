@@ -123,7 +123,7 @@ inline std::string to_string(Bitboard b) {
 
     for (Bitboard bit = square_bb(A8); bit; bit >>= 1)
     {
-        s += (bit & b) ? "| @ " : "|   ";
+        s += bit & b ? "| @ " : "|   ";
 
         if (bit & FILE_H)
             s += "|\n" + l;
@@ -214,11 +214,9 @@ inline void toggle_square(Bitboard& b, Square s) {
     b ^= 1ull << s;
 }
 
-inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
-
-    return _pdep_u64(permutation, mask);
-
-    /*int bitcount = popcount(mask);
+inline Bitboard generate_occupancy(Bitboard mask, int permutation)
+{
+    int bitcount = popcount(mask);
 
     Bitboard occupancy = 0;
 
@@ -232,7 +230,7 @@ inline Bitboard generate_occupancy(Bitboard mask, int permutation) {
         clear_lsb(mask);
     }
 
-    return occupancy;*/
+    return occupancy;
 }
 
 template<Color C>

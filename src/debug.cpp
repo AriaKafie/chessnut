@@ -54,12 +54,14 @@ void Debug::perft(std::istringstream& is)
                                                 : PerfT<true, BLACK>(depth);
     auto end   = std::chrono::steady_clock::now();
 
-    std::cout << "\n" << result << " nodes searched in "
+    std::cout << "\nnodes searched: " << result << "\nin "
               << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
 }
 
 void Debug::go() {
-
+    for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
+                      B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING })
+        std::cout << to_string(bitboards[pc]) << std::endl;
 }
 
 extern RepInfo repetition_table[];
