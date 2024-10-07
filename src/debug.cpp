@@ -59,9 +59,7 @@ void Debug::perft(std::istringstream& is)
 }
 
 void Debug::go() {
-    for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
-                      B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING })
-        std::cout << to_string(bitboards[pc]) << std::endl;
+    std::cout << std::hex << pext_table << std::endl;
 }
 
 extern RepInfo repetition_table[];
