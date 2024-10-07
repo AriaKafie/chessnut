@@ -128,7 +128,7 @@ std::string Position::fen() {
         if (queenside_rights<BLACK>()) fen << "q";
     }
   
-    fen << " " << (state_ptr->ep_sq ? square_to_uci(state_ptr->ep_sq) : "-") << " 0 1";
+    fen << " " << (state_ptr->ep_sq ? square_to_uci(state_ptr->ep_sq) : "-");
 
     return fen.str();
 }

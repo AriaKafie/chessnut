@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <cmath>
 #include <algorithm>
@@ -15,74 +16,50 @@
 #include "transpositiontable.h"
 #include "uci.h"
 
-static uint64_t nodes;
-
-template<Color SideToMove>
-void search(int depth)
+template<bool Root, Color SideToMove>
+uint64_t PerfT(int depth)
 {
     if (depth == 0)
-    {
-        nodes++;
-        return;
-    }
+        return 1;
 
     MoveList<SideToMove> moves;
 
-    if (depth == 1)
-    {
-        nodes += moves.size();
-        return;
-    }
+    if (depth == 1 && !Root)
+        return moves.size();
 
+    uint64_t count, nodes = 0;
+    
     for (Move m : moves)
     {
         do_move<SideToMove>(m);
-        search<!SideToMove>(depth - 1);
-        undo_move<SideToMove>(m);
-    }
-}
-
-template<Color SideToMove>
-void performance_test(int depth) {
-
-    uint64_t elapsed = 0, total_nodes = 0;
-
-    MoveList<SideToMove> moves;
-
-    for (Move m : moves)
-    {
-        nodes = 0;
-
-        auto start = std::chrono::steady_clock::now();
-
-        do_move<SideToMove>(m);
-        search<!SideToMove>(depth - 1);
+        count = PerfT<false, !SideToMove>(depth - 1);
         undo_move<SideToMove>(m);
 
-        auto end = std::chrono::steady_clock::now();
+        nodes += count;
 
-        elapsed += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-
-        std::cout << move_to_uci(m) << ": " << nodes << std::endl;
-
-        total_nodes += nodes;
+        if (Root)
+            std::cout << move_to_uci(m) << ": " << count << std::endl;
     }
 
-    std::cout << "\nnodes searched: " << total_nodes << "\nin " << (elapsed / 1000) << " ms\n" << std::endl;
+    return nodes;
 }
 
-void Debug::perft(std::istringstream& ss) {
-
+void Debug::perft(std::istringstream& is)
+{
     int   depth;
-    ss >> depth;
+    is >> depth;
 
-    if (Position::white_to_move()) performance_test<WHITE>(depth);
-    else                           performance_test<BLACK>(depth);
+    auto start = std::chrono::steady_clock::now();
+    uint64_t result = Position::white_to_move() ? PerfT<true, WHITE>(depth)
+                                                : PerfT<true, BLACK>(depth);
+    auto end   = std::chrono::steady_clock::now();
+
+    std::cout << "\n" << result << " nodes searched in "
+              << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
 }
 
 void Debug::go() {
 
-    std::cout << to_string(0);
 }
 
 extern RepInfo repetition_table[];

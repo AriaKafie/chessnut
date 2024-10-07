@@ -47,7 +47,7 @@ enum {
 
 enum {
     NO_PIECE, PIECE_TYPE_NB = 6,
-    PAWN   =        2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
+      PAWN =        2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
     W_PAWN =     PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
     B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
 };
