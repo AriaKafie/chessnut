@@ -23,7 +23,7 @@ void Bitboards::init()
 {
     for (Square s1 = H1; s1 <= A8; s1++)
     {
-        FileBB[s1] = FILE_H << (s1 % 8);
+        FileBB[s1] = FILE_H << s1 % 8;
 
         for (Square s2 = H1; s2 <= A8; s2++)
             SquareDistance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
@@ -114,8 +114,8 @@ void init_magics() {
 
     for (PieceType pt : { BISHOP, ROOK })
     {
-        int*      base = pt == BISHOP ? bishop_base  : rook_base;
-        Bitboard* mask = pt == BISHOP ? bishop_masks : rook_masks;
+        int      *base = pt == BISHOP ? bishop_base  : rook_base;
+        Bitboard *mask = pt == BISHOP ? bishop_masks : rook_masks;
 
         for (Square s = H1; s <= A8; s++)
         {

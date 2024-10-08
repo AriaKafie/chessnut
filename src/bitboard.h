@@ -62,8 +62,8 @@ constexpr Bitboard RANK_7 = RANK_1 << 48;
 constexpr Bitboard RANK_8 = RANK_1 << 56;
 
 template<Direction D>
-constexpr Bitboard shift(Bitboard bb) {
-
+constexpr Bitboard shift(Bitboard bb)
+{
     if constexpr (D == NORTH)       return  bb << 8;
     if constexpr (D == NORTH_EAST)  return (bb & NOT_FILE_H) << 7;
     if constexpr (D == EAST)        return  bb >> 1;
@@ -156,7 +156,7 @@ inline Bitboard mask(Square s, Direction d) {
         Bitboard r = rank_bb(s), m = 0;
 
         while (square_bb(s += d) & r)
-            m |= FILE_H << (s % 8);
+            m |= FILE_H << s % 8;
 
         return m;
     }
@@ -166,7 +166,7 @@ inline void clear_lsb(Bitboard& b) {
     b = _blsr_u64(b);
 }
 
-inline uint64_t more_than_one(Bitboard b) {
+inline bool more_than_one(Bitboard b) {
     return _blsr_u64(b);
 }
 
