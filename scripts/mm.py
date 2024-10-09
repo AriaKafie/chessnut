@@ -13,6 +13,15 @@ class Engine:
         self.movetime = movetime
         self.debug = debug
 
+    def fen(self):
+
+        self.p.stdin.write("fen\n")
+        self.p.stdin.flush()
+
+        fen = self.p.stdout.readline().strip()
+
+        return fen
+        
     def send_message(self, message):
         self.p.stdin.write(message + "\n")
         self.p.stdin.flush()
@@ -49,8 +58,8 @@ class Engine:
 
         print(self.p.stdout.readline())
 
-e1 = Engine("c:\\users\\14244\\desktop\\chess\\mm\\engines\\" + sys.argv[1], sys.argv[3], "e1debug.txt")
-e2 = Engine("c:\\users\\14244\\desktop\\chess\\mm\\engines\\" + sys.argv[2], sys.argv[4], "e2debug.txt")
+e1 = Engine("engines\\" + sys.argv[1], sys.argv[3], "e1debug.txt")
+e2 = Engine("engines\\" + sys.argv[2], sys.argv[4], "e2debug.txt")
 
 draws = 0
 e1wins = 0
@@ -73,15 +82,20 @@ def refresh(engine, fen):
     print(text + "game: " + str(i+1) + "/" + str(len(fenlist)))
     sys.stdout.flush()
     
-with open("C:\\Users\\14244\\Desktop\\chess\\mm\\fen\\lc01k.txt", 'r') as fens:
+with open("lc01k.txt", 'r') as fens:
     fenlist = fens.readlines()
 
 random.shuffle(fenlist)
 
 for i in range(len(fenlist)):
+    with open(sys.argv[1] + sys.argv[2] + "log.txt", 'a') as log:
+        log.write(sys.argv[1] + ": " + str(e1wins) + " crashes: " + str(e1crash) + "\n")
+        log.write(sys.argv[2] + ": " + str(e2wins) + " crashes: " + str(e2crash) + "\n")
+        log.write("draws: " + str(draws) + " game: " + str(i+1) + "/" + str(len(fenlist)) + "\n")
+
     fen = fenlist[i]
-    #with open('debug.txt', 'a') as log:
-    #    log.write("started " + fen.strip() + " at " + datetime.now().strftime('%H:%M:%S') + "\n")
+    #with open('log.txt', 'a') as log:
+        #log.write("\nstarting " + fen.strip() + "\n")
     e1.send_message("ucinewgame")
     e2.send_message("ucinewgame")
     e1.send_message("position fen " + fen)
@@ -101,6 +115,8 @@ for i in range(len(fenlist)):
             break
 
         move = e1.bestmove()
+        #with open('log.txt', 'a') as log:
+            #log.write("engine1(" + sys.argv[1] + "): " + move + "\n")
         if move == "crash":
             e1crash += 1
             draws += 1
@@ -108,8 +124,8 @@ for i in range(len(fenlist)):
                 log.write("engine1(" + sys.argv[1] + ") crashed with " + fen.strip() + " at " + datetime.now().strftime('%H:%M:%S') + "\n")
             e2.send_message("quit")
             time.sleep(5)
-            e1 = Engine("c:\\users\\14244\\desktop\\chess\\mm\\engines\\" + sys.argv[1], sys.argv[3], "e1debug.txt")
-            e2 = Engine("c:\\users\\14244\\desktop\\chess\\mm\\engines\\" + sys.argv[2], sys.argv[4], "e2debug.txt")
+            e1 = Engine("engines\\" + sys.argv[1], sys.argv[3], "e1debug.txt")
+            e2 = Engine("engines\\" + sys.argv[2], sys.argv[4], "e2debug.txt")
             time.sleep(5)
             break
             
@@ -129,6 +145,8 @@ for i in range(len(fenlist)):
             break
 
         move = e2.bestmove()
+        #with open('log.txt', 'a') as log:
+            #log.write("engine2(" + sys.argv[2] + "): " + move + "\n")
         if move == "crash":
             e2crash += 1
             draws += 1
@@ -136,8 +154,8 @@ for i in range(len(fenlist)):
                 log.write("engine2(" + sys.argv[2] + ") crashed with " + fen.strip() + " at " + datetime.now().strftime('%H:%M:%S') + "\n")
             e1.send_message("quit")
             time.sleep(5)
-            e1 = Engine("c:\\users\\14244\\desktop\\chess\\mm\\engines\\" + sys.argv[1], sys.argv[3], "e1debug.txt")
-            e2 = Engine("c:\\users\\14244\\desktop\\chess\\mm\\engines\\" + sys.argv[2], sys.argv[4], "e2debug.txt")
+            e1 = Engine("engines\\" + sys.argv[1], sys.argv[3], "e1debug.txt")
+            e2 = Engine("engines\\" + sys.argv[2], sys.argv[4], "e2debug.txt")
             time.sleep(5)
             break
         e1.send_message("moves " + move)
