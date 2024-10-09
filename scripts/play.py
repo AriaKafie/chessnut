@@ -27,6 +27,15 @@ class Engine:
         
         self.p = subprocess.Popen(path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
 
+    def fen(self):
+
+        self.p.stdin.write("fen\n")
+        self.p.stdin.flush()
+
+        fen = self.p.stdout.readline().strip()
+
+        return fen
+        
     def await_stop(self):
         
         cmd = input()
@@ -35,20 +44,7 @@ class Engine:
         
     def send_message(self, message):
 
-        self.p.stdin.write("d\n")
-        self.p.stdin.flush()
-
-        line = ""
-
-        while line.find("Fen") == -1:
-            line = self.p.stdout.readline().strip()
-
-        fen = line[5:]
-
-        line = self.p.stdout.readline()
-        line = self.p.stdout.readline()
-
-        board = chess.Board(fen)
+        board = chess.Board(self.fen())
 
         legal_moves = [move.uci() for move in board.legal_moves]
 
@@ -77,18 +73,7 @@ class Engine:
         
     def go(self):
 
-        self.p.stdin.write("d\n")
-        self.p.stdin.flush()
-
-        line = ""
-
-        while "Fen" not in line:
-            line = self.p.stdout.readline().strip()
-
-        color = line.split()[2]
-        
-        line = self.p.stdout.readline()
-        line = self.p.stdout.readline()
+        color = self.fen().split()[2]
 
         input_thread = threading.Thread(target=self.await_stop)
         input_thread.start()
@@ -126,6 +111,7 @@ class Engine:
         if "q" in bestmove:
             pyautogui.click(xto, yto)
         
+#engine = Engine("c:\\users\\14244\\source\\repos\\chess\\x64\\release\\chess.exe")
 engine = Engine("c:\\users\\14244\\source\\repos\\search_root\\x64\\release\\search_root.exe")
 
 while True:
