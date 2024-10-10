@@ -19,7 +19,7 @@ struct Killer {
     }
 
     bool contains(Move m) const {
-        return (m == moveA) || (m == moveB);
+        return m == moveA || m == moveB;
     }
 };
 
@@ -59,7 +59,7 @@ void CaptureList<Us>::sort() {
             
     for (Move& m : *this)
     {  
-        uint32_t score = 0x7fff;
+        uint32_t score = 0x8000;
 
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -122,7 +122,7 @@ void MoveList<Us>::sort(Move best_move, int ply) {
             continue;
         }
       
-        uint32_t score = 0x7fff;
+        uint32_t score = 0x8000;
     
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);

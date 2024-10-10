@@ -8,7 +8,7 @@
 #include "transpositiontable.h"
 #include "uci.h"
 
-std::string piece_to_char = "  PNBRQK  pnbrqk";
+constexpr std::string_view piece_to_char = "  PNBRQK  pnbrqk";
 
 void set_gamephase();
 

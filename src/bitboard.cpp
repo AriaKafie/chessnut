@@ -125,7 +125,7 @@ void init_magics() {
             for (Bitboard occupied = 0, i = 0; i < 1 << popcount(mask[s]); occupied = generate_occupancy(mask[s], ++i))
             {
                 *pext++ = attacks_bb(pt, s, occupied);
-                *xray++ = attacks_bb(pt, s, occupied ^ (attacks_bb(pt, s, occupied) & occupied));
+                *xray++ = attacks_bb(pt, s, occupied ^ attacks_bb(pt, s, occupied) & occupied);
             }
         }
     }

@@ -10,55 +10,50 @@
 #include "search.h"
 #include "transpositiontable.h"
 
-std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-void position(std::istringstream& cmd) {
-
+void position(std::istringstream& is)
+{
     std::string fen, token;
-    cmd >> token;
+    is >> token;
 
     if (token == "startpos")
     {
-        fen = STARTPOS;
-        cmd >> token;
+        fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -";
+        is >> token;
     }
+
     else if (token == "fen")
-    {
-        while (cmd >> token && token != "moves")
+        while (is >> token && token != "moves")
             fen += token + " ";
-    }
-    else return;
 
     Position::set(fen);
 
-    while (cmd >> token)
+    while (is >> token)
         Position::commit_move(uci_to_move(token));
 }
 
-void moves(std::istringstream& ss) {
-
+void moves(std::istringstream& is)
+{
     std::string token;
 
-    while (ss >> token)
+    while (is >> token)
         Position::commit_move(uci_to_move(token));
 }
 
-void go(std::istringstream& ss) {
-
+void go(std::istringstream& is)
+{
     std::string token;
-
-    ss >> token;
+    is >> token;
 
     if (token == "nodes")
     {
         int depth;
-        ss >> depth;
+        is >> depth;
         Search::count_nodes(depth);
     } 
     else if (token == "movetime")
     {
         uint64_t thinktime;
-        ss >> thinktime;
+        is >> thinktime;
         Search::go(thinktime);
     }
     else
@@ -67,7 +62,7 @@ void go(std::istringstream& ss) {
 
 void UCI::loop()
 {
-    Position::set(STARTPOS);
+    Position::set("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -");
 
     std::string cmd, token;
 
@@ -81,6 +76,7 @@ void UCI::loop()
         if      (token == "uci")     std::cout << "uciok"               << std::endl;
         else if (token == "isready") std::cout << "readyok"             << std::endl;
         else if (token == "d")       std::cout << Position::to_string() << std::endl;
+        else if (token == "fen")     std::cout << Position::fen()       << std::endl;
 
         else if (token == "ucinewgame")
         {
