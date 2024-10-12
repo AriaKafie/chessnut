@@ -43,15 +43,10 @@ uint64_t generate_magic(Bitboard mask)
         failed = false;
         memset(visited, false, permutations);
 
-        for (int p = 0; p < permutations; p++)
+        for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
         {
-            int key = occupied[p] * magic >> 64 - popcount(mask);
-
-            if (visited[key])
-            {
-                failed = true;
+            if (failed = visited[key]; failed)
                 break;
-            }
 
             visited[key] = true;
         }

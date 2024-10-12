@@ -63,8 +63,10 @@ void Debug::perft(std::istringstream& is)
 
 void Debug::go()
 {
-    for (Bitboard m : rook_masks)
-        std::cout << std::hex << generate_magic(m) << std::endl;
+    for (Bitboard b : rook_masks)
+    {
+        //std::cout << std::hex << generate_magic(b) << std::dec << std::endl;
+    }
 }
 
 extern RepInfo repetition_table[];
