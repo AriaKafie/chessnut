@@ -2,7 +2,9 @@
 #include "bitboard.h"
 
 #include <algorithm>
-#include <random>
+#ifndef PEXT
+    #include <random>
+#endif
 
 int score_kingshield(Square ksq, Bitboard occ, Color c);
 void init_magics();
@@ -20,6 +22,7 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
     return atk;
 }
 
+#ifndef PEXT
 uint64_t generate_magic(Bitboard mask)
 {
     int permutations = 1 << popcount(mask);
@@ -57,6 +60,7 @@ uint64_t generate_magic(Bitboard mask)
 
     return magic;
 }
+#endif
 
 void Bitboards::init()
 {
