@@ -50,7 +50,6 @@ uint64_t generate_magic(Bitboard mask)
 
             visited[key] = true;
         }
-
     } while (failed);
 
     return magic;
