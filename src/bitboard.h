@@ -12,6 +12,8 @@
 #define popcount(b) _mm_popcnt_u64(b)
 #define lsb(b) _tzcnt_u64(b)
 
+uint64_t generate_magic(Bitboard mask);
+
 namespace Bitboards { void init(); }
 
 inline Bitboard pext_table[0x1a480];
@@ -39,6 +41,13 @@ inline int black_kingshield_scores[SQUARE_NB][1 << 6];
 inline uint8_t castle_masks[COLOR_NB][1 << 5];
 inline Bitboard white_kingshield[SQUARE_NB];
 inline Bitboard black_kingshield[SQUARE_NB];
+
+#ifndef PEXT
+    inline uint64_t rook_magics[SQUARE_NB];
+    inline uint64_t bishop_magics[SQUARE_NB];
+    inline uint64_t castle_magics[COLOR_NB];
+    inline uint64_t king_safety_magics[COLOR_NB][SQUARE_NB];
+#endif
 
 constexpr Bitboard ALL_SQUARES = 0xffffffffffffffffull;
 constexpr Bitboard FILE_A = 0x8080808080808080ull;
@@ -80,32 +89,32 @@ inline Bitboard distance_from_center(Square s) {
     return CenterDistance[s];
 }
 
-inline Bitboard align_mask(Square ksq, Square pinned) {
-    return AlignMask[ksq][pinned];
+inline Bitboard align_mask(Square s1, Square s2) {
+    return AlignMask[s1][s2];
 }
 
-inline Bitboard main_diag(Square s) {
-    return MainDiag[s];
+inline Bitboard main_diag(Square sq) {
+    return MainDiag[sq];
 }
 
-inline Bitboard anti_diag(Square s) {
-    return AntiDiag[s];
+inline Bitboard anti_diag(Square sq) {
+    return AntiDiag[sq];
 }
 
-inline Bitboard file_bb(Square s) {
-    return FileBB[s];
+inline Bitboard file_bb(Square sq) {
+    return FileBB[sq];
 }
 
-inline Bitboard double_check(Square ksq) {
-    return DoubleCheck[ksq];
+inline Bitboard double_check(Square sq) {
+    return DoubleCheck[sq];
 }
 
 inline Bitboard check_ray(Square ksq, Square checker) {
     return CheckRay[ksq][checker];
 }
 
-constexpr Bitboard square_bb(Square s) {
-    return 1ull << s;
+constexpr Bitboard square_bb(Square sq) {
+    return 1ull << sq;
 }
 
 template<typename... squares>

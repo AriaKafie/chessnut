@@ -3,11 +3,16 @@
 #define TYPES_H
 
 #include <cstdint>
+#include <intrin.h>
 
 #ifdef _MSC_VER
     #define ForceInline __forceinline
 #else
     #define ForceInline __attribute__((always_inline))
+#endif
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+    #define PEXT
 #endif
 
 typedef uint64_t Bitboard;

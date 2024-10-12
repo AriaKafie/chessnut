@@ -2,6 +2,7 @@
 #include "bitboard.h"
 
 #include <algorithm>
+#include <random>
 
 int score_kingshield(Square ksq, Bitboard occ, Color c);
 void init_magics();
@@ -17,6 +18,44 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
         for (Square s = sq; safe_step(s, d) && !(square_bb(s) & occupied); atk |= square_bb(s += d));
     
     return atk;
+}
+
+uint64_t generate_magic(Bitboard mask)
+{
+    int permutations = 1 << popcount(mask);
+
+    Bitboard occupied[4096];
+    bool visited[4096], failed;
+
+    for (int p = 0; p < permutations; p++)
+        occupied[p] = generate_occupancy(mask, p);
+
+    std::mt19937_64 rng(0);
+    uint64_t magic;
+
+    do
+    {
+        magic = rng() & rng() & rng();
+
+        failed = false;
+        memset(visited, false, permutations);
+
+        for (int p = 0; p < permutations; p++)
+        {
+            int key = occupied[p] * magic >> 64 - popcount(mask);
+
+            if (visited[key])
+            {
+                failed = true;
+                break;
+            }
+
+            visited[key] = true;
+        }
+
+    } while (failed);
+
+    return magic;
 }
 
 void Bitboards::init()
@@ -55,7 +94,7 @@ void Bitboards::init()
                              SOUTH+SOUTH_WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTH+NORTH_WEST })
             KnightAttacks[s1] |= safe_step(s1, d);
 
-        Square sq = 8 * (s1 / 8) + 1;
+        Square sq = s1 & 0x38 | 1;
 
         white_kingshield[s1] =
             ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);
@@ -108,8 +147,8 @@ void Bitboards::init()
     }
 }
 
-void init_magics() {
-
+void init_magics()
+{
     Bitboard *pext = pext_table, *xray = xray_table;
 
     for (PieceType pt : { BISHOP, ROOK })

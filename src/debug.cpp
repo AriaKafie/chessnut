@@ -9,6 +9,9 @@
 #include <cmath>
 #include <algorithm>
 #include <vector>
+#include <intrin.h>
+
+#include <random>
 
 #include "movegen.h"
 #include "moveordering.h"
@@ -58,8 +61,10 @@ void Debug::perft(std::istringstream& is)
               << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
 }
 
-void Debug::go() {
-    std::cout << std::hex << pext_table << std::endl;
+void Debug::go()
+{
+    for (Bitboard m : rook_masks)
+        std::cout << std::hex << generate_magic(m) << std::endl;
 }
 
 extern RepInfo repetition_table[];

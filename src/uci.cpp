@@ -27,16 +27,16 @@ void position(std::istringstream& is)
 
     Position::set(fen);
 
-    while (is >> token)
-        Position::commit_move(uci_to_move(token));
+    for (Move m; (is >> token) && (m = uci_to_move(token));)
+        Position::commit_move(m);
 }
 
 void moves(std::istringstream& is)
 {
     std::string token;
 
-    while (is >> token)
-        Position::commit_move(uci_to_move(token));
+    for (Move m; (is >> token) && (m = uci_to_move(token));)
+        Position::commit_move(m);
 }
 
 void go(std::istringstream& is)
