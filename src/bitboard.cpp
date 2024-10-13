@@ -23,37 +23,38 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
 }
 
 #ifndef PEXT
-uint64_t generate_magic(Bitboard mask)
-{
-    int permutations = 1 << popcount(mask);
-
-    Bitboard occupied[4096];
-    bool visited[4096], failed;
-
-    for (int p = 0; p < permutations; p++)
-        occupied[p] = generate_occupancy(mask, p);
-
-    std::mt19937_64 rng(0);
-    uint64_t magic;
-
-    do
+    uint64_t generate_magic(Bitboard mask)
     {
-        magic = rng() & rng() & rng();
+        int permutations = 1 << popcount(mask);
 
-        failed = false;
-        memset(visited, false, permutations);
+        Bitboard occupied[4096];
+        bool visited[4096], failed;
 
-        for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
+        for (int p = 0; p < permutations; p++)
+            occupied[p] = generate_occupancy(mask, p);
+
+        std::mt19937_64 rng(0);
+        uint64_t magic;
+
+        do
         {
-            if (failed = visited[key]; failed)
-                break;
+            magic = rng() & rng() & rng();
 
-            visited[key] = true;
-        }
-    } while (failed);
+            failed = false;
+            memset(visited, false, permutations);
 
-    return magic;
-}
+            for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
+            {
+                if (failed = visited[key]; failed)
+                    break;
+
+                visited[key] = true;
+            }
+        
+        } while (failed);
+
+        return magic;
+    }
 #endif
 
 void Bitboards::init()
@@ -166,6 +167,21 @@ void init_magics()
             }
         }
     }
+}
+
+std::string to_string(Bitboard b) {
+
+    std::string l = "+---+---+---+---+---+---+---+---+\n", s = l;
+
+    for (Bitboard bit = square_bb(A8); bit; bit >>= 1)
+    {
+        s += bit & b ? "| @ " : "|   ";
+
+        if (bit & FILE_H)
+            s += "|\n" + l;
+    }
+
+    return s + "\n";
 }
 
 int score_kingshield(Square ksq, Bitboard occ, Color c) {
