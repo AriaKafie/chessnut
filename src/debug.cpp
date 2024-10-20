@@ -17,6 +17,8 @@
 #include "transpositiontable.h"
 #include "uci.h"
 
+extern RepInfo repetition_table[];
+
 template<bool Root, Color SideToMove>
 uint64_t PerfT(int depth)
 {
@@ -59,15 +61,28 @@ void Debug::perft(std::istringstream& is)
               << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
 }
 
-void Debug::go()
+std::string Debug::rep_table_to_string()
 {
-    for (uint8_t i = H1; i <= A8; i++)
-    {
-        std::cout << i;
-    }
+    std::stringstream ss;
+    std::string s = "+------------------+------+----+";
+
+    ss << s << "\n| key              | loc  | #  |\n" << s << "\n";
+
+    for (int i = 0; i < RT_SIZE; i++)
+        if (RepInfo& ri = repetition_table[i]; ri.occurrences)
+        {
+            ss << "| " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << ri.key;
+            ss << " | " << std::setw(4) << std::setfill('0') << std::hex << std::uppercase << i;
+            ss << " | " << std::setw(2) << std::setfill('0') << std::dec << (int(ri.occurrences)) << " |\n" << s << "\n";
+        }
+
+    return ss.str();
 }
 
-extern RepInfo repetition_table[];
+void Debug::go()
+{
+    std::cout << rep_table_to_string() << std::endl;
+}
 
 void Debug::gameinfo() {
 
