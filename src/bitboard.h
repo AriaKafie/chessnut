@@ -12,6 +12,8 @@
 #define popcount(b) _mm_popcnt_u64(b)
 #define lsb(b) _tzcnt_u64(b)
 
+std::string to_string(Bitboard b);
+
 uint64_t generate_magic(Bitboard mask);
 
 namespace Bitboards { void init(); }
@@ -124,21 +126,6 @@ inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
 
 inline Bitboard rank_bb(Square s) {
     return RANK_1 << 8 * (s / 8);
-}
-
-inline std::string to_string(Bitboard b) {
-
-    std::string l = "+---+---+---+---+---+---+---+---+\n", s = l;
-
-    for (Bitboard bit = square_bb(A8); bit; bit >>= 1)
-    {
-        s += bit & b ? "| @ " : "|   ";
-
-        if (bit & FILE_H)
-            s += "|\n" + l;
-    }
-
-    return s + "\n";
 }
 
 inline Bitboard mask(Square s, Direction d) {

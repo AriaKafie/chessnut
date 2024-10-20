@@ -9,8 +9,6 @@
 #include <cmath>
 #include <algorithm>
 #include <vector>
-#include <intrin.h>
-
 #include <random>
 
 #include "movegen.h"
@@ -63,9 +61,9 @@ void Debug::perft(std::istringstream& is)
 
 void Debug::go()
 {
-    for (Bitboard b : rook_masks)
+    for (uint8_t i = H1; i <= A8; i++)
     {
-        //std::cout << std::hex << generate_magic(b) << std::dec << std::endl;
+        std::cout << i;
     }
 }
 

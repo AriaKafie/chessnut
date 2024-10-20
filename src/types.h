@@ -3,7 +3,6 @@
 #define TYPES_H
 
 #include <cstdint>
-#include <intrin.h>
 
 #ifdef _MSC_VER
     #define ForceInline __forceinline
