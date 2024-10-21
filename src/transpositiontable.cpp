@@ -5,32 +5,33 @@
 Entry transposition_table[TT_SIZE];
 RepInfo repetition_table[RT_SIZE];
 
-bool RepetitionTable::draw() {
-
-    const RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
-
-    return ri.key == Position::key() && ri.occurrences >= 3;
+bool RepetitionTable::draw()
+{
+    const RepInfo *ri = &repetition_table[Position::key() & (RT_SIZE - 1)];
+    return ri->key == Position::key() && ri->occurrences >= 3;
 }
 
-void RepetitionTable::push() {
+void RepetitionTable::push()
+{
+    RepInfo *ri = &repetition_table[Position::key() & (RT_SIZE - 1)];
 
-    RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
-
-    if (ri.key == Position::key())
-        ri.occurrences++;
-    else if (ri.key == 0 || ri.occurrences == 0)
+    if (ri->key == Position::key())
     {
-        ri.key = Position::key();
-        ri.occurrences = 1;
+        ri->occurrences++;
+    }
+    else if (ri->occurrences == 0)
+    {
+        ri->key = Position::key();
+        ri->occurrences = 1;
     }
 }
 
-void RepetitionTable::pop() {
+void RepetitionTable::pop()
+{
+    RepInfo *ri = &repetition_table[Position::key() & (RT_SIZE - 1)];
 
-    RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
-
-    if (ri.key == Position::key())
-        ri.occurrences--;
+    if (ri->key == Position::key())
+        ri->occurrences--;
 }
 
 void RepetitionTable::clear() {

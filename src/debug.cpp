@@ -41,7 +41,7 @@ std::string PV()
     return line;
 }
 
-std::string Debug::pv_line()
+std::string Debug::pv()
 {
     return Position::white_to_move() ? PV<WHITE>()
                                      : PV<BLACK>();
@@ -89,7 +89,7 @@ void Debug::perft(std::istringstream& is)
               << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
 }
 
-std::string Debug::rep_table_to_string()
+std::string rep_table_to_string()
 {
     std::stringstream ss;
     std::string s = "+------------------+------+----+";
@@ -109,7 +109,7 @@ std::string Debug::rep_table_to_string()
 
 void Debug::go()
 {
-    
+    std::cout << rep_table_to_string() << std::endl;
 }
 
 void Debug::gameinfo() {

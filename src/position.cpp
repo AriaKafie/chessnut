@@ -23,8 +23,10 @@ void Position::init() {
 
     for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
                       B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING })
+    {
         for (Square sq = H1; sq <= A8; sq++)
             Zobrist::hash[pc][sq] = rng();
+    }
 }
 
 void Position::set(const std::string& fen) {

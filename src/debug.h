@@ -82,8 +82,7 @@ inline std::vector<std::string> fens =
     "r1bq1rk1/1p2npbp/2np2p1/p1p1p3/Q1P5/P1NPP1P1/1P2NPBP/R1B2RK1 b - - 3 10"
 };
 
-std::string pv_line();
-std::string rep_table_to_string();
+std::string pv();
 void go();
 void gameinfo();
 void perft(std::istringstream& args);

@@ -5,8 +5,6 @@
 #include "position.h"
 #include "types.h"
 
-int static_eval();
-
 constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 
 inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
