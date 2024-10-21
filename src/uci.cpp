@@ -27,7 +27,7 @@ void position(std::istringstream& is)
 
     Position::set(fen);
 
-    for (Move m; (is >> token) && (m = uci_to_move(token));)
+    for (Move m; is >> token && (m = uci_to_move(token));)
         Position::commit_move(m);
 }
 
@@ -35,7 +35,7 @@ void moves(std::istringstream& is)
 {
     std::string token;
 
-    for (Move m; (is >> token) && (m = uci_to_move(token));)
+    for (Move m; is >> token && (m = uci_to_move(token));)
         Position::commit_move(m);
 }
 
