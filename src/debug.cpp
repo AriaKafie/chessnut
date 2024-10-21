@@ -109,7 +109,7 @@ std::string Debug::rep_table_to_string()
 
 void Debug::go()
 {
-    std::cout << rep_table_to_string();
+    
 }
 
 void Debug::gameinfo() {

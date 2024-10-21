@@ -40,7 +40,6 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
         {
             magic = rng() & rng() & rng();
 
-            failed = false;
             memset(visited, false, permutations);
 
             for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
