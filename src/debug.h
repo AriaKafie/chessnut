@@ -8,6 +8,8 @@
 
 #include "types.h",
 
+Move* get_moves(Move *list);
+
 namespace Debug {
 
 // 6rk/7p/Q2R1p2/1p2n3/4b3/1P4NP/P1P2PPK/2q5 b - - 0 1

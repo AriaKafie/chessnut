@@ -94,7 +94,7 @@ std::string rep_table_to_string()
     std::stringstream ss;
     std::string s = "+------------------+------+----+";
 
-    ss << s << "\n| key              | loc  | #  |\n" << s << "\n";
+    ss << s << "\n| key              | loc  |  # |\n" << s << "\n";
 
     for (int i = 0; i < RT_SIZE; i++)
         if (RepInfo& ri = repetition_table[i]; ri.occurrences)
@@ -112,8 +112,8 @@ void Debug::go()
     std::cout << rep_table_to_string() << std::endl;
 }
 
-void Debug::gameinfo() {
-
+void Debug::gameinfo()
+{
     if (RepetitionTable::draw())
     {
         std::cout << "draw" << std::endl;
@@ -134,20 +134,26 @@ void Debug::gameinfo() {
         }
     }
 
+    Move list[MAX_MOVES];
+
+    if      (get_moves(list) - list)                                  std::cout << "nonterminal" << std::endl;
+    else if (Position::white_to_move() ? Position::in_check<WHITE>()
+                                       : Position::in_check<BLACK>()) std::cout << "mate"        << std::endl;
+    else                                                              std::cout << "draw"        << std::endl;
+}
+
+Move* get_moves(Move *list)
+{
     if (Position::white_to_move())
     {
-        MoveList<WHITE> moves;
-
-        if      (moves.size())     std::cout << "nonterminal" << std::endl;
-        else if (moves.in_check()) std::cout << "mate"        << std::endl;
-        else                       std::cout << "draw"        << std::endl;
+        MoveList<WHITE> m;
+        memcpy(list, m.moves, sizeof(Move) * m.size());
+        return list + m.size();
     }
     else
     {
-        MoveList<BLACK> moves;
-
-        if      (moves.size())     std::cout << "nonterminal" << std::endl;
-        else if (moves.in_check()) std::cout << "mate"        << std::endl;
-        else                       std::cout << "draw"        << std::endl;
+        MoveList<BLACK> m;
+        memcpy(list, m.moves, sizeof(Move) * m.size());
+        return list + m.size();
     }
 }

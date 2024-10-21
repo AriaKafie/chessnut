@@ -95,23 +95,14 @@ void UCI::loop()
     } while (cmd != "quit");
 }
 
-Move uci_to_move(const std::string& uci) {
+Move uci_to_move(const std::string& uci)
+{
+    Move list[MAX_MOVES];
 
-    if (Position::white_to_move())
+    for (Move *m = list, *end = get_moves(list); m != end; m++)
     {
-        MoveList<WHITE> moves;
-
-        for (Move m : moves)
-            if (move_to_uci(m) == uci)
-                return m;
-    }
-    else
-    {
-        MoveList<BLACK> moves;
-
-        for (Move m : moves)
-            if (move_to_uci(m) == uci)
-                return m;
+        if (move_to_uci(*m) == uci)
+            return *m;
     }
 
     return NO_MOVE;

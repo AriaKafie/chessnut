@@ -168,8 +168,8 @@ void init_magics()
     }
 }
 
-std::string to_string(Bitboard b) {
-
+std::string to_string(Bitboard b)
+{
     std::string l = "+---+---+---+---+---+---+---+---+\n", s = l;
 
     for (Bitboard bit = square_bb(A8); bit; bit >>= 1)

@@ -20,11 +20,12 @@ public:
     Move   operator[](int i) const { return moves[i]; }
 
     void   sort(Move best_move, int ply_from_root);
+    
+    Move moves[MAX_MOVES], *last = moves;
 
 private:
     void quicksort(int low, int high);
 
-    Move     moves[MAX_MOVES], *last = moves;
     Bitboard checkmask;
     Bitboard seen_by_enemy;
     int      partition(int low, int high);

@@ -185,8 +185,8 @@ void Search::go(uint64_t thinktime)
     std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
 }
 
-void Search::count_nodes(int depth) {
-
+void Search::count_nodes(int depth)
+{
     search_cancelled = false;
 
     int maxw = 0;
