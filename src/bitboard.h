@@ -14,8 +14,6 @@
 
 std::string to_string(Bitboard b);
 
-uint64_t generate_magic(Bitboard mask);
-
 namespace Bitboards { void init(); }
 
 inline Bitboard pext_table[0x1a480];

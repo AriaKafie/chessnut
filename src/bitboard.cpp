@@ -14,12 +14,12 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
     Direction rook_directions[4] = { NORTH, EAST, SOUTH, WEST };
     Direction bishop_directions[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
 
-    Bitboard atk = 0;
+    Bitboard attacks = 0;
 
     for (Direction d : pt == ROOK ? rook_directions : bishop_directions)
-        for (Square s = sq; safe_step(s, d) && !(square_bb(s) & occupied); atk |= square_bb(s += d));
+        for (Square s = sq; safe_step(s, d) && !(square_bb(s) & occupied); attacks |= square_bb(s += d));
     
-    return atk;
+    return attacks;
 }
 
 #ifndef PEXT

@@ -19,6 +19,34 @@
 
 extern RepInfo repetition_table[];
 
+template<Color STM>
+std::string PV()
+{
+    if (RepetitionTable::draw())
+        return "";
+
+    std::string line;
+    Move best = TranspositionTable::lookup_move();
+
+    if (best == NO_MOVE)
+        return "";
+
+    else 
+    {
+        do_move<STM>(best);
+        line = move_to_uci(best) + " " + PV<!STM>();
+        undo_move<STM>(best);
+    }
+
+    return line;
+}
+
+std::string Debug::pv_line()
+{
+    return Position::white_to_move() ? PV<WHITE>()
+                                     : PV<BLACK>();
+}
+
 template<bool Root, Color SideToMove>
 uint64_t PerfT(int depth)
 {
@@ -81,7 +109,7 @@ std::string Debug::rep_table_to_string()
 
 void Debug::go()
 {
-    std::cout << rep_table_to_string() << std::endl;
+    std::cout << rep_table_to_string();
 }
 
 void Debug::gameinfo() {

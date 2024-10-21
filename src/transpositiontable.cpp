@@ -12,7 +12,7 @@ bool RepetitionTable::draw() {
     return ri.key == Position::key() && ri.occurrences >= 3;
 }
 
-void RepetitionTable::increment() {
+void RepetitionTable::push() {
 
     RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
 
@@ -25,7 +25,7 @@ void RepetitionTable::increment() {
     }
 }
 
-void RepetitionTable::decrement() {
+void RepetitionTable::pop() {
 
     RepInfo& ri = repetition_table[Position::key() & (RT_SIZE - 1)];
 

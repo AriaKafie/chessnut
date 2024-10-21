@@ -12,6 +12,41 @@ namespace Debug {
 
 // 6rk/7p/Q2R1p2/1p2n3/4b3/1P4NP/P1P2PPK/2q5 b - - 0 1
 
+inline std::vector<std::string> endgames =
+{
+    "8/p1p3pp/2k5/P1B5/1Pr3n1/5N2/r4PPP/3R2K1 w - - 2 26",
+    "8/1RPk4/8/5p1p/5Pbr/4B3/5K2/8 b - - 2 42",
+    "R7/P4pkp/4n1p1/3N4/8/7P/6PK/r7 b - - 2 40",
+    "rn3rk1/pp3p1p/3p4/6pn/3P1p2/3B1R1P/PPP3P1/R1B3K1 w - - 0 15",
+    "8/5pk1/1R2p1p1/6P1/1p2KP2/1r2P3/8/8 b - - 1 47",
+    "7k/4P1np/1p6/p7/2P5/3R3P/4r1BK/8 b - - 2 48",
+    "3r2k1/3Nn1pp/2b1pp2/1pNp4/3P3P/4P1P1/2n2PB1/5RK1 w - - 2 24",
+    "8/5k2/4p3/1Q1p1ppp/3P4/q2KP1P1/5P1P/8 w - - 2 33",
+    "6k1/6p1/2p5/p1p3P1/PrP1Pp2/1P2r3/1R3K2/1R6 w - - 3 37",
+    "3n4/2r1k2p/2p1p3/N1N1Ppb1/2P5/1P5P/PB2K1P1/8 b - - 4 28",
+    "r2r3k/6pp/p1b5/3p2p1/2P5/1B6/P4R1P/5RK1 w - - 0 29",
+    "2b3k1/5r1p/6pP/p1Np2P1/1p1Ppr2/P7/1PPKR3/6R1 w - - 0 36",
+    "8/p6p/4k3/8/1P2ppKP/2n5/1PP2P2/8 w - - 0 33",
+    "4r1k1/p4p2/1ppr3p/6pP/2BB4/1P2P3/8/2K2R2 b - - 1 29",
+    "8/1R6/4kp2/5p2/1P1p4/r6P/5PPK/8 w - - 0 34",
+    "2br2k1/1p4p1/2p2p1p/2P1b3/1P1NB3/3RP2P/6P1/6K1 w - - 1 26",
+    "r5r1/5p1k/p1ppbp2/1p2p2p/3bP1P1/1B1P1P1P/PPP1N3/1R2K2R b K - 1 19",
+    "8/pkp5/2n2R2/1p2p1P1/3pPn2/PP1P1B2/1NP4r/1K6 b - - 2 43",
+    "8/2p3pp/1ppkb3/6P1/1PP4P/P3K3/4B3/8 b - - 0 36",
+    "r3r1k1/pp6/2pB1pp1/8/2bP4/2P2P2/6PP/2R1R1K1 w - - 2 27",
+    "8/8/3Rk1p1/1pP4p/1P3PpK/6P1/8/r7 b - - 4 41",
+    "3N2k1/8/1p4p1/pP3p1p/r7/P3R3/5K2/8 b - - 4 38",
+    "5r1k/6p1/4P2p/8/4R3/1PB2PP1/r6P/7K b - - 0 36",
+    "4r3/p1pN1pkp/3p4/5p2/1b6/PP2P1P1/2P1K2P/R7 b - - 0 24",
+    "8/ppp3p1/3k1n1p/3p4/3P4/2P5/PP1N1KPP/8 w - - 2 26",
+    "2r1brk1/pR6/4Pbp1/3p1pN1/7P/6B1/P7/5R1K w - - 1 27",
+    "8/6k1/3p3p/6p1/2RpPr1P/5PKR/1r6/8 w - - 0 34",
+    "2r2r2/ppp1Rpk1/3p2b1/3P4/PP1P3P/8/4BR2/6K1 b - a3 0 28",
+    "8/4b3/3pk3/nrp1p1p1/4PpPp/3P1P1P/P2NKB2/R7 w - - 0 40",
+    "7r/1pk1Rp2/2p2p2/p2p4/P1nP2Bp/2P4P/P4PP1/6K1 b - - 1 25",
+    "r3rk2/pp1b2pp/2p5/1P2bp2/N7/2PB3P/P4PP1/R4RK1 w - - 1 21",
+};
+
 inline std::vector<std::string> fens =
 {
     "r1bqr1k1/ppp2ppp/2pb1n2/4p3/P3P3/2NPBN2/1PP2PPP/R2Q1RK1 b - - 0 10",
@@ -47,6 +82,7 @@ inline std::vector<std::string> fens =
     "r1bq1rk1/1p2npbp/2np2p1/p1p1p3/Q1P5/P1NPP1P1/1P2NPBP/R1B2RK1 b - - 3 10"
 };
 
+std::string pv_line();
 std::string rep_table_to_string();
 void go();
 void gameinfo();

@@ -209,7 +209,7 @@ void do_move(Move m)
 
         update_castling_rights<Us>();
 
-        RepetitionTable::increment();
+        RepetitionTable::push();
 
         return;
     case PROMOTION:
@@ -229,7 +229,7 @@ void do_move(Move m)
         
         update_castling_rights<Us>();
 
-        RepetitionTable::increment();
+        RepetitionTable::push();
 
         return;
     case SHORTCASTLE:
@@ -259,7 +259,7 @@ void do_move(Move m)
 
         update_castling_rights<Us>();
 
-        RepetitionTable::increment();
+        RepetitionTable::push();
 
         return;
     }
@@ -290,7 +290,7 @@ void do_move(Move m)
 
         update_castling_rights<Us>();
 
-        RepetitionTable::increment();
+        RepetitionTable::push();
         
         return;
     }
@@ -313,7 +313,7 @@ void do_move(Move m)
         board[to] = Pawn;
         board[capsq] = NO_PIECE;
         
-        RepetitionTable::increment();
+        RepetitionTable::push();
 
         return;
     }
@@ -322,7 +322,7 @@ void do_move(Move m)
 template<Color Us>
 void undo_move(Move m)
 {
-    RepetitionTable::decrement();
+    RepetitionTable::pop();
 
     constexpr Color Them = !Us;
 

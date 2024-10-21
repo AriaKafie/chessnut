@@ -40,8 +40,8 @@ void clear();
 namespace RepetitionTable {
 
 bool draw();
-void increment();
-void decrement();
+void push();
+void pop();
 void clear();
 
 } // namespace RepetitionTable 
