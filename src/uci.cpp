@@ -22,42 +22,39 @@ void position(std::istringstream& is)
     }
 
     else if (token == "fen")
-        while (is >> token && token != "moves")
-            fen += token + " ";
+        for (;is >> token && token != "moves"; fen += token + " ");
 
     Position::set(fen);
 
-    for (Move m; is >> token && (m = uci_to_move(token));)
-        Position::commit_move(m);
+    for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
 }
 
 void moves(std::istringstream& is)
 {
     std::string token;
 
-    for (Move m; is >> token && (m = uci_to_move(token));)
-        Position::commit_move(m);
+    for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
 }
 
 void go(std::istringstream& is)
 {
     std::string token;
+    int         depth;
+    uint64_t    thinktime;
+
     is >> token;
 
     if (token == "nodes")
     {
-        int depth;
         is >> depth;
         Search::count_nodes(depth);
     } 
     else if (token == "movetime")
     {
-        uint64_t thinktime;
         is >> thinktime;
         Search::go(thinktime);
     }
-    else
-        Search::go();
+    else Search::go();
 }
 
 void UCI::loop()
@@ -70,8 +67,8 @@ void UCI::loop()
     {
         std::getline(std::cin, cmd);
 
-        std::istringstream ss(cmd);
-        ss >> token;
+        std::istringstream is(cmd);
+        is >> token;
 
         if      (token == "uci")     std::cout << "uciok"               << std::endl;
         else if (token == "isready") std::cout << "readyok"             << std::endl;
@@ -85,10 +82,10 @@ void UCI::loop()
             RepetitionTable::clear();
         }
 
-        else if (token == "position") position(ss);
-        else if (token == "go")       go(ss);
-        else if (token == "moves")    moves(ss);
-        else if (token == "perft")    Debug::perft(ss);
+        else if (token == "position") position(is);
+        else if (token == "go")       go(is);
+        else if (token == "moves")    moves(is);
+        else if (token == "perft")    Debug::perft(is);
         else if (token == "debug")    Debug::go();
         else if (token == "gameinfo") Debug::gameinfo();
         
