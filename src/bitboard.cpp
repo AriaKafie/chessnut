@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #ifndef PEXT
+    #include <cstring>
     #include <random>
 #endif
 

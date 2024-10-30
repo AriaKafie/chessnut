@@ -16,15 +16,16 @@
 static Move root_move;
 int nodes, reductions[MAX_PLY][MAX_PLY];
 
-void Search::init() {
+void Search::init()
+{
     for (int depth = 0; depth < MAX_PLY; depth++)
         for (int move_num = 0; move_num < MAX_PLY; move_num++)
             reductions[depth][move_num] = int(std::log(move_num + 2) / std::log(std::min(14, depth) + 2));
 }
 
 template<Color SideToMove>
-int qsearch(int alpha, int beta) {
-
+int qsearch(int alpha, int beta)
+{
     nodes++;
 
     int eval = static_eval<SideToMove>();
@@ -59,8 +60,8 @@ int qsearch(int alpha, int beta) {
 }
 
 template<Color SideToMove>
-int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok) {
-
+int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
+{
     bool root_node = ply_from_root == 0;
 
     nodes++;
@@ -164,7 +165,7 @@ void iterative_deepening(int max_depth = 64)
         if (search_cancelled)
             break;
 
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << Debug::pv() << std::endl;
+        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << Debug::pv() << std::endl;
     }
 }
 

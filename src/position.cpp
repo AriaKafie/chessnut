@@ -17,8 +17,8 @@ Piece board[SQUARE_NB];
 
 uint64_t Zobrist::hash[B_KING + 1][SQUARE_NB];
 
-void Position::init() {
-
+void Position::init()
+{
     std::mt19937_64 rng(221564671644);
 
     for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
@@ -29,8 +29,8 @@ void Position::init() {
     }
 }
 
-void Position::set(const std::string& fen) {
-
+void Position::set(const std::string& fen)
+{
     memset(board, NO_PIECE, 64 * sizeof(Piece));
     memset(bitboards, 0ull, 16 * sizeof(Bitboard));
 
@@ -72,8 +72,8 @@ void Position::set(const std::string& fen) {
     set_gamephase();
 }
 
-std::string Position::to_string() {
-
+std::string Position::to_string()
+{
     std::stringstream ss;
 
     ss << "\n+---+---+---+---+---+---+---+---+\n";
@@ -91,8 +91,8 @@ std::string Position::to_string() {
     return ss.str();
 }
 
-std::string Position::fen() {
-
+std::string Position::fen()
+{
     std::stringstream fen;
 
     for (int rank = 7; rank >= 0; rank--)
@@ -135,8 +135,8 @@ std::string Position::fen() {
     return fen.str();
 }
 
-void Position::commit_move(Move m) {
-
+void Position::commit_move(Move m)
+{
     if (is_capture(m) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
         RepetitionTable::clear();
 
@@ -149,8 +149,8 @@ void Position::commit_move(Move m) {
     side_to_move = !side_to_move;
 }
 
-void set_gamephase() {
-
+void set_gamephase()
+{
     Color us = Position::side_to_move, them = !us;
 
 #define piece_count(pc) popcount(bitboards[pc])

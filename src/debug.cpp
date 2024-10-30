@@ -92,16 +92,16 @@ void Debug::perft(std::istringstream& is)
 std::string rep_table_to_string()
 {
     std::stringstream ss;
-    std::string s = "+------------------+------+----+";
+    std::string s = "+------------------+------+----+\n";
 
-    ss << s << "\n| key              | loc  |  # |\n" << s << "\n";
+    ss << s << "| key              | loc  |  # |\n" << s;
 
     for (int i = 0; i < RT_SIZE; i++)
         if (RepInfo& ri = repetition_table[i]; ri.occurrences)
         {
             ss << "| " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << ri.key;
             ss << " | " << std::setw(4) << std::setfill('0') << std::hex << std::uppercase << i;
-            ss << " | " << std::setw(2) << std::setfill('0') << std::dec << (int(ri.occurrences)) << " |\n" << s << "\n";
+            ss << " | " << std::setw(2) << std::setfill('0') << std::dec << (int(ri.occurrences)) << " |\n" << s;
         }
 
     return ss.str();
