@@ -28,7 +28,8 @@ constexpr Move NO_MOVE = 0;
 constexpr int MAX_PLY  = 128;
 constexpr int INFINITE = 0x7fffffff;
 
-struct StateInfo {
+struct StateInfo
+{
     uint64_t key;
     uint8_t  castling_rights;
     Square   ep_sq;
@@ -37,7 +38,8 @@ struct StateInfo {
 
 enum GamePhase { MIDGAME, ENDGAME, MOPUP };
 
-enum {
+enum
+{
     H1, G1, F1, E1, D1, C1, B1, A1,
     H2, G2, F2, E2, D2, C2, B2, A2,
     H3, G3, F3, E3, D3, C3, B3, A3,
@@ -49,7 +51,8 @@ enum {
     SQUARE_NB = 64
 };
 
-enum {
+enum
+{
     NO_PIECE, PIECE_TYPE_NB = 6,
       PAWN =        2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
     W_PAWN =     PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
@@ -58,7 +61,8 @@ enum {
 
 enum { WHITE, BLACK, COLOR_NB = 2 };
 
-enum {
+enum
+{
     NORMAL,
     PROMOTION   = 1 << 12,
     ENPASSANT   = 2 << 12,
@@ -66,7 +70,8 @@ enum {
     LONGCASTLE  = 4 << 12,
 };
 
-enum {
+enum
+{
     NORTH =  8,
     EAST  = -1,
     SOUTH = -8,
