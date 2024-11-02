@@ -36,7 +36,7 @@ namespace TranspositionTable
     void record(uint8_t depth, BoundType flag, int eval, Move best_move, int ply_from_root);
     Move lookup_move();
     void clear();
-} // namespace TranspositionTable
+}
 
 namespace RepetitionTable
 {
@@ -44,6 +44,6 @@ namespace RepetitionTable
     void push();
     void pop();
     void clear();
-} // namespace RepetitionTable 
+}
 
 #endif

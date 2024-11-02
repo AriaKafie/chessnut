@@ -75,8 +75,8 @@ constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] =
 };
 
 template<Color Perspective>
-constexpr int square_score(PieceType pt, Square sq) {
-
+constexpr int square_score(PieceType pt, Square sq)
+{
     if constexpr (Perspective == WHITE) return square_scores[pt - 2][sq ^ 63];
     else                                return square_scores[pt - 2][sq     ];
 }
