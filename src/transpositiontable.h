@@ -6,9 +6,7 @@
 
 #include <cstdint>
 
-typedef uint8_t BoundType;
-
-enum { EXACT, UPPER_BOUND, LOWER_BOUND };
+enum BoundType : uint8_t { EXACT, UPPER_BOUND, LOWER_BOUND };
 
 constexpr int NO_EVAL = 0x7fffffff;
 

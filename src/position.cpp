@@ -53,7 +53,7 @@ void Position::set(const std::string& fen)
         }
     }
 
-    side_to_move = color == "w" ? WHITE : BLACK;
+    state_ptr->side_to_move = color == "w" ? WHITE : BLACK;
 
     state_ptr->castling_rights = state_ptr->ep_sq = 0;
 
@@ -64,7 +64,7 @@ void Position::set(const std::string& fen)
     if (enpassant != "-")
         state_ptr->ep_sq = uci_to_square(enpassant);
 
-    state_ptr->key = side_to_move == WHITE ? 0 : Zobrist::Side;
+    state_ptr->key = state_ptr->side_to_move == WHITE ? 0 : Zobrist::Side;
 
     for (Square sq = H1; sq <= A8; sq++)
         state_ptr->key ^= Zobrist::hash[piece_on(sq)][sq];
@@ -118,7 +118,7 @@ std::string Position::fen()
             fen << "/";
     }
 
-    fen << " " << "wb"[side_to_move] << " ";
+    fen << " " << "wb"[side_to_move()] << " ";
 
     if (!state_ptr->castling_rights)
         fen << "-";
@@ -146,33 +146,31 @@ void Position::commit_move(Move m)
     state_stack[0] = *state_ptr;
     state_ptr = state_stack;
     set_gamephase();
-    side_to_move = !side_to_move;
+    state_ptr->side_to_move = !state_ptr->side_to_move;
 }
 
 void set_gamephase()
 {
-    Color us = Position::side_to_move, them = !us;
+    Color us = state_ptr->side_to_move, them = !us;
 
 #define piece_count(pc) popcount(bitboards[pc])
 
-    int friendly_material =
-        3 * piece_count(make_piece(us, KNIGHT)) +
-        3 * piece_count(make_piece(us, BISHOP)) +
-        5 * piece_count(make_piece(us, ROOK))   +
-        9 * piece_count(make_piece(us, QUEEN));
+    int friendly_material = 3 * piece_count(make_piece(us, KNIGHT)) +
+                            3 * piece_count(make_piece(us, BISHOP)) +
+                            5 * piece_count(make_piece(us, ROOK))   +
+                            9 * piece_count(make_piece(us, QUEEN));
         
-    int enemy_material =
-        3 * piece_count(make_piece(them, KNIGHT)) +
-        3 * piece_count(make_piece(them, BISHOP)) +
-        5 * piece_count(make_piece(them, ROOK))   +
-        9 * piece_count(make_piece(them, QUEEN));
+    int enemy_material    = 3 * piece_count(make_piece(them, KNIGHT)) +
+                            3 * piece_count(make_piece(them, BISHOP)) +
+                            5 * piece_count(make_piece(them, ROOK))   +
+                            9 * piece_count(make_piece(them, QUEEN));
 
     if (enemy_material < 5 && friendly_material >= 5 || friendly_material < 5 && enemy_material >= 5)
-        Position::gamephase = MOPUP;
+        state_ptr->gamephase = MOPUP;
     else if (enemy_material < 10 || enemy_material < 17 && !bitboards[make_piece(them, QUEEN)])
-        Position::gamephase = ENDGAME;
+        state_ptr->gamephase = ENDGAME;
     else
-        Position::gamephase = MIDGAME;
+        state_ptr->gamephase = MIDGAME;
         
 #undef piece_count
 }

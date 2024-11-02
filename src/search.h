@@ -37,8 +37,8 @@ inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA
 
 inline volatile bool search_cancelled;
 
-inline void handle_search_stop(uint64_t thinktime) {
-
+inline void handle_search_stop(uint64_t thinktime)
+{
     if (thinktime)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(thinktime));

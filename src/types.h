@@ -15,28 +15,30 @@
 #endif
 
 typedef uint64_t Bitboard;
-typedef int      Color;
 typedef int      MoveType;
 typedef int      Direction;
 typedef uint32_t Move;
 typedef int8_t   Square;
 typedef uint8_t  Piece;
 typedef uint8_t  PieceType;
+typedef uint8_t  Color;
 
 constexpr Move NO_MOVE = 0;
 
 constexpr int MAX_PLY  = 128;
 constexpr int INFINITE = 0x7fffffff;
 
+enum GamePhase : uint8_t { MIDGAME, ENDGAME, MOPUP };
+
 struct StateInfo
 {
-    uint64_t key;
-    uint8_t  castling_rights;
-    Square   ep_sq;
-    Piece    captured;
+    uint64_t  key;
+    uint8_t   castling_rights;
+    Square    ep_sq;
+    Piece     captured;
+    Color     side_to_move;
+    GamePhase gamephase;
 };
-
-enum GamePhase { MIDGAME, ENDGAME, MOPUP };
 
 enum
 {

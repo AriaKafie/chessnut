@@ -109,7 +109,7 @@ std::string rep_table_to_string()
 
 void Debug::go()
 {
-    std::cout << rep_table_to_string() << std::endl;
+    std::cout << sizeof(StateInfo) << std::endl;
 }
 
 void Debug::gameinfo()

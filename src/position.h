@@ -32,15 +32,12 @@ void commit_move(Move m);
 std::string fen();
 std::string to_string();
 
-inline Color     side_to_move;
-inline GamePhase gamephase;
+inline bool white_to_move() { return state_ptr->side_to_move == WHITE; }
+inline bool black_to_move() { return state_ptr->side_to_move == BLACK; }
 
-inline bool white_to_move() { return side_to_move == WHITE; }
-inline bool black_to_move() { return side_to_move == BLACK; }
-
-inline bool midgame() { return gamephase == MIDGAME; }
-inline bool endgame() { return gamephase == ENDGAME; }
-inline bool mopup  () { return gamephase == MOPUP;   }
+inline bool midgame() { return state_ptr->gamephase == MIDGAME; }
+inline bool endgame() { return state_ptr->gamephase == ENDGAME; }
+inline bool mopup  () { return state_ptr->gamephase == MOPUP;   }
 
 template<Color Perspective>
 bool kingside_rights()
@@ -58,6 +55,8 @@ bool queenside_rights()
 inline Bitboard ep_bb() { return square_bb(state_ptr->ep_sq); }
 
 inline uint64_t key() { return state_ptr->key; }
+
+inline Color side_to_move() { return state_ptr->side_to_move; }
 
 template<Color SideToMove>
 bool in_check()
@@ -98,8 +97,8 @@ ForceInline void update_castling_rights()
 }
 
 template<Color Us>
-ForceInline void do_capture(Move m) {
-
+ForceInline void do_capture(Move m)
+{
     constexpr Color Them  = !Us;
     constexpr Piece Pawn  = make_piece(Us, PAWN);
     constexpr Piece Queen = make_piece(Us, QUEEN);
@@ -133,8 +132,8 @@ ForceInline void do_capture(Move m) {
 }
 
 template<Color Us>
-ForceInline void undo_capture(Move m, Piece captured) {
-
+ForceInline void undo_capture(Move m, Piece captured)
+{
     constexpr Color Them  = !Us;
     constexpr Piece Pawn  = make_piece(Us, PAWN);
     constexpr Piece Queen = make_piece(Us, QUEEN);
@@ -183,7 +182,7 @@ void do_move(Move m)
     Square from = from_sq(m);
     Square to   = to_sq(m);
 
-    memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
+    memcpy(state_ptr + 1, state_ptr, 11);
     state_ptr++;
     state_ptr->captured = piece_on(to);
     state_ptr->ep_sq = (from + Up) * !(to - from ^ Up2 | piece_on(from) ^ Pawn);
