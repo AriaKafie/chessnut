@@ -134,9 +134,7 @@ void Debug::gameinfo()
         }
     }
 
-    Move list[MAX_MOVES];
-
-    if      (get_moves(list) - list)                                  std::cout << "nonterminal" << std::endl;
+    if      (Move list[MAX_MOVES]; get_moves(list) - list)            std::cout << "nonterminal" << std::endl;
     else if (Position::white_to_move() ? Position::in_check<WHITE>()
                                        : Position::in_check<BLACK>()) std::cout << "mate"        << std::endl;
     else                                                              std::cout << "draw"        << std::endl;
