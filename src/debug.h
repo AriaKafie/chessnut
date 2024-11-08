@@ -86,7 +86,6 @@ inline std::vector<std::string> fens =
 
 std::string pv();
 void go();
-void gameinfo();
 void perft(std::istringstream& args);
 
 } // namespace Debug

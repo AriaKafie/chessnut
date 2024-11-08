@@ -2,6 +2,7 @@
 #include "position.h"
 
 #include <cstring>
+#include <iomanip>
 #include <random>
 #include <sstream>
 
@@ -69,6 +70,9 @@ void Position::set(const std::string& fen)
     for (Square sq = H1; sq <= A8; sq++)
         state_ptr->key ^= Zobrist::hash[piece_on(sq)][sq];
 
+    RepetitionTable::clear();
+    RepetitionTable::push();
+
     set_gamephase();
 }
 
@@ -86,7 +90,7 @@ std::string Position::to_string()
             ss << "| " << (sq / 8 + 1) << "\n+---+---+---+---+---+---+---+---+\n";
     }
 
-    ss << "  a   b   c   d   e   f   g   h\n\nFen: " << fen() << "\nKey: " << std::hex << std::uppercase << key() << "\n";
+    ss << "  a   b   c   d   e   f   g   h\n\nFen: " << fen() << "\nKey: " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << key() << "\n";
 
     return ss.str();
 }

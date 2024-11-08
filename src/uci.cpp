@@ -87,7 +87,6 @@ void UCI::loop()
         else if (token == "moves")    moves(is);
         else if (token == "perft")    Debug::perft(is);
         else if (token == "debug")    Debug::go();
-        else if (token == "gameinfo") Debug::gameinfo();
         
     } while (cmd != "quit");
 }

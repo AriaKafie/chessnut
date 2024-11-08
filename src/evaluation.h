@@ -108,7 +108,7 @@ int material_count()
     constexpr Piece EROOK   = make_piece(Them, ROOK);
     constexpr Piece FQUEEN  = make_piece(Us,   QUEEN);
     constexpr Piece EQUEEN  = make_piece(Them, QUEEN);
-  
+
     return
         100 * (popcount(bb(FPAWN))   - popcount(bb(EPAWN)))   +
         300 * (popcount(bb(FKNIGHT)) - popcount(bb(EKNIGHT))) +

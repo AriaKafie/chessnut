@@ -30,16 +30,6 @@ constexpr int INFINITE = 0x7fffffff;
 
 enum GamePhase : uint8_t { MIDGAME, ENDGAME, MOPUP };
 
-struct StateInfo
-{
-    uint64_t  key;
-    uint8_t   castling_rights;
-    Square    ep_sq;
-    Piece     captured;
-    Color     side_to_move;
-    GamePhase gamephase;
-};
-
 enum
 {
     H1, G1, F1, E1, D1, C1, B1, A1,

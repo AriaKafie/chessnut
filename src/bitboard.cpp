@@ -24,15 +24,15 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
 }
 
 #ifndef PEXT
-    uint64_t generate_magic(Bitboard mask)
+    uint64_t generate_magic(uint64_t mask)
     {
         int permutations = 1 << popcount(mask);
 
-        Bitboard occupied[4096];
+        uint64_t occupied[4096];
         bool visited[4096], failed;
 
         for (int p = 0; p < permutations; p++)
-            occupied[p] = generate_occupancy(mask, p);
+            occupied[p] = _pdep_u64(p, mask);
 
         std::mt19937_64 rng(0);
         uint64_t magic;
@@ -40,7 +40,6 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
         do
         {
             magic = rng() & rng() & rng();
-
             memset(visited, false, permutations);
 
             for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))

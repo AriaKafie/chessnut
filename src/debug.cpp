@@ -109,35 +109,7 @@ std::string rep_table_to_string()
 
 void Debug::go()
 {
-    std::cout << sizeof(StateInfo) << std::endl;
-}
-
-void Debug::gameinfo()
-{
-    if (RepetitionTable::draw())
-    {
-        std::cout << "draw" << std::endl;
-        return;
-    }
-
-    for (int i = 0, count = 0; i < RT_SIZE; i++)
-    {
-        const RepInfo& ri = repetition_table[i];
-    
-        if (ri.occurrences)
-            count += ri.occurrences;
-
-        if (count >= 100)
-        {
-            std::cout << "draw" << std::endl;
-            return;
-        }
-    }
-
-    if      (Move list[MAX_MOVES]; get_moves(list) - list)            std::cout << "nonterminal" << std::endl;
-    else if (Position::white_to_move() ? Position::in_check<WHITE>()
-                                       : Position::in_check<BLACK>()) std::cout << "mate"        << std::endl;
-    else                                                              std::cout << "draw"        << std::endl;
+    std::cout << rep_table_to_string() << std::endl;
 }
 
 Move* get_moves(Move *list)

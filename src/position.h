@@ -12,6 +12,16 @@
 
 #define bb(P) bitboard<P>()
 
+struct StateInfo
+{
+    uint64_t  key;
+    uint8_t   castling_rights;
+    Square    ep_sq;
+    Piece     captured;
+    Color     side_to_move;
+    GamePhase gamephase;
+};
+
 extern Piece board[];
 extern Bitboard bitboards[];
 
@@ -21,8 +31,6 @@ namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; extern uint
 
 template<Piece P>
 Bitboard bitboard() { return bitboards[P]; }
-
-inline Bitboard occupied_bb() { return bitboards[WHITE] | bitboards[BLACK]; }
 
 namespace Position {
 
@@ -52,6 +60,8 @@ bool queenside_rights()
     return state_ptr->castling_rights & Mask;
 }
 
+inline Bitboard occupied() { return bitboards[WHITE] | bitboards[BLACK]; }
+
 inline Bitboard ep_bb() { return square_bb(state_ptr->ep_sq); }
 
 inline uint64_t key() { return state_ptr->key; }
@@ -72,10 +82,10 @@ bool in_check()
     Square ksq = lsb(bitboard<make_piece(SideToMove, KING)>());
 
     return
-        pawn_attacks<SideToMove>(ksq)      &  bb(EnemyPawn)
-      | knight_attacks(ksq)                &  bb(EnemyKnight)
-      | bishop_attacks(ksq, occupied_bb()) & (bb(EnemyQueen) | bb(EnemyBishop))
-      | rook_attacks  (ksq, occupied_bb()) & (bb(EnemyQueen) | bb(EnemyRook));
+        pawn_attacks<SideToMove>(ksq)   &  bb(EnemyPawn)
+      | knight_attacks(ksq)             &  bb(EnemyKnight)
+      | bishop_attacks(ksq, occupied()) & (bb(EnemyQueen) | bb(EnemyBishop))
+      | rook_attacks  (ksq, occupied()) & (bb(EnemyQueen) | bb(EnemyRook));
 }
 
 } // namespace Position

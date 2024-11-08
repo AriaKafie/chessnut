@@ -7,8 +7,8 @@
 #include "position.h"
 
 template<MoveType Type, Direction D>
-ForceInline Move* make_pawn_moves(Move* list, Bitboard attacks) {
-
+ForceInline Move* make_pawn_moves(Move* list, Bitboard attacks)
+{
     if constexpr (Type == NORMAL)
     {
         for (;attacks; clear_lsb(attacks))
@@ -29,8 +29,8 @@ ForceInline Move* make_pawn_moves(Move* list, Bitboard attacks) {
     return list;
 }
 
-ForceInline inline Move* make_moves(Move* list, Square from, Bitboard to) {
-
+ForceInline inline Move* make_moves(Move* list, Square from, Bitboard to)
+{
     for (;to; clear_lsb(to))
         *list++ = make_move(from, lsb(to));
 
@@ -57,7 +57,7 @@ MoveList<Us>::MoveList()
     Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);
     Bitboard enemy_bishop_queen = bb(EnemyQueen) | bb(EnemyBishop);
     Square   ksq                = lsb(bb(FriendlyKing));
-    Bitboard occupied           = occupied_bb() ^ square_bb(ksq);
+    Bitboard occupied           = Position::occupied() ^ square_bb(ksq);
 
     seen_by_enemy = pawn_attacks<Them>(bb(EnemyPawn)) | king_attacks(lsb(bb(EnemyKing)));
 
@@ -196,7 +196,7 @@ CaptureList<Us>::CaptureList()
     Bitboard enemy_rook_queen   = bb(EnemyQueen) | bb(EnemyRook);
     Bitboard enemy_bishop_queen = bb(EnemyQueen) | bb(EnemyBishop);
     Square   ksq                = lsb(bb(FriendlyKing));
-    Bitboard occupied           = occupied_bb() ^ square_bb(ksq);
+    Bitboard occupied           = Position::occupied() ^ square_bb(ksq);
 
     seen_by_enemy = pawn_attacks<Them>(bb(EnemyPawn)) | king_attacks(lsb(bb(EnemyKing)));
 
