@@ -2,6 +2,7 @@
 #ifndef POSITION_H
 #define POSITION_H
 
+#include <cstddef>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -192,7 +193,7 @@ void do_move(Move m)
     Square from = from_sq(m);
     Square to   = to_sq(m);
 
-    memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
+    memcpy(state_ptr + 1, state_ptr, offsetof(StateInfo, side_to_move));
     state_ptr++;
     state_ptr->captured = piece_on(to);
     state_ptr->ep_sq = (from + Up) * !(to - from ^ Up2 | piece_on(from) ^ Pawn);

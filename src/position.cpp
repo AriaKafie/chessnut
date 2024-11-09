@@ -147,10 +147,11 @@ void Position::commit_move(Move m)
     if (white_to_move()) do_move<WHITE>(m);
     else                 do_move<BLACK>(m);
 
-    state_stack[0] = *state_ptr;
+    memcpy(state_stack, state_ptr, offsetof(StateInfo, side_to_move));
     state_ptr = state_stack;
-    set_gamephase();
     state_ptr->side_to_move = !state_ptr->side_to_move;
+
+    set_gamephase();
 }
 
 void set_gamephase()

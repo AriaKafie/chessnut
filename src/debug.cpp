@@ -109,7 +109,9 @@ std::string rep_table_to_string()
 
 void Debug::go()
 {
-    std::cout << rep_table_to_string() << std::endl;
+    int i = offsetof(StateInfo, side_to_move);
+
+    std::cout << i << std::endl;
 }
 
 Move* get_moves(Move *list)
