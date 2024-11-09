@@ -6,8 +6,53 @@
 #include "movelist.h"
 #include "position.h"
 
+inline Move data[COLOR_NB][5] =
+{
+    { make_move<SHORTCASTLE>(E1, G1), make_move<LONGCASTLE>(E1, C1), NULLMOVE, make_move<SHORTCASTLE>(E1, G1), NULLMOVE },
+    { make_move<SHORTCASTLE>(E8, G8), make_move<LONGCASTLE>(E8, C8), NULLMOVE, make_move<SHORTCASTLE>(E8, G8), NULLMOVE }
+};
+
+inline Move *table[COLOR_NB][1 << 4][1 << 6];
+
+namespace MoveGen { void init(); };
+/*
++---+---+---+---+---+---+---+---+
+|   |qo |qoa|qoa|qka|koa|koa|   | >> 1 =
++---+---+---+---+---+---+---+---+
++---+---+---+---+---+---+---+---+
+|   |   |qo |qoa|qoa|qka|koa|koa|
++---+---+---+---+---+---+---+---+
+*/
+inline void MoveGen::init()
+{
+    for (Color c : { WHITE, BLACK })
+        for (uint8_t castling = 0; castling <= 0b1111; castling++)
+            for (Bitboard hash = 0; hash <= 0b111111; hash++)
+            {
+                Move *kcastle   = &data[c][3];
+                Move *qcastle   = &data[c][1];
+                Move *both      = &data[c][0];
+                Move *no_castle = &data[c][2];
+                
+                Move *src = no_castle;
+
+                bool rights_k = castling & (c == WHITE ? 0b1000 : 0b0010);
+                bool rights_q = castling & (c == WHITE ? 0b0100 : 0b0001);
+                bool rights_kq = rights_k && rights_q;
+
+                if (rights_k || rights_q)
+                {
+                    if      (hash == 0)              src = rights_kq ? both : rights_k ? kcastle : qcastle;
+                    else if ((hash & 0b000111) == 0) src = rights_k ? kcastle : no_castle;
+                    else if ((hash & 0b111100) == 0) src = rights_q ? qcastle : no_castle;
+                }
+
+                table[c][castling][hash] = src;
+            }
+}
+
 template<MoveType Type, Direction D>
-ForceInline Move* make_pawn_moves(Move* list, Bitboard attacks)
+ForceInline Move *make_pawn_moves(Move *list, Bitboard attacks)
 {
     if constexpr (Type == NORMAL)
     {
@@ -29,7 +74,7 @@ ForceInline Move* make_pawn_moves(Move* list, Bitboard attacks)
     return list;
 }
 
-ForceInline inline Move* make_moves(Move* list, Square from, Bitboard to)
+ForceInline inline Move *make_moves(Move *list, Square from, Bitboard to)
 {
     for (;to; clear_lsb(to))
         *list++ = make_move(from, lsb(to));
@@ -161,19 +206,12 @@ MoveList<Us>::MoveList()
 
     last = make_moves(last, ksq, king_attacks(ksq) & ~(seen_by_enemy | bb(Us)));
 
-    constexpr Bitboard k_no_atk = Us == WHITE ? square_bb(E1, F1, G1) : square_bb(E8, F8, G8);
-    constexpr Bitboard k_no_occ = Us == WHITE ? square_bb(F1, G1)     : square_bb(F8, G8);
-    constexpr Bitboard q_no_atk = Us == WHITE ? square_bb(C1, D1, E1) : square_bb(C8, D8, E8);
-    constexpr Bitboard q_no_occ = Us == WHITE ? square_bb(B1, C1, D1) : square_bb(B8, C8, D8);
+    constexpr int Shift = Us == WHITE ? 1 : 57;
 
-    constexpr Move SCASTLE = Us == WHITE ? make_move<SHORTCASTLE>(E1, G1) : make_move<SHORTCASTLE>(E8, G8);
-    constexpr Move LCASTLE = Us == WHITE ? make_move<LONGCASTLE >(E1, C1) : make_move<LONGCASTLE >(E8, C8);
+    constexpr Bitboard NoAtk = Us == WHITE ? square_bb(C1, D1, E1, F1, G1) : square_bb(C8, D8, E8, F8, G8);
+    constexpr Bitboard NoOcc = Us == WHITE ? square_bb(B1, C1, D1, F1, G1) : square_bb(B8, C8, D8, F8, G8);
 
-    *last = SCASTLE;
-    last += !((seen_by_enemy & k_no_atk | occupied & k_no_occ | !Position::kingside_rights <Us>()));
-
-    *last = LCASTLE;
-    last += !((seen_by_enemy & q_no_atk | occupied & q_no_occ | !Position::queenside_rights<Us>()));
+    for (Move *src = table[Us][state_ptr->castling_rights][(NoAtk & seen_by_enemy | NoOcc & occupied) >> Shift]; *src; *last++ = *src++);
 }
 
 template<Color Us>
