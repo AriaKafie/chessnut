@@ -128,12 +128,12 @@ std::string Position::fen()
         fen << "-";
     else
     {
-        if (kingside_rights <WHITE>()) fen << "K";
-        if (queenside_rights<WHITE>()) fen << "Q";
-        if (kingside_rights <BLACK>()) fen << "k";
-        if (queenside_rights<BLACK>()) fen << "q";
+        if (state_ptr->castling_rights & 0b1000) fen << "K";
+        if (state_ptr->castling_rights & 0b0100) fen << "Q";
+        if (state_ptr->castling_rights & 0b0010) fen << "k";
+        if (state_ptr->castling_rights & 0b0001) fen << "q";
     }
-  
+
     fen << " " << (state_ptr->ep_sq ? square_to_uci(state_ptr->ep_sq) : "-");
 
     return fen.str();
@@ -147,7 +147,7 @@ void Position::commit_move(Move m)
     if (white_to_move()) do_move<WHITE>(m);
     else                 do_move<BLACK>(m);
 
-    state_stack[0] = *state_ptr;
+    memcpy(state_stack, state_ptr, sizeof(StateInfo));
     state_ptr = state_stack;
     set_gamephase();
     state_ptr->side_to_move = !state_ptr->side_to_move;

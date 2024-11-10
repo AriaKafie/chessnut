@@ -48,19 +48,6 @@ inline bool midgame() { return state_ptr->gamephase == MIDGAME; }
 inline bool endgame() { return state_ptr->gamephase == ENDGAME; }
 inline bool mopup  () { return state_ptr->gamephase == MOPUP;   }
 
-template<Color Perspective>
-bool kingside_rights()
-{
-    constexpr Bitboard Mask = Perspective == WHITE ? 0b1000 : 0b0010;
-    return state_ptr->castling_rights & Mask;
-}
-template<Color Perspective>
-bool queenside_rights()
-{
-    constexpr Bitboard Mask = Perspective == WHITE ? 0b0100 : 0b0001;
-    return state_ptr->castling_rights & Mask;
-}
-
 inline Bitboard occupied() { return bitboards[WHITE] | bitboards[BLACK]; }
 
 inline Bitboard ep_bb() { return square_bb(state_ptr->ep_sq); }
@@ -114,8 +101,7 @@ ForceInline void do_capture(Move m)
     constexpr Piece Pawn  = make_piece(Us, PAWN);
     constexpr Piece Queen = make_piece(Us, QUEEN);
 
-    Square from = from_sq(m);
-    Square to   = to_sq(m);
+    Square from = from_sq(m), to = to_sq(m);
 
     Bitboard to_bb   = square_bb(to);
     Bitboard from_to = square_bb(from, to);
@@ -149,8 +135,7 @@ ForceInline void undo_capture(Move m, Piece captured)
     constexpr Piece Pawn  = make_piece(Us, PAWN);
     constexpr Piece Queen = make_piece(Us, QUEEN);
 
-    Square from = from_sq(m);
-    Square to   = to_sq(m);
+    Square from = from_sq(m), to = to_sq(m);
 
     Bitboard to_bb   = square_bb(to);
     Bitboard from_to = square_bb(from, to);
@@ -190,8 +175,7 @@ void do_move(Move m)
     constexpr Direction Up  = Us == WHITE ? NORTH : SOUTH;
     constexpr Direction Up2 = Up * 2;
 
-    Square from = from_sq(m);
-    Square to   = to_sq(m);
+    Square from = from_sq(m), to = to_sq(m);
 
     memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
     state_ptr++;
@@ -341,12 +325,9 @@ void undo_move(Move m)
     constexpr Piece Queen = make_piece(Us, QUEEN);
     constexpr Piece King  = make_piece(Us, KING);
 
-    Piece captured = state_ptr->captured;
+    Piece captured = state_ptr--->captured;
 
-    state_ptr--;
-
-    Square from = from_sq(m);
-    Square to   = to_sq(m);
+    Square from = from_sq(m), to = to_sq(m);
 
     Bitboard to_bb      = square_bb(to);
     Bitboard from_to    = square_bb(from, to);

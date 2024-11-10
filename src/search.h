@@ -47,7 +47,6 @@ inline void handle_search_stop(uint64_t thinktime)
     }
 
     std::string in;
-
     do
         std::getline(std::cin, in);
     while (in != "stop");

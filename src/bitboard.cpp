@@ -31,8 +31,7 @@ static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
         uint64_t occupied[4096];
         bool visited[4096], failed;
 
-        for (int p = 0; p < permutations; p++)
-            occupied[p] = _pdep_u64(p, mask);
+        for (int p = 0; p < permutations; occupied[p] = _pdep_u64(p, mask), p++);
 
         std::mt19937_64 rng(0);
         uint64_t magic;
