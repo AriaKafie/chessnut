@@ -208,28 +208,9 @@ inline void toggle_square(Bitboard& b, Square s) {
     b ^= 1ull << s;
 }
 
-inline Bitboard generate_occupancy(Bitboard mask, int permutation)
-{
-    int bitcount = popcount(mask);
-
-    Bitboard occupancy = 0;
-
-    for (int bitpos = 0; bitpos < bitcount; bitpos++)
-    {
-        int lsb_index = lsb(mask);
-
-        if (permutation & (1 << bitpos))
-            occupancy |= 1ull << lsb_index;
-
-        clear_lsb(mask);
-    }
-
-    return occupancy;
-}
-
 template<Color C>
-int king_safety(Square ksq, Bitboard occ) {
-
+int king_safety(Square ksq, Bitboard occ)
+{
     if constexpr (C == WHITE) return white_kingshield_scores[ksq][pext(occ, white_kingshield[ksq])];
     else                      return black_kingshield_scores[ksq][pext(occ, black_kingshield[ksq])];
 }
@@ -246,10 +227,9 @@ inline int rank_distance(Square a, Square b) {
     return std::abs((a / 8) - (b / 8));
 }
 
-inline Bitboard safe_step(Square s, int step) {
-
+inline Bitboard safe_step(Square s, int step)
+{
     Square to = s + step;
-
     return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
 }
 
