@@ -109,10 +109,10 @@ std::string rep_table_to_string()
 
 void Debug::go()
 {
-    
+    std::cout << rep_table_to_string() << std::endl;
 }
 
-Move* get_moves(Move *list)
+Move *get_moves(Move *list)
 {
     if (Position::white_to_move())
     {

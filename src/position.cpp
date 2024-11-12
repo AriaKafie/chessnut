@@ -44,7 +44,9 @@ void Position::set(const std::string& fen)
     for (char token : pieces)
     {
         if (std::isdigit(token))
+        {
             sq -= token - '0'; 
+        }
         else if (size_t piece = piece_to_char.find(token); piece != std::string::npos)
         {
             board[sq] = piece;
@@ -149,8 +151,9 @@ void Position::commit_move(Move m)
 
     memcpy(state_stack, state_ptr, sizeof(StateInfo));
     state_ptr = state_stack;
-    set_gamephase();
     state_ptr->side_to_move = !state_ptr->side_to_move;
+
+    set_gamephase();
 }
 
 void set_gamephase()
@@ -171,7 +174,7 @@ void set_gamephase()
 
     if (enemy_material < 5 && friendly_material >= 5 || friendly_material < 5 && enemy_material >= 5)
         state_ptr->gamephase = MOPUP;
-    else if (enemy_material < 10 || enemy_material < 17 && !bitboards[make_piece(them, QUEEN)])
+    else if (friendly_material < 10 || friendly_material < 17 && !bitboards[make_piece(us, QUEEN)])
         state_ptr->gamephase = ENDGAME;
     else
         state_ptr->gamephase = MIDGAME;
