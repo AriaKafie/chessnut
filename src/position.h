@@ -23,12 +23,12 @@ struct StateInfo
     GamePhase gamephase;
 };
 
-extern Piece board[];
-extern Bitboard bitboards[];
+extern Bitboard bitboards[16];
+extern Piece board[SQUARE_NB];
 
-inline StateInfo state_stack[MAX_PLY], *state_ptr = state_stack;
+extern StateInfo state_stack[MAX_PLY], *state_ptr;
 
-namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; extern uint64_t hash[B_KING + 1][SQUARE_NB]; }
+namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; inline uint64_t hash[B_KING + 1][SQUARE_NB]; }
 
 template<Piece P>
 Bitboard bitboard() { return bitboards[P]; }

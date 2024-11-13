@@ -16,7 +16,7 @@ void set_gamephase();
 Bitboard bitboards[16];
 Piece board[SQUARE_NB];
 
-uint64_t Zobrist::hash[B_KING + 1][SQUARE_NB];
+StateInfo state_stack[MAX_PLY], *state_ptr = state_stack;
 
 void Position::init()
 {
