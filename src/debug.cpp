@@ -101,10 +101,10 @@ std::string rep_table_to_string()
         {
             ss << "| " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << ri.key;
             ss << " | " << std::setw(4) << std::setfill('0') << std::hex << std::uppercase << i;
-            ss << " | " << std::setw(2) << std::setfill('0') << std::dec << (int(ri.occurrences)) << " |\n" << s;
+            ss << " | " << std::setw(2) << std::setfill(' ') << std::dec << (int(ri.occurrences)) << " |\n";
         }
 
-    return ss.str();
+    return ss.str() + s;
 }
 
 void Debug::go()

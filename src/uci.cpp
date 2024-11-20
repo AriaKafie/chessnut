@@ -25,15 +25,8 @@ void position(std::istringstream& is)
         for (;is >> token && token != "moves"; fen += token + " ");
 
     Position::set(fen);
-
-    for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
-}
-
-void moves(std::istringstream& is)
-{
-    std::string token;
-
-    for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
+    
+    for (;is >> token && uci_to_move(token); Position::commit_move(uci_to_move(token)));
 }
 
 void go(std::istringstream& is)
@@ -84,7 +77,7 @@ void UCI::loop()
 
         else if (token == "position") position(is);
         else if (token == "go")       go(is);
-        else if (token == "moves")    moves(is);
+        else if (token == "moves")    for (;is >> token && uci_to_move(token); Position::commit_move(uci_to_move(token)));
         else if (token == "perft")    Debug::perft(is);
         else if (token == "debug")    Debug::go();
         
