@@ -89,5 +89,5 @@ Move uci_to_move(const std::string& uci)
     for (Move list[MAX_MOVES], *m = list, *end = get_moves(list); m != end; m++)
         if (move_to_uci(*m) == uci) return *m;
 
-    return NO_MOVE;
+    return NULLMOVE;
 }
