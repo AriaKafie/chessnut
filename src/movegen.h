@@ -26,8 +26,8 @@ namespace MoveGen { void init(); };
 inline void MoveGen::init()
 {
     for (Color c : { WHITE, BLACK })
-        for (Bitboard hash = 0; hash <= 0b111111; hash++)
-            for (uint8_t rights = 0; rights<= 0b1111; rights++)
+        for (int rights = 0; rights <= 0xf; rights++)
+            for (Bitboard hash = 0; hash <= 0b111111; hash++)
             {
                 const Move *kcastle   = &data[c][3];
                 const Move *qcastle   = &data[c][1];
