@@ -28,6 +28,8 @@ void Position::init()
         for (Square sq = H1; sq <= A8; sq++)
             Zobrist::hash[pc][sq] = rng();
     }
+
+    for (int rights = 0; rights <= 0xf; Zobrist::castling[rights++] = rng());
 }
 
 void Position::set(const std::string& fen)
@@ -67,7 +69,7 @@ void Position::set(const std::string& fen)
     if (enpassant != "-")
         state_ptr->ep_sq = uci_to_square(enpassant);
 
-    state_ptr->key = state_ptr->side_to_move == WHITE ? 0 : Zobrist::Side;
+    state_ptr->key = Zobrist::castling[state_ptr->castling_rights] ^ (state_ptr->side_to_move == WHITE ? 0 : Zobrist::Side);
 
     for (Square sq = H1; sq <= A8; sq++)
         state_ptr->key ^= Zobrist::hash[piece_on(sq)][sq];

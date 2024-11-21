@@ -28,7 +28,12 @@ extern Piece board[SQUARE_NB];
 
 extern StateInfo state_stack[MAX_PLY], *state_ptr;
 
-namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; inline uint64_t hash[B_KING + 1][SQUARE_NB]; }
+namespace Zobrist
+{
+    constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull;
+    inline uint64_t hash[B_KING + 1][SQUARE_NB];
+    inline uint64_t castling[1 << 4];
+}
 
 template<Piece P>
 Bitboard bitboard() { return bitboards[P]; }
@@ -91,7 +96,9 @@ ForceInline void update_castling_rights()
 {
     constexpr Bitboard mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
 
+    state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
     state_ptr->castling_rights &= castle_masks[JustMoved][pext(bitboards[JustMoved], mask)];
+    state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
 }
 
 template<Color Us>
@@ -172,15 +179,14 @@ void do_move(Move m)
     constexpr Piece Queen = make_piece(Us, QUEEN);
     constexpr Piece King  = make_piece(Us, KING);
 
-    constexpr Direction Up  = Us == WHITE ? NORTH : SOUTH;
-    constexpr Direction Up2 = Up * 2;
+    constexpr Direction Up = Us == WHITE ? NORTH : SOUTH;
 
     Square from = from_sq(m), to = to_sq(m);
 
     memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
     state_ptr++;
     state_ptr->captured = piece_on(to);
-    state_ptr->ep_sq = (from + Up) * !(to - from ^ Up2 | piece_on(from) ^ Pawn);
+    state_ptr->ep_sq = (from + Up) * !(from ^ to ^ 16 | piece_on(from) ^ Pawn);
 
     Bitboard zero_to = ~square_bb(to);
     Bitboard from_to =  square_bb(from, to);
