@@ -10,7 +10,7 @@
 int score_kingshield(Square ksq, Bitboard occ, Color c);
 void init_magics();
 
-static Bitboard generate_occupancy(Bitboard mask, int permutation)
+Bitboard generate_occupancy(Bitboard mask, int permutation)
 {
     Bitboard occupied = 0;
 
@@ -20,49 +20,54 @@ static Bitboard generate_occupancy(Bitboard mask, int permutation)
     return occupied;
 }
 
-static Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
+Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
 {
-    Direction rook_directions[4] = { NORTH, EAST, SOUTH, WEST };
+    Bitboard  attacks              = 0;
+    Direction rook_directions[4]   = { NORTH, EAST, SOUTH, WEST };
     Direction bishop_directions[4] = { NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST };
 
-    Bitboard attacks = 0;
+    for (Direction d : pt == BISHOP ? bishop_directions : rook_directions)
+    {
+        Square s = sq;
 
-    for (Direction d : pt == ROOK ? rook_directions : bishop_directions)
-        for (Square s = sq; safe_step(s, d) && !(square_bb(s) & occupied); attacks |= square_bb(s += d));
+        do
+            attacks |= safe_step(s, d);
+        while (safe_step(s, d) && !(square_bb(s += d) & occupied));
+    }
     
     return attacks;
 }
 
 #ifndef PEXT
-    uint64_t generate_magic(uint64_t mask)
+uint64_t generate_magic(uint64_t mask)
+{
+    int permutations = 1 << popcount(mask);
+
+    uint64_t occupied[4096];
+    bool visited[4096], failed;
+
+    for (int p = 0; p < permutations; occupied[p] = generate_occupancy(mask, p), p++);
+
+    std::mt19937_64 rng(0);
+    uint64_t magic;
+
+    do
     {
-        int permutations = 1 << popcount(mask);
+        magic = rng() & rng() & rng();
+        memset(visited, false, permutations);
 
-        uint64_t occupied[4096];
-        bool visited[4096], failed;
-
-        for (int p = 0; p < permutations; occupied[p] = generate_occupancy(mask, p), p++);
-
-        std::mt19937_64 rng(0);
-        uint64_t magic;
-
-        do
+        for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
         {
-            magic = rng() & rng() & rng();
-            memset(visited, false, permutations);
+            if (failed = visited[key]; failed)
+                break;
 
-            for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
-            {
-                if (failed = visited[key]; failed)
-                    break;
-
-                visited[key] = true;
-            }
+            visited[key] = true;
+        }
         
-        } while (failed);
+    } while (failed);
 
-        return magic;
-    }
+    return magic;
+}
 #endif
 
 void Bitboards::init()
