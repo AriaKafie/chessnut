@@ -58,7 +58,7 @@ uint64_t generate_magic(uint64_t mask)
 
         for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
         {
-            if (failed = visited[key]; failed)
+            if (failed = visited[key])
                 break;
 
             visited[key] = true;
