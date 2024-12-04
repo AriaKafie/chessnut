@@ -19,7 +19,7 @@
 #include "transpositiontable.h"
 #include "uci.h"
 
-extern RepInfo repetition_table[];
+extern RTEntry repetition_table[];
 
 template<Color STM>
 std::string PV()
@@ -99,7 +99,7 @@ std::string rep_table_to_string()
     ss << s << "| key              | loc  |  # |\n" << s;
 
     for (int i = 0; i < RT_SIZE; i++)
-        if (RepInfo& ri = repetition_table[i]; ri.occurrences)
+        if (RTEntry& ri = repetition_table[i]; ri.occurrences)
         {
             ss << "| " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << ri.key;
             ss << " | " << std::setw(4) << std::setfill('0') << std::hex << std::uppercase << i;

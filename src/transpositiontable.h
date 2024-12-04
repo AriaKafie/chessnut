@@ -23,7 +23,7 @@ constexpr int NO_EVAL = 0x7fffffff;
 constexpr int TT_SIZE = 1 << 23;
 constexpr int RT_SIZE = 1 << 15; // 512 KiB
 
-struct Entry
+struct TTEntry
 {
     uint64_t  key;
     int       eval;
@@ -32,7 +32,7 @@ struct Entry
     BoundType flag;
 };
 
-struct RepInfo
+struct RTEntry
 {
     uint64_t key;
     uint8_t  occurrences;
