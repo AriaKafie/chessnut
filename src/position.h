@@ -28,12 +28,7 @@ extern Piece board[SQUARE_NB];
 
 extern StateInfo state_stack[MAX_PLY], *state_ptr;
 
-namespace Zobrist
-{
-    constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull;
-    inline uint64_t hash[B_KING + 1][SQUARE_NB];
-    inline uint64_t castling[1 << 4];
-}
+namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; inline uint64_t hash[B_KING + 1][SQUARE_NB]; }
 
 template<Piece P>
 Bitboard bitboard() { return bitboards[P]; }
@@ -95,10 +90,7 @@ template<Color JustMoved>
 ForceInline void update_castling_rights()
 {
     constexpr Bitboard mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
-
-    state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
     state_ptr->castling_rights &= castle_masks[JustMoved][pext(bitboards[JustMoved], mask)];
-    state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
 }
 
 template<Color Us>

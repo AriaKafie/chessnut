@@ -25,15 +25,14 @@ inline constexpr int root_reductions[MAX_PLY] =
 
 constexpr int matescore = 100000;
 
-namespace Search {
+namespace Search
+{
+    void init();
+    void go(uint64_t thinktime = 0);
+    void count_nodes(int depth);
 
-void init();
-void go(uint64_t thinktime = 0);
-void count_nodes(int depth);
-
-inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA = killers[ply].moveB = NO_MOVE; }
-
-} // namespace Search
+    inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA = killers[ply].moveB = NO_MOVE; }
+}
 
 inline volatile bool search_cancelled;
 

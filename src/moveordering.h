@@ -6,13 +6,15 @@
 #include "movelist.h"
 #include "position.h"
 
-struct Killer {
-
+struct Killer
+{
     Move moveA;
     Move moveB;
 
-    void add(Move m) {
-        if (m != moveA) {
+    void add(Move m)
+    {
+        if (m != moveA)
+        {
             moveB = moveA;
             moveA = m;
         }
@@ -34,8 +36,8 @@ constexpr uint32_t SEEN_BY_PAWN_MALUS = 50;
 constexpr uint32_t PROMOTION_BONUS    = 50;
 
 template<Color Us>
-void CaptureList<Us>::insertion_sort() {
-
+void CaptureList<Us>::insertion_sort()
+{
     for (int i = 1; i < size(); i++)
     {
         Move key = moves[i];
@@ -53,8 +55,8 @@ void CaptureList<Us>::insertion_sort() {
 }
 
 template<Color Us>
-void CaptureList<Us>::sort() {
-
+void CaptureList<Us>::sort()
+{
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
             
     for (Move& m : *this)
@@ -78,8 +80,8 @@ void CaptureList<Us>::sort() {
 }
 
 template<Color Us>
-int MoveList<Us>::partition(int low, int high) {
-
+int MoveList<Us>::partition(int low, int high)
+{
     uint32_t pivot = score_of(moves[high]);
 
     int i = low - 1;
@@ -99,8 +101,8 @@ int MoveList<Us>::partition(int low, int high) {
 }
 
 template<Color Us>
-void MoveList<Us>::quicksort(int low, int high) {
-
+void MoveList<Us>::quicksort(int low, int high)
+{
     if (low < high)
     {
         int pivot_index = partition(low, high);
@@ -110,8 +112,8 @@ void MoveList<Us>::quicksort(int low, int high) {
 }
 
 template<Color Us>
-void MoveList<Us>::sort(Move best_move, int ply) {
-
+void MoveList<Us>::sort(Move best_move, int ply)
+{
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
 
     for (Move& m : *this)

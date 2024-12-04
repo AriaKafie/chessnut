@@ -7,9 +7,11 @@
 #include <sstream>
 #include <fstream>
 #include <cmath>
+#include <chrono>
 #include <algorithm>
 #include <vector>
 #include <random>
+#include <thread>
 
 #include "movegen.h"
 #include "moveordering.h"
