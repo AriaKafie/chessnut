@@ -79,16 +79,49 @@ uint64_t PerfT(int depth)
 
 void Debug::perft(std::istringstream& is)
 {
-    int   depth;
-    is >> depth;
+    if (int depth; is >> depth)
+    {
+        auto start = std::chrono::steady_clock::now();
+        uint64_t result = Position::white_to_move() ? PerfT<true, WHITE>(depth)
+                                                    : PerfT<true, BLACK>(depth);
+        auto end   = std::chrono::steady_clock::now();
 
-    auto start = std::chrono::steady_clock::now();
-    uint64_t result = Position::white_to_move() ? PerfT<true, WHITE>(depth)
-                                                : PerfT<true, BLACK>(depth);
-    auto end   = std::chrono::steady_clock::now();
+        std::cout << "\nnodes searched: " << result << "\nin "
+                  << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
+    }
+    else
+    {
+        std::string        line, token;
+        std::istringstream suite(perft_suite);
+        bool               failed = false;
 
-    std::cout << "\nnodes searched: " << result << "\nin "
-              << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
+        while (std::getline(suite, line))
+        {
+            Position::set(line.substr(0, line.find(';')));
+
+            std::istringstream is(line.substr(line.find(';')));
+
+            for (uint64_t depth = is.str()[2] - '0', expected; is >> token >> expected; depth++)
+            {
+                std::cout << "Perft " << depth << " " << Position::fen() << std::endl;
+
+                uint64_t result = Position::white_to_move() ? PerfT<false, WHITE>(depth)
+                                                            : PerfT<false, BLACK>(depth);
+
+                if (result != expected)
+                {
+                    failed = true;
+                    std::cout << "ERROR\n" << std::endl;
+                    break;
+                }
+
+                if (is.eof())
+                    std::cout << "OK\n" << std::endl;
+            }
+        }
+
+        std::cout << (failed ? "FAILED\n" : "ALL OK\n") << std::endl;
+    }
 }
 
 std::string rep_table_to_string()

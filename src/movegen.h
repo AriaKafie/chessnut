@@ -8,8 +8,8 @@
 
 inline constexpr Move data[COLOR_NB][5] =
 {
-    { make_move<SHORTCASTLE>(E1, G1), make_move<LONGCASTLE>(E1, C1), NULLMOVE, make_move<SHORTCASTLE>(E1, G1), NULLMOVE },
-    { make_move<SHORTCASTLE>(E8, G8), make_move<LONGCASTLE>(E8, C8), NULLMOVE, make_move<SHORTCASTLE>(E8, G8), NULLMOVE }
+    { make_move<CASTLING>(E1, G1), make_move<CASTLING>(E1, C1), NULLMOVE, make_move<CASTLING>(E1, G1), NULLMOVE },
+    { make_move<CASTLING>(E8, G8), make_move<CASTLING>(E8, C8), NULLMOVE, make_move<CASTLING>(E8, G8), NULLMOVE }
 };
 
 inline const Move *table[COLOR_NB][1 << 4][1 << 6];
@@ -67,7 +67,10 @@ ForceInline Move *make_pawn_moves(Move *list, Bitboard attacks)
         for (;attacks; clear_lsb(attacks))
         {
             Square to = lsb(attacks);
-            *list++ = make_move<PROMOTION>(to - D, to);
+            *list++ = make_move<KNIGHT_PROMOTION>(to - D, to);
+            *list++ = make_move<BISHOP_PROMOTION>(to - D, to);
+            *list++ = make_move<ROOK_PROMOTION  >(to - D, to);
+            *list++ = make_move<QUEEN_PROMOTION >(to - D, to);
         }
     }
 

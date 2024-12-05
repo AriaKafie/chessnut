@@ -149,7 +149,7 @@ void MoveList<Us>::sort(Move best_move, int ply)
         }
         
         if (type_of(m) == PROMOTION)
-            score += PROMOTION_BONUS;
+            score += promotion_type_of(m) / 16;
 
         if (square_bb(to) & seen_by_pawn)
             score -= SEEN_BY_PAWN_MALUS;

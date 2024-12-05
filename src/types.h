@@ -56,11 +56,14 @@ enum { WHITE, BLACK, COLOR_NB = 2 };
 
 enum
 {
-    NORMAL,
-    PROMOTION   = 1 << 12,
-    ENPASSANT   = 2 << 12,
-    SHORTCASTLE = 3 << 12,
-    LONGCASTLE  = 4 << 12,
+    NORMAL           = 0,
+    PROMOTION        = 1 << 12,
+    ENPASSANT        = 2 << 12,
+    CASTLING         = 3 << 12,
+    KNIGHT_PROMOTION = PROMOTION + ((KNIGHT - KNIGHT) << 14),
+    BISHOP_PROMOTION = PROMOTION + ((BISHOP - KNIGHT) << 14),
+    ROOK_PROMOTION   = PROMOTION + ((ROOK - KNIGHT) << 14),
+    QUEEN_PROMOTION  = PROMOTION + ((QUEEN - KNIGHT) << 14)
 };
 
 enum
@@ -113,7 +116,11 @@ constexpr int from_to(Move m) {
 }
 
 constexpr MoveType type_of(Move m) {
-    return m & 0x7000;
+    return m & 0x3000;
+}
+
+constexpr PieceType promotion_type_of(Move m) {
+    return (m >> 14 & 3) + KNIGHT;
 }
 
 inline uint32_t score_of(Move m) {
