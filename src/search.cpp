@@ -158,7 +158,7 @@ void iterative_deepening(int max_depth = 64)
 {
     const int window = 50;
 
-    int alpha = -INFINITE, beta = INFINITE;
+    int guess, alpha = -INFINITE, beta = INFINITE;
 
     for (int depth = 1; depth <= max_depth; depth++)
     {
@@ -169,12 +169,20 @@ void iterative_deepening(int max_depth = 64)
         if (search_cancelled)
             break;
 
-        if (eval <= alpha || eval >= beta)
+        if (eval <= alpha)
         {
-            alpha = -INFINITE;
-            beta  = INFINITE;
+            int margin = guess - alpha;
+            alpha = guess - margin * 2;
             goto fail;
         }
+        if (eval >= beta)
+        {
+            int margin = beta - guess;
+            beta = guess + margin * 2;
+            goto fail;
+        }
+
+        guess = eval;
 
         alpha = eval - window;
         beta  = eval + window;
