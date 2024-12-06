@@ -156,14 +156,30 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
 template<Color SideToMove>
 void iterative_deepening(int max_depth = 64)
 {
+    const int window = 50;
+
+    int alpha = -INFINITE, beta = INFINITE;
+
     for (int depth = 1; depth <= max_depth; depth++)
     {
-        int eval = search<true, SideToMove>(-INFINITE, INFINITE, depth, 0, false);
+        fail:
+
+        int eval = search<true, SideToMove>(alpha, beta, depth, 0, false);
 
         if (search_cancelled)
             break;
 
-        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << Debug::pv() << std::endl;
+        if (eval <= alpha || eval >= beta)
+        {
+            alpha = -INFINITE;
+            beta  = INFINITE;
+            goto fail;
+        }
+
+        alpha = eval - window;
+        beta  = eval + window;
+
+        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << Debug::pv() << std::endl;
     }
 }
 

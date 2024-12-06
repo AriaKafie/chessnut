@@ -237,23 +237,23 @@ void do_move(Move m)
                                      : to == G8 ? make_move(H8, F8)
                                                 : make_move(A8, D8);
 
-        Square   rook_from    = from_sq(rook_move), rook_to = to_sq(rook_move);
-        Bitboard rook_from_to = square_bb(rook_from, rook_to);
+        Square   rfrom    = from_sq(rook_move), rto = to_sq(rook_move);
+        Bitboard rfrom_to = square_bb(rfrom, rto);
 
         state_ptr->key ^= Zobrist::hash[King][from]
                        ^  Zobrist::hash[King][to]
-                       ^  Zobrist::hash[Rook][rook_from]
-                       ^  Zobrist::hash[Rook][rook_to]
+                       ^  Zobrist::hash[Rook][rfrom]
+                       ^  Zobrist::hash[Rook][rto]
                        ^  Zobrist::Side;
 
         bitboards[King] ^= from_to;
-        bitboards[Rook] ^= rook_from_to;
-        bitboards[Us] ^= from_to ^ rook_from_to;
+        bitboards[Rook] ^= rfrom_to;
+        bitboards[Us] ^= from_to ^ rfrom_to;
 
         board[from] = NO_PIECE;
-        board[rook_from] = NO_PIECE;
+        board[rfrom] = NO_PIECE;
         board[to] = King;
-        board[rook_to] = Rook;
+        board[rto] = Rook;
 
         constexpr uint8_t mask = Us == WHITE ? 0b0011 : 0b1100;
         state_ptr->castling_rights &= mask;
@@ -337,17 +337,17 @@ void undo_move(Move m)
                                      : to == G8 ? make_move(H8, F8)
                                                 : make_move(A8, D8);
 
-        Square   rook_from    = from_sq(rook_move), rook_to = to_sq(rook_move);
-        Bitboard rook_from_to = square_bb(rook_from, rook_to);
+        Square   rfrom    = from_sq(rook_move), rto = to_sq(rook_move);
+        Bitboard rfrom_to = square_bb(rfrom, rto);
 
         bitboards[King] ^= from_to;
-        bitboards[Rook] ^= rook_from_to;
-        bitboards[Us] ^= from_to ^ rook_from_to;
+        bitboards[Rook] ^= rfrom_to;
+        bitboards[Us] ^= from_to ^ rfrom_to;
 
         board[to] = NO_PIECE;
-        board[rook_to] = NO_PIECE;
+        board[rto] = NO_PIECE;
         board[from] = King;
-        board[rook_from] = Rook;
+        board[rfrom] = Rook;
 
         return;
     }

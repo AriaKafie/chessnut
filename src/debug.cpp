@@ -144,7 +144,15 @@ std::string rep_table_to_string()
 
 void Debug::go()
 {
-    std::cout << rep_table_to_string() << std::endl;
+    uint32_t i = 0x12345678;
+
+    union {
+        uint32_t v;
+        unsigned char bytes[4];
+    } u = {i};
+
+    std::cout << std::hex << (unsigned int)u.bytes[0] << std::endl;
+    std::cout << std::hex << (unsigned int)u.bytes[3] << std::endl;
 }
 
 Move *get_moves(Move *list)
