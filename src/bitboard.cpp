@@ -46,7 +46,8 @@ uint64_t generate_magic(uint64_t mask)
     uint64_t occupied[4096];
     bool visited[4096], failed;
 
-    for (int p = 0; p < permutations; occupied[p] = generate_occupancy(mask, p), p++);
+    for (int p = 0; p < permutations; p++)
+        occupied[p] = generate_occupancy(mask, p);
 
     std::mt19937_64 rng(0);
     uint64_t magic;

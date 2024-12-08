@@ -78,6 +78,10 @@ enum
     SOUTH_WEST = SOUTH + WEST,
 };
 
+constexpr Direction relative_direction(Color c, Direction d) {
+    return c == WHITE ? d : -d;
+}
+
 constexpr Piece make_piece(Color c, PieceType pt) {
     return pt + (c << 3);
 }

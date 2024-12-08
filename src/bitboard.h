@@ -199,9 +199,7 @@ constexpr Bitboard pawn_attacks(Square sq) {
 
 template<Color C>
 constexpr Bitboard pawn_attacks(Bitboard pawns) {
-
-    if constexpr (C == WHITE) return shift<NORTH_EAST>(pawns) | shift<NORTH_WEST>(pawns);
-    else                      return shift<SOUTH_WEST>(pawns) | shift<SOUTH_EAST>(pawns);
+    return shift<relative_direction(C, NORTH_EAST)>(pawns) | shift<relative_direction(C, NORTH_WEST)>(pawns);
 }
 
 inline void toggle_square(Bitboard& b, Square s) {
