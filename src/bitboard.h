@@ -36,11 +36,9 @@ inline Bitboard AntiDiag[SQUARE_NB];
 inline Bitboard FileBB[SQUARE_NB];
 inline uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
 inline uint8_t CenterDistance[SQUARE_NB];
-inline int white_kingshield_scores[SQUARE_NB][1 << 6];
-inline int black_kingshield_scores[SQUARE_NB][1 << 6];
-inline uint8_t castle_masks[COLOR_NB][1 << 5];
-inline Bitboard white_kingshield[SQUARE_NB];
-inline Bitboard black_kingshield[SQUARE_NB];
+inline uint8_t CastleMasks[COLOR_NB][1 << 5];
+inline Bitboard KingShield[COLOR_NB][SQUARE_NB];
+inline int KingShieldScores[COLOR_NB][SQUARE_NB][1 << 6];
 
 #ifndef PEXT
     inline uint64_t rook_magics[SQUARE_NB];
@@ -207,10 +205,8 @@ inline void toggle_square(Bitboard& b, Square s) {
 }
 
 template<Color C>
-int king_safety(Square ksq, Bitboard occ)
-{
-    if constexpr (C == WHITE) return white_kingshield_scores[ksq][pext(occ, white_kingshield[ksq])];
-    else                      return black_kingshield_scores[ksq][pext(occ, black_kingshield[ksq])];
+int king_safety(Square ksq, Bitboard occ) {
+    return KingShieldScores[C][ksq][pext(occ, KingShield[C][ksq])];
 }
 
 inline int square_distance(Square a, Square b) {

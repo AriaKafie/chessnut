@@ -109,10 +109,10 @@ void Bitboards::init()
 
         Square sq = s1 & 0x38 | 1;
 
-        white_kingshield[s1] =
+        KingShield[WHITE][s1] =
             ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);
 
-        black_kingshield[s1] =
+        KingShield[BLACK][s1] =
             ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);
 
         DoubleCheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
@@ -146,17 +146,15 @@ void Bitboards::init()
         if ((b_occ & square_bb(A1)) != 0) b_rights &= clearQ;
         if ((b_occ & square_bb(H1)) != 0) b_rights &= clearK;
 
-        castle_masks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_rights;
-        castle_masks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_rights;
+        CastleMasks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_rights;
+        CastleMasks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_rights;
     }
 
-    for (Square sq = H1; sq <= A8; sq++)
+    for (Color c : { WHITE, BLACK })
     {
-        for (Bitboard occupied = 0, i = 0; i < 1 << popcount(white_kingshield[sq]); occupied = generate_occupancy(white_kingshield[sq], ++i))
-            white_kingshield_scores[sq][pext(occupied, white_kingshield[sq])] = score_kingshield(sq, occupied, WHITE);
-
-        for (Bitboard occupied = 0, i = 0; i < 1 << popcount(black_kingshield[sq]); occupied = generate_occupancy(black_kingshield[sq], ++i))
-            black_kingshield_scores[sq][pext(occupied, black_kingshield[sq])] = score_kingshield(sq, occupied, BLACK);
+        for (Square sq = H1; sq <= A8; sq++)
+            for (Bitboard occupied = 0, i = 0; i < 1 << popcount(KingShield[c][sq]); occupied = generate_occupancy(KingShield[c][sq], ++i))
+                KingShieldScores[c][sq][pext(occupied, KingShield[c][sq])] = score_kingshield(sq, occupied, c);
     }
 }
 
@@ -227,7 +225,7 @@ int score_kingshield(Square ksq, Bitboard occ, Color c) {
         {45, 50, 40},{45, 50, 40}
     };
 
-    Bitboard shield_mask = (c == WHITE) ? white_kingshield[ksq] : black_kingshield[ksq];
+    Bitboard shield_mask = KingShield[c][ksq];
 
     Bitboard file_right = file_bb(lsb(shield_mask));
     Bitboard file_mid     = file_right << 1;
