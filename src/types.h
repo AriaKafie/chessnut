@@ -56,22 +56,22 @@ enum { WHITE, BLACK, COLOR_NB = 2 };
 
 enum
 {
-    NORMAL           = 0,
+    NORMAL           = 0 << 12,
     PROMOTION        = 1 << 12,
     ENPASSANT        = 2 << 12,
     CASTLING         = 3 << 12,
     KNIGHT_PROMOTION = PROMOTION + ((KNIGHT - KNIGHT) << 14),
     BISHOP_PROMOTION = PROMOTION + ((BISHOP - KNIGHT) << 14),
-    ROOK_PROMOTION   = PROMOTION + ((ROOK - KNIGHT) << 14),
-    QUEEN_PROMOTION  = PROMOTION + ((QUEEN - KNIGHT) << 14)
+    ROOK_PROMOTION   = PROMOTION + ((ROOK - KNIGHT)   << 14),
+    QUEEN_PROMOTION  = PROMOTION + ((QUEEN - KNIGHT)  << 14)
 };
 
 enum
 {
-    NORTH =  8,
-    EAST  = -1,
-    SOUTH = -8,
-    WEST  =  1,
+    NORTH      =  8,
+    EAST       = -1,
+    SOUTH      = -8,
+    WEST       =  1,
     NORTH_EAST = NORTH + EAST,
     SOUTH_EAST = SOUTH + EAST,
     NORTH_WEST = NORTH + WEST,

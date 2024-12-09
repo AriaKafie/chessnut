@@ -17,8 +17,7 @@ inline const Move *table[COLOR_NB][1 << 4][1 << 6];
 namespace MoveGen { void init(); };
 /*
 +---+---+---+---+---+---+---+---+
-|   |qo |qoa|qoa|qka|koa|koa|   | >> 1 =
-+---+---+---+---+---+---+---+---+
+|   |qo |qoa|qoa|qka|koa|koa|   | >> 1,
 +---+---+---+---+---+---+---+---+
 |   |   |qo |qoa|qoa|qka|koa|koa|
 +---+---+---+---+---+---+---+---+

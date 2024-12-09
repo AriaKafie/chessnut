@@ -33,7 +33,7 @@ std::string PV()
     if (best == NO_MOVE)
         return "";
 
-    else 
+    else
     {
         do_move<STM>(best);
         line = move_to_uci(best) + " " + PV<!STM>();
@@ -142,9 +142,23 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
+extern int reductions[128][128];
+
 void Debug::go()
 {
-    std::cout << rep_table_to_string() << std::endl;
+    std::string s = "\n  ";
+    for (int i=0;i<128;i++) { s += "+---"; std::cout << std::setw(4) << i; }
+    s += "\n";
+    
+    for (int d = 0; d <= 20; d++)
+    {
+        std::cout << s << std::setw(2) << d;
+
+        for (int mn = 0; mn < 128; mn++)
+        {
+            std::cout << "|" << std::setw(3) << reductions[d][mn];
+        }
+    }
 }
 
 Move *get_moves(Move *list)

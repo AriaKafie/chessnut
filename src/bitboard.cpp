@@ -121,18 +121,18 @@ void Bitboards::init()
         PawnAttacks[BLACK][s1] = pawn_attacks<BLACK>(square_bb(s1));
     }
 
-    uint8_t clearK = 0b0111;
-    uint8_t clearQ = 0b1011;
-    uint8_t cleark = 0b1101;
-    uint8_t clearq = 0b1110;
-
     for (int i = 0; i < 1 << 5; i++)
     {
+        const uint8_t clearK = ~8;
+        const uint8_t clearQ = ~4;
+        const uint8_t cleark = ~2;
+        const uint8_t clearq = ~1;
+
         Bitboard w_occ = generate_occupancy(square_bb(A1, E1, H1, A8, H8), i);
         Bitboard b_occ = generate_occupancy(square_bb(A8, E8, H8, A1, H1), i);
 
-        uint8_t w_rights = 0b1111;
-        uint8_t b_rights = 0b1111;
+        uint8_t w_rights = 0xf;
+        uint8_t b_rights = 0xf;
 
         if ((w_occ & square_bb(A1)) == 0) w_rights &= clearQ;
         if ((w_occ & square_bb(E1)) == 0) w_rights &= clearK & clearQ;
@@ -151,11 +151,9 @@ void Bitboards::init()
     }
 
     for (Color c : { WHITE, BLACK })
-    {
         for (Square sq = H1; sq <= A8; sq++)
-            for (Bitboard occupied = 0, i = 0; i < 1 << popcount(KingShield[c][sq]); occupied = generate_occupancy(KingShield[c][sq], ++i))
-                KingShieldScores[c][sq][pext(occupied, KingShield[c][sq])] = score_kingshield(sq, occupied, c);
-    }
+            for (int i = 0; i < 1 << popcount(KingShield[c][sq]); i++)
+                KingShieldScores[c][sq][i] = score_kingshield(sq, generate_occupancy(KingShield[c][sq], i), c);
 }
 
 void init_magics()
