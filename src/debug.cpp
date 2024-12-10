@@ -148,16 +148,16 @@ void Debug::go()
 {
     std::string s = "\n  ";
     for (int i=0;i<128;i++) { s += "+---"; std::cout << std::setw(4) << i; }
-    s += "\n";
+    s += "+\n";
     
     for (int d = 0; d <= 20; d++)
     {
         std::cout << s << std::setw(2) << d;
 
         for (int mn = 0; mn < 128; mn++)
-        {
             std::cout << "|" << std::setw(3) << reductions[d][mn];
-        }
+
+        std::cout << "|";
     }
 }
 

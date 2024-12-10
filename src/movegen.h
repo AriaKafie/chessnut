@@ -160,13 +160,13 @@ MoveList<Us>::MoveList()
     if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & Rank6)
     {
         *last = make_move<ENPASSANT>(state_ptr->ep_sq - UpRight, state_ptr->ep_sq);
-        Bitboard after_ep = occupied ^ (b | shift<-UpRight>(b) | shift<-Up>(b));
+        Bitboard after_ep = occupied ^ (b | shift_unsafe<-UpRight>(b) | shift_unsafe<-Up>(b));
         last += !(bishop_attacks(ksq, after_ep) & enemy_bishop_queen | rook_attacks(ksq, after_ep) & enemy_rook_queen);
     }
     if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & Rank6)
     {
         *last = make_move<ENPASSANT>(state_ptr->ep_sq - UpLeft, state_ptr->ep_sq);
-        Bitboard after_ep = occupied ^ (b | shift<-UpLeft>(b) | shift<-Up>(b));
+        Bitboard after_ep = occupied ^ (b | shift_unsafe<-UpLeft>(b) | shift_unsafe<-Up>(b));
         last += !(bishop_attacks(ksq, after_ep) & enemy_bishop_queen | rook_attacks(ksq, after_ep) & enemy_rook_queen);
     }
 

@@ -83,6 +83,21 @@ constexpr Bitboard shift(Bitboard bb)
     if constexpr (D == SOUTH+SOUTH) return  bb >> 16;
 }
 
+template<Direction D>
+constexpr Bitboard shift_unsafe(Bitboard bb)
+{
+    if constexpr (D == NORTH)       return  bb << 8;
+    if constexpr (D == NORTH_EAST)  return  bb << 7;
+    if constexpr (D == EAST)        return  bb >> 1;
+    if constexpr (D == SOUTH_EAST)  return  bb >> 9;
+    if constexpr (D == SOUTH)       return  bb >> 8;
+    if constexpr (D == SOUTH_WEST)  return  bb >> 7;
+    if constexpr (D == WEST)        return  bb << 1;
+    if constexpr (D == NORTH_WEST)  return  bb << 9;
+    if constexpr (D == NORTH+NORTH) return  bb << 16;
+    if constexpr (D == SOUTH+SOUTH) return  bb >> 16;
+}
+
 inline Bitboard distance_from_center(Square s) {
     return CenterDistance[s];
 }
