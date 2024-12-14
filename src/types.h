@@ -24,7 +24,7 @@ typedef uint8_t  PieceType;
 typedef uint8_t  Color;
 
 constexpr Move NULLMOVE = 0;
-constexpr Move NO_MOVE = 0;
+constexpr Move NO_MOVE  = 0;
 
 constexpr int MAX_PLY  = 128;
 constexpr int INFINITE = 0x7fffffff;

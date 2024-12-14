@@ -146,7 +146,7 @@ extern int reductions[128][128];
 
 void Debug::go()
 {
-    std::string s = "\n  ";
+    /*std::string s = "\n  ";
     for (int i=0;i<128;i++) { s += "+---"; std::cout << std::setw(4) << i; }
     s += "+\n";
     
@@ -158,7 +158,9 @@ void Debug::go()
             std::cout << "|" << std::setw(3) << reductions[d][mn];
 
         std::cout << "|";
-    }
+    }*/
+
+    std::cout << rep_table_to_string() << std::endl;
 }
 
 Move *get_moves(Move *list)

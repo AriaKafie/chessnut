@@ -10,18 +10,18 @@
 #include "moveordering.h"
 #include "types.h"
 
-inline constexpr int root_reductions[MAX_PLY] =
-{
-    0,1,1,1,1,2,2,2,2,2,
-    2,2,2,2,2,3,3,3,3,3,
-    3,3,3,3,3,3,3,3,3,3,
-    3,3,3,3,3,3,3,3,3,3,
-    4,4,4,4,4,4,4,4,4,4,
-    5,5,5,5,5,5,5,5,5,5,
-    6,6,6,6,6,6,6,6,6,6,
-    7,7,7,7,7,7,7,7,7,7,
-    8,8,8,8,8,8,8,8,8,8,
-};
+//inline constexpr int root_reductions[MAX_PLY] =
+//{
+//    0,1,1,1,1,2,2,2,2,2,
+//    2,2,2,2,2,3,3,3,3,3,
+//    3,3,3,3,3,3,3,3,3,3,
+//    3,3,3,3,3,3,3,3,3,3,
+//    4,4,4,4,4,4,4,4,4,4,
+//    5,5,5,5,5,5,5,5,5,5,
+//    6,6,6,6,6,6,6,6,6,6,
+//    7,7,7,7,7,7,7,7,7,7,
+//    8,8,8,8,8,8,8,8,8,8,
+//};
 
 constexpr int matescore = 100000;
 
@@ -32,6 +32,9 @@ namespace Search
     void count_nodes(int depth);
 
     inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA = killers[ply].moveB = NO_MOVE; }
+
+    inline Move root_move;
+    inline int  nodes;
 }
 
 inline volatile bool search_cancelled;

@@ -96,25 +96,12 @@ constexpr int end_king_squares[] =
 template<Color Us>
 int material_count()
 {
-    constexpr Color Them = !Us;
-
-    constexpr Piece FPAWN   = make_piece(Us,   PAWN);
-    constexpr Piece EPAWN   = make_piece(Them, PAWN);
-    constexpr Piece FKNIGHT = make_piece(Us,   KNIGHT);
-    constexpr Piece EKNIGHT = make_piece(Them, KNIGHT);
-    constexpr Piece FBISHOP = make_piece(Us,   BISHOP);
-    constexpr Piece EBISHOP = make_piece(Them, BISHOP);
-    constexpr Piece FROOK   = make_piece(Us,   ROOK);
-    constexpr Piece EROOK   = make_piece(Them, ROOK);
-    constexpr Piece FQUEEN  = make_piece(Us,   QUEEN);
-    constexpr Piece EQUEEN  = make_piece(Them, QUEEN);
-
     return
-        100 * (popcount(bb(FPAWN))   - popcount(bb(EPAWN)))   +
-        300 * (popcount(bb(FKNIGHT)) - popcount(bb(EKNIGHT))) +
-        300 * (popcount(bb(FBISHOP)) - popcount(bb(EBISHOP))) +
-        500 * (popcount(bb(FROOK))   - popcount(bb(EROOK)))   +
-        900 * (popcount(bb(FQUEEN))  - popcount(bb(EQUEEN)));
+        100 * (popcount(bitboard<make_piece(Us, PAWN  )>()) - popcount(bitboard<make_piece(!Us, PAWN  )>())) +
+        300 * (popcount(bitboard<make_piece(Us, KNIGHT)>()) - popcount(bitboard<make_piece(!Us, KNIGHT)>())) +
+        300 * (popcount(bitboard<make_piece(Us, BISHOP)>()) - popcount(bitboard<make_piece(!Us, BISHOP)>())) +
+        500 * (popcount(bitboard<make_piece(Us, ROOK  )>()) - popcount(bitboard<make_piece(!Us, ROOK  )>())) +
+        900 * (popcount(bitboard<make_piece(Us, QUEEN )>()) - popcount(bitboard<make_piece(!Us, QUEEN )>()));
 }
 
 template<Color Us>
@@ -190,7 +177,7 @@ int mopup()
     constexpr Piece EnemyKing    = make_piece(!Us, KING);
 
     return score > 0 ? score + 10 * distance_from_center(lsb(bb(EnemyKing)))    + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))))
-                     : score - 10 * distance_from_center(lsb(bb(FriendlyKing))) + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))));
+                     : score - 10 * distance_from_center(lsb(bb(FriendlyKing))) - 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))));
 }
 
 template<Color Perspective>int static_eval()

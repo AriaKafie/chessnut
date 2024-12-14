@@ -70,19 +70,19 @@ void TranspositionTable::record(uint8_t depth, BoundType flag, int eval, Move be
     eval += ply_from_root * (eval >  90000);
     eval -= ply_from_root * (eval < -90000);
 
-    TTEntry *t = &transposition_table[Position::key() & (TT_SIZE - 1)];
+    TTEntry *e = &transposition_table[Position::key() & (TT_SIZE - 1)];
 
-    t->key       = Position::key();
-    t->depth     = depth;
-    t->flag      = flag;
-    t->eval      = eval;
-    t->best_move = best_move;
+    e->key       = Position::key();
+    e->depth     = depth;
+    e->flag      = flag;
+    e->eval      = eval;
+    e->best_move = best_move;
 }
 
 Move TranspositionTable::lookup_move()
 {
-    TTEntry *entry = &transposition_table[Position::key() & (TT_SIZE - 1)];
-    return entry->key == Position::key() ? entry->best_move : NO_MOVE;
+    TTEntry *e = &transposition_table[Position::key() & (TT_SIZE - 1)];
+    return e->key == Position::key() ? e->best_move : NO_MOVE;
 }
 
 void TranspositionTable::clear() {

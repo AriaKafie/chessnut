@@ -194,8 +194,8 @@ std::string to_string(Bitboard b)
     return s + "\n";
 }
 
-int score_kingshield(Square ksq, Bitboard occ, Color c) {
-
+int score_kingshield(Square ksq, Bitboard occ, Color c)
+{
     constexpr int MAX_SCORE =  50;
     constexpr int MIN_SCORE = -50;
 

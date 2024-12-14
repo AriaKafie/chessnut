@@ -13,20 +13,27 @@
 #include "position.h"
 #include "uci.h"
 
-static Move root_move;
-int nodes, reductions[MAX_PLY][MAX_PLY];
+int reductions[MAX_PLY][MAX_PLY];
 
 void Search::init()
 {
-    for (int depth = 0; depth < MAX_PLY; depth++)
+    /*for (int depth = 0; depth < MAX_PLY; depth++)
         for (int move_num = 0; move_num < MAX_PLY; move_num++)
-            reductions[depth][move_num] = int(std::log(move_num + 2) / std::log(std::min(14, depth) + 2));
+            reductions[depth][move_num] = int(std::log(move_num + 2) / std::log(std::min(14, depth) + 2));*/
+
+    for (int depth = 0; depth < MAX_PLY; depth++)
+        for (int move_num = 1; move_num < MAX_PLY; move_num++)
+            reductions[depth][move_num] = int(std::log(move_num + 2) * 2 / std::log(std::min(10, depth) + 2));
+
+    /*for (int depth = 0; depth < MAX_PLY; depth++)
+        for (int move_num = 1; move_num < MAX_PLY; move_num++)
+            reductions[depth][move_num] = int(std::log(move_num + 1.5) * 1.5 / std::log(std::min(12, depth) + 2));*/
 }
 
 template<Color SideToMove>
 int qsearch(int alpha, int beta)
 {
-    nodes++;
+    Search::nodes++;
 
     int eval = static_eval<SideToMove>();
 
@@ -62,7 +69,7 @@ int qsearch(int alpha, int beta)
 template<bool Root, Color SideToMove>
 int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
 {
-    nodes++;
+    Search::nodes++;
 
     if (search_cancelled) [[unlikely]]
         return 0;
@@ -104,7 +111,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
 
     for (int i = 0; i < moves.size(); i++)
     {
-        int reduction = Root ? root_reductions[i] : reductions[depth][i];
+        int reduction = reductions[depth][i];
 
         if (depth - 1 - reduction + extension <= 0 && type_of(moves[i]) == NORMAL && is_quiet(moves[i]))
         {
@@ -144,7 +151,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
             bound_type = EXACT;
 
             if (Root)
-                root_move = best_move;
+                Search::root_move = best_move;
         }
     }
 
@@ -187,7 +194,7 @@ void iterative_deepening(int max_depth = 64)
         alpha = eval - window;
         beta  = eval + window;
 
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << nodes << " pv " << Debug::pv() << std::endl;
+        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << Search::nodes << " pv " << Debug::pv() << std::endl;
     }
 }
 
