@@ -172,7 +172,9 @@ void set_gamephase()
                             5 * piece_count(make_piece(them, ROOK))   +
                             9 * piece_count(make_piece(them, QUEEN));
 
-    if (enemy_material < 5 && friendly_material >= 5 || friendly_material < 5 && enemy_material >= 5)
+    bool pawns = bitboards[W_PAWN] | bitboards[B_PAWN];
+
+    if (!pawns && (enemy_material < 5 && friendly_material >= 5 || friendly_material < 5 && enemy_material >= 5))
         state_ptr->gamephase = MOPUP;
     else if (friendly_material < 10 || friendly_material < 17 && !bitboards[make_piece(us, QUEEN)])
         state_ptr->gamephase = ENDGAME;

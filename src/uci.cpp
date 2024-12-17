@@ -31,23 +31,13 @@ void position(std::istringstream& is)
 
 void go(std::istringstream& is)
 {
-    std::string token;
-    int         depth;
-    uint64_t    thinktime;
+    if (is.eof()) Search::go();
 
-    is >> token;
-
-    if (token == "nodes")
+    else for (std::string token; is >> token;)
     {
-        is >> depth;
-        Search::count_nodes(depth);
-    } 
-    else if (token == "movetime")
-    {
-        is >> thinktime;
-        Search::go(thinktime);
+        if (int depth;     token == "nodes"    && is >> depth)     Search::count_nodes(depth);
+        if (int thinktime; token == "movetime" && is >> thinktime) Search::go(thinktime);
     }
-    else Search::go();
 }
 
 void UCI::loop()

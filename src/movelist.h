@@ -24,12 +24,11 @@ public:
     Move moves[MAX_MOVES], *last = moves;
 
 private:
-    void quicksort(int low, int high);
-
     Bitboard checkmask;
     Bitboard seen_by_enemy;
-    int      partition(int low, int high);
 
+    void quicksort(int low, int high);
+    int  partition(int low, int high);
 };
 
 template<Color Us>

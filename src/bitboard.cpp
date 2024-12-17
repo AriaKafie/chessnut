@@ -7,15 +7,14 @@
     #include <random>
 #endif
 
-int score_kingshield(Square ksq, Bitboard occ, Color c);
 void init_magics();
 
 Bitboard generate_occupancy(Bitboard mask, int permutation)
 {
     Bitboard occupied = 0;
 
-    for (int i = 0; mask; clear_lsb(mask), i++)
-        if (permutation & 1 << i) occupied |= mask & ((mask ^ 0xffffffffffffffff) + 1);
+    for (int i = 1; mask; clear_lsb(mask), i <<= 1)
+        if (permutation & i) occupied |= mask & (mask ^ 0xffffffffffffffff) + 1;
 
     return occupied;
 }
@@ -151,9 +150,62 @@ void Bitboards::init()
     }
 
     for (Color c : { WHITE, BLACK })
-        for (Square sq = H1; sq <= A8; sq++)
-            for (int i = 0; i < 1 << popcount(KingShield[c][sq]); i++)
-                KingShieldScores[c][sq][i] = score_kingshield(sq, generate_occupancy(KingShield[c][sq], i), c);
+        for (Square ksq = H1; ksq <= A8; ksq++)
+            for (int i = 0; i < 1 << popcount(KingShield[c][ksq]); i++)
+            {
+                Bitboard king_shield = generate_occupancy(KingShield[c][ksq], i);
+
+                const int MIN_SCORE = -45, MAX_SCORE = 45;
+
+                if (!(square_bb(ksq) & (c == WHITE ? RANK_1 : RANK_8)) || (popcount(king_shield) < 2))
+                {
+                    KingShieldScores[c][ksq][i] = MIN_SCORE;
+                    continue;
+                }
+
+                if (square_bb(ksq) & (FILE_E | FILE_D))
+                {
+                    KingShieldScores[c][ksq][i] = 10;
+                    continue;
+                }
+
+                const int pawn_weights[8][6] =
+                { // [H1..A1][LSB..MSB]
+                    {10, 20, 15, 5, 10, 5},{5,    25, 15, 0, 0,    5},
+                    {20, 15, 10, 0, 0,    0},{0,    0,    0,    0, 0,    0},
+                    {0,    0,    0,    0, 0,    0},{10, 15, 20, 0, 0,    0},
+                    {15, 25, 5,    5, 0,    0},{15, 20, 10, 5, 10, 5}
+                };
+
+                const int file_weights[8][3] =
+                { // [H1..A1][right, middle, left]
+                    {40, 50, 45},{40, 50, 45},
+                    {50, 45, 40},{0,    0,     0},
+                    {0,    0,     0},{40, 45, 50},
+                    {45, 50, 40},{45, 50, 40}
+                };
+
+                Bitboard shield_mask  = KingShield[c][ksq];
+                Bitboard file_right   = file_bb(lsb(shield_mask));
+                Bitboard file_mid     = file_right << 1;
+                Bitboard file_left    = file_right << 2;
+                int      score        = 0;
+                Square   relative_ksq = c == WHITE ? ksq : ksq - 56;
+
+                if ((king_shield & file_right) == 0) score -= file_weights[relative_ksq][0];
+                if ((king_shield & file_mid)   == 0) score -= file_weights[relative_ksq][1];
+                if ((king_shield & file_left)  == 0) score -= file_weights[relative_ksq][2];
+
+                for (int i = 0; shield_mask; clear_lsb(shield_mask), i++)
+                {
+                    int index = (c == WHITE) ? i : ((i < 3) ? (i + 3) : (i - 3));
+
+                    if (king_shield & square_bb(lsb(shield_mask)))
+                        score += pawn_weights[relative_ksq][index];
+                }
+
+                KingShieldScores[c][ksq][i] = std::clamp(score, MIN_SCORE, MAX_SCORE);
+            }
 }
 
 void init_magics()
@@ -193,56 +245,3 @@ std::string to_string(Bitboard b)
 
     return s + "\n";
 }
-
-int score_kingshield(Square ksq, Bitboard occ, Color c)
-{
-    constexpr int MAX_SCORE =  50;
-    constexpr int MIN_SCORE = -50;
-
-    Bitboard home_rank = (c == WHITE) ? RANK_1 : RANK_8;
-
-    if (!(square_bb(ksq) & home_rank) || (popcount(occ) < 2))
-        return MIN_SCORE;
-
-    if (square_bb(ksq) & (FILE_E | FILE_D))
-        return 10;
-
-    constexpr int pawn_weights[8][6] = 
-    { // [H1..A1][LSB..MSB]
-        {10, 20, 15, 5, 10, 5},{5,    25, 15, 0, 0,    5},
-        {20, 15, 10, 0, 0,    0},{0,    0,    0,    0, 0,    0},
-        {0,    0,    0,    0, 0,    0},{10, 15, 20, 0, 0,    0},
-        {15, 25, 5,    5, 0,    0},{15, 20, 10, 5, 10, 5}
-    };
-
-    constexpr int file_weights[8][3] =
-    { // [H1..A1][right, middle, left]
-        {40, 50, 45},{40, 50, 45},
-        {50, 45, 40},{0,    0,     0},
-        {0,    0,     0},{40, 45, 50},
-        {45, 50, 40},{45, 50, 40}
-    };
-
-    Bitboard shield_mask = KingShield[c][ksq];
-
-    Bitboard file_right = file_bb(lsb(shield_mask));
-    Bitboard file_mid     = file_right << 1;
-    Bitboard file_left    = file_right << 2;
-
-    int score = 0;
-    if (c == BLACK) ksq -= 56;
-    if ((occ & file_right) == 0) score -= file_weights[ksq][0];
-    if ((occ & file_mid)     == 0) score -= file_weights[ksq][1];
-    if ((occ & file_left)    == 0) score -= file_weights[ksq][2];
-
-    for (int i = 0; shield_mask; i++) {
-        int index = (c == WHITE) ? i : ((i < 3) ? (i + 3) : (i - 3));
-        Square sq = lsb(shield_mask);
-        if (occ & square_bb(sq))
-            score += pawn_weights[ksq][index];
-        clear_lsb(shield_mask);
-    }
-    
-    return std::max(MIN_SCORE, std::min(MAX_SCORE, score));
-}
-
