@@ -80,15 +80,13 @@ void Position::set(const std::string& fen)
 
 std::string Position::to_string()
 {
-    const std::string piece_to_char = "  PNBRQK  pnbrqk";
-
     std::stringstream ss;
 
     ss << "\n+---+---+---+---+---+---+---+---+\n";
 
     for (Square sq = A8; sq >= H1; sq--)
     {
-        ss << "| " << piece_to_char[board[sq]] << " ";
+        ss << "| " << "  PNBRQK  pnbrqk"[board[sq]] << " ";
 
         if (sq % 8 == 0)
             ss << "| " << (sq / 8 + 1) << "\n+---+---+---+---+---+---+---+---+\n";
@@ -101,8 +99,6 @@ std::string Position::to_string()
 
 std::string Position::fen()
 {
-    const std::string piece_to_char = "  PNBRQK  pnbrqk";
-    
     std::stringstream fen;
 
     for (int rank = 7; rank >= 0; rank--)
@@ -110,7 +106,7 @@ std::string Position::fen()
         for (int file = 7; file >= 0; file--)
         {
             if (Piece pc = piece_on(rank * 8 + file))
-                fen << piece_to_char[pc];
+                fen << "  PNBRQK  pnbrqk"[pc];
             else
             {
                 int empty = 0, f;
@@ -134,10 +130,10 @@ std::string Position::fen()
         fen << "-";
     else
     {
-        if (state_ptr->castling_rights & 0b1000) fen << "K";
-        if (state_ptr->castling_rights & 0b0100) fen << "Q";
-        if (state_ptr->castling_rights & 0b0010) fen << "k";
-        if (state_ptr->castling_rights & 0b0001) fen << "q";
+        if (state_ptr->castling_rights & 8) fen << "K";
+        if (state_ptr->castling_rights & 4) fen << "Q";
+        if (state_ptr->castling_rights & 2) fen << "k";
+        if (state_ptr->castling_rights & 1) fen << "q";
     }
 
     fen << " " << (state_ptr->ep_sq ? square_to_uci(state_ptr->ep_sq) : "-");
