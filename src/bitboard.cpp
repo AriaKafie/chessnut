@@ -13,8 +13,8 @@ Bitboard generate_occupancy(Bitboard mask, int permutation)
 {
     Bitboard occupied = 0;
 
-    for (int i = 1; mask; clear_lsb(mask), i <<= 1)
-        if (permutation & i) occupied |= mask & (mask ^ 0xffffffffffffffff) + 1;
+    for (;mask; clear_lsb(mask), permutation >>= 1)
+        if (permutation & 1) occupied |= mask & (mask ^ 0xffffffffffffffff) + 1;
 
     return occupied;
 }
@@ -106,7 +106,7 @@ void Bitboards::init()
                              SOUTH+SOUTH_WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTH+NORTH_WEST })
             KnightAttacks[s1] |= safe_step(s1, d);
 
-        Square sq = s1 & 0x38 | 1;
+        Square sq = s1 & ~7 | 1;
 
         KingShield[WHITE][s1] =
             ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);

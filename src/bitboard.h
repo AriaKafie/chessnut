@@ -102,6 +102,10 @@ inline Bitboard distance_from_center(Square s) {
     return CenterDistance[s];
 }
 
+inline int square_distance(Square a, Square b) {
+    return SquareDistance[a][b];
+}
+
 inline Bitboard align_mask(Square s1, Square s2) {
     return AlignMask[s1][s2];
 }
@@ -139,8 +143,14 @@ inline Bitboard rank_bb(Square s) {
     return RANK_1 << 8 * (s / 8);
 }
 
-inline Bitboard mask(Square s, Direction d) {
+inline Bitboard safe_step(Square s, int step)
+{
+    Square to = s + step;
+    return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
+}
 
+inline Bitboard mask(Square s, Direction d)
+{
     switch (d) 
     {
         case NORTH_EAST: return mask(s, NORTH) & mask(s, EAST);
@@ -149,24 +159,12 @@ inline Bitboard mask(Square s, Direction d) {
         case NORTH_WEST: return mask(s, NORTH) & mask(s, WEST);
     }
 
-    if (d == NORTH || d == SOUTH)
-    {
-        Bitboard m = 0;
+    Bitboard m = 0;
 
-        while (is_ok(s += d))
-            m |= rank_bb(s);
+    while (safe_step(s, d) && is_ok(s += d))
+        m |= d == NORTH || d == SOUTH ? rank_bb(s) : FILE_H << s % 8;
 
-        return m;
-    }
-    else
-    {
-        Bitboard r = rank_bb(s), m = 0;
-
-        while (square_bb(s += d) & r)
-            m |= FILE_H << s % 8;
-
-        return m;
-    }
+    return m;
 }
 
 inline void clear_lsb(Bitboard& b) {
@@ -224,22 +222,12 @@ int king_safety(Square ksq, Bitboard occ) {
     return KingShieldScores[C][ksq][pext(occ, KingShield[C][ksq])];
 }
 
-inline int square_distance(Square a, Square b) {
-    return SquareDistance[a][b];
-}
-
 inline int file_distance(Square a, Square b) {
     return std::abs((a % 8) - (b % 8));
 }
 
 inline int rank_distance(Square a, Square b) {
     return std::abs((a / 8) - (b / 8));
-}
-
-inline Bitboard safe_step(Square s, int step)
-{
-    Square to = s + step;
-    return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
 }
 
 #endif

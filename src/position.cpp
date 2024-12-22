@@ -9,8 +9,6 @@
 #include "transpositiontable.h"
 #include "uci.h"
 
-constexpr std::string_view piece_to_char = "  PNBRQK  pnbrqk";
-
 void set_gamephase();
 
 Bitboard bitboards[16];
@@ -32,6 +30,8 @@ void Position::init()
 
 void Position::set(const std::string& fen)
 {
+    const std::string piece_to_char = "  PNBRQK  pnbrqk";
+
     memset(board, NO_PIECE, 64 * sizeof(Piece));
     memset(bitboards, 0ull, 16 * sizeof(Bitboard));
 
@@ -80,6 +80,8 @@ void Position::set(const std::string& fen)
 
 std::string Position::to_string()
 {
+    const std::string piece_to_char = "  PNBRQK  pnbrqk";
+
     std::stringstream ss;
 
     ss << "\n+---+---+---+---+---+---+---+---+\n";
@@ -99,6 +101,8 @@ std::string Position::to_string()
 
 std::string Position::fen()
 {
+    const std::string piece_to_char = "  PNBRQK  pnbrqk";
+    
     std::stringstream fen;
 
     for (int rank = 7; rank >= 0; rank--)
