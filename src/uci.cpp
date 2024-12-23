@@ -33,10 +33,19 @@ void go(std::istringstream& is)
 {
     if (is.eof()) Search::go();
 
-    else for (std::string token; is >> token;)
+    else
     {
-        if (int depth;     token == "nodes"    && is >> depth)     Search::count_nodes(depth);
-        if (int thinktime; token == "movetime" && is >> thinktime) Search::go(thinktime);
+        int wtime = 100, winc = 0, btime = 100, binc = 0;
+
+        for (std::string token; is >> token;)
+        {
+            if (token == "wtime") is >> wtime;
+            if (token == "winc")  is >> winc;
+            if (token == "btime") is >> btime;
+            if (token == "binc")  is >> binc;
+        }
+
+        Search::go(Position::white_to_move() ? (wtime + winc) / 15 : (btime + binc) / 15);
     }
 }
 
@@ -53,7 +62,9 @@ void UCI::loop()
         std::istringstream is(cmd);
         is >> token;
 
-        if      (token == "uci")     std::cout << "uciok"               << std::endl;
+        if      (token == "uci")     std::cout << "id name chestnut\n"
+                                               << "id author Aria Kafie\n"
+                                               << "uciok"               << std::endl;
         else if (token == "isready") std::cout << "readyok"             << std::endl;
         else if (token == "d")       std::cout << Position::to_string() << std::endl;
         else if (token == "fen")     std::cout << Position::fen()       << std::endl;
