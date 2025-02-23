@@ -123,7 +123,7 @@ void MoveList<Us>::sort(Move best_move, int ply)
             m += MAX_SCORE;
             continue;
         }
-      
+        
         uint32_t score = 0x8000;
     
         Square    from     = from_sq(m);

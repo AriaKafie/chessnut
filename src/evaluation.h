@@ -176,7 +176,7 @@ int mopup()
     constexpr Piece FriendlyKing = make_piece( Us, KING);
     constexpr Piece EnemyKing    = make_piece(!Us, KING);
 
-    return score > 0 ? score + 10 * distance_from_center(lsb(bb(EnemyKing)))    + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))))
+    return score > 0 ? score + 10 * distance_from_center(lsb(bb(EnemyKing   ))) + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))))
                      : score - 10 * distance_from_center(lsb(bb(FriendlyKing))) - 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))));
 }
 

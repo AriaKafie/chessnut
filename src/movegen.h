@@ -6,13 +6,13 @@
 #include "movelist.h"
 #include "position.h"
 
-inline constexpr Move data[COLOR_NB][5] =
+inline constexpr Move data_[COLOR_NB][5] =
 {
     { make_move<CASTLING>(E1, G1), make_move<CASTLING>(E1, C1), NULLMOVE, make_move<CASTLING>(E1, G1), NULLMOVE },
     { make_move<CASTLING>(E8, G8), make_move<CASTLING>(E8, C8), NULLMOVE, make_move<CASTLING>(E8, G8), NULLMOVE }
 };
 
-inline const Move *table[COLOR_NB][1 << 4][1 << 6];
+inline const Move *table_[COLOR_NB][1 << 4][1 << 6];
 
 namespace MoveGen { void init(); };
 /*
@@ -28,10 +28,10 @@ inline void MoveGen::init()
         for (int rights = 0; rights <= 0xf; rights++)
             for (Bitboard hash = 0; hash <= 0b111111; hash++)
             {
-                const Move *kcastle   = &data[c][3];
-                const Move *qcastle   = &data[c][1];
-                const Move *both      = &data[c][0];
-                const Move *no_castle = &data[c][2];
+                const Move *kcastle   = &data_[c][3];
+                const Move *qcastle   = &data_[c][1];
+                const Move *both      = &data_[c][0];
+                const Move *no_castle = &data_[c][2];
                 
                 const Move *src = no_castle;
 
@@ -46,7 +46,7 @@ inline void MoveGen::init()
                     else if ((hash & 0b111100) == 0) src = rights_q ? qcastle : no_castle;
                 }
 
-                table[c][rights][hash] = src;
+                table_[c][rights][hash] = src;
             }
 }
 
@@ -209,10 +209,7 @@ MoveList<Us>::MoveList()
     constexpr Bitboard NoAtk = Us == WHITE ? square_bb(C1, D1, E1, F1, G1) : square_bb(C8, D8, E8, F8, G8);
     constexpr Bitboard NoOcc = Us == WHITE ? square_bb(B1, C1, D1, F1, G1) : square_bb(B8, C8, D8, F8, G8);
 
-    /*memcpy(last, table[Us][state_ptr->castling_rights][(NoAtk & seen_by_enemy | NoOcc & occupied) >> Shift], 8);
-    last +=*/
-
-    for (const Move *src = table[Us][state_ptr->castling_rights][(NoAtk & seen_by_enemy | NoOcc & occupied) >> Shift]; *src; *last++ = *src++);
+    for (const Move *src = table_[Us][state_ptr->castling_rights][(NoAtk & seen_by_enemy | NoOcc & occupied) >> Shift]; *src; *last++ = *src++);
 }
 
 template<Color Us>

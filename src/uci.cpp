@@ -31,10 +31,21 @@ void position(std::istringstream& is)
 
 void go(std::istringstream& is)
 {
-    if (is.eof()) Search::go();
+    if (is.eof()) { Search::go(); return; }
+
+    std::string token;
+    is       >> token;
+
+    if (int movetime; token == "movetime" && is >> movetime)
+        Search::go(movetime);
+
+    else if (int depth; token == "nodes" && is >> depth)
+        Search::count_nodes(depth);
 
     else
     {
+        is.str(is.str()), is.clear();
+
         int wtime = 100, winc = 0, btime = 100, binc = 0;
 
         for (std::string token; is >> token;)

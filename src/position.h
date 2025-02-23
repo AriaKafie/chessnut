@@ -12,7 +12,7 @@
 
 #define bb(P) bitboard<P>()
 
-struct StateInfo
+typedef struct
 {
     uint64_t  key;
     uint8_t   castling_rights;
@@ -20,7 +20,7 @@ struct StateInfo
     Piece     captured;
     Color     side_to_move;
     GamePhase gamephase;
-};
+} StateInfo;
 
 extern Bitboard bitboards[16];
 extern Piece board[SQUARE_NB];
@@ -192,12 +192,12 @@ void do_move(Move m)
                        ^  Zobrist::hash[board[to]][to]
                        ^  Zobrist::Side;
 
-        bitboards[board[to]] &= zero_to;
-        bitboards[Them] &= zero_to;
+        bitboards[board[to]]   &= zero_to;
+        bitboards[Them]        &= zero_to;
         bitboards[board[from]] ^= from_to;
-        bitboards[Us] ^= from_to;
+        bitboards[Us]          ^= from_to;
 
-        board[to] = board[from];
+        board[to]   = board[from];
         board[from] = NO_PIECE;
 
         update_castling_rights<Us>();
@@ -215,12 +215,12 @@ void do_move(Move m)
                        ^  Zobrist::Side;
 
         bitboards[board[to]] &= zero_to;
-        bitboards[Them] &= zero_to;
-        bitboards[Pawn] ^= square_bb(from);
+        bitboards[Them]      &= zero_to;
+        bitboards[Pawn]      ^= square_bb(from);
         bitboards[promotion] ^= ~zero_to;
-        bitboards[Us] ^= from_to;
+        bitboards[Us]        ^= from_to;
 
-        board[to] = promotion;
+        board[to]   = promotion;
         board[from] = NO_PIECE;
         
         update_castling_rights<Us>();
@@ -236,7 +236,8 @@ void do_move(Move m)
                                      : to == G8 ? make_move(H8, F8)
                                                 : make_move(A8, D8);
 
-        Square   rfrom    = from_sq(rook_move), rto = to_sq(rook_move);
+        Square   rfrom    = from_sq(rook_move);
+        Square   rto      = to_sq(rook_move);
         Bitboard rfrom_to = square_bb(rfrom, rto);
 
         state_ptr->key ^= Zobrist::hash[King][from]
@@ -247,12 +248,12 @@ void do_move(Move m)
 
         bitboards[King] ^= from_to;
         bitboards[Rook] ^= rfrom_to;
-        bitboards[Us] ^= from_to ^ rfrom_to;
+        bitboards[Us]   ^= from_to ^ rfrom_to;
 
-        board[from] = NO_PIECE;
+        board[from]  = NO_PIECE;
         board[rfrom] = NO_PIECE;
-        board[to] = King;
-        board[rto] = Rook;
+        board[to]    = King;
+        board[rto]   = Rook;
 
         constexpr uint8_t mask = Us == WHITE ? 0b0011 : 0b1100;
         state_ptr->castling_rights &= mask;
@@ -271,13 +272,13 @@ void do_move(Move m)
                        ^  Zobrist::hash[EnemyPawn][capsq]
                        ^  Zobrist::Side;
 
-        bitboards[Pawn] ^= from_to;
+        bitboards[Pawn]      ^= from_to;
         bitboards[EnemyPawn] ^= square_bb(capsq);
-        bitboards[Us] ^= from_to;
-        bitboards[Them] ^= square_bb(capsq);
+        bitboards[Us]        ^= from_to;
+        bitboards[Them]      ^= square_bb(capsq);
 
-        board[from] = NO_PIECE;
-        board[to] = Pawn;
+        board[from]  = NO_PIECE;
+        board[to]    = Pawn;
         board[capsq] = NO_PIECE;
         
         RepetitionTable::push();
@@ -310,22 +311,22 @@ void undo_move(Move m)
     {
     case NORMAL:
         bitboards[board[to]] ^= from_to;
-        bitboards[Us] ^= from_to;
-        bitboards[captured] ^= capture_bb;
-        bitboards[Them] ^= capture_bb;
+        bitboards[Us]        ^= from_to;
+        bitboards[captured]  ^= capture_bb;
+        bitboards[Them]      ^= capture_bb;
 
         board[from] = board[to];
-        board[to] = captured;
+        board[to]   = captured;
 
         return;
     case PROMOTION:
         bitboards[board[to]] ^= to_bb;
-        bitboards[Pawn] ^= square_bb(from);
-        bitboards[Us] ^= from_to;
-        bitboards[captured] ^= capture_bb;
-        bitboards[Them] ^= capture_bb;
+        bitboards[Pawn]      ^= square_bb(from);
+        bitboards[Us]        ^= from_to;
+        bitboards[captured]  ^= capture_bb;
+        bitboards[Them]      ^= capture_bb;
 
-        board[to] = captured;
+        board[to]   = captured;
         board[from] = Pawn;
 
         return;
@@ -341,11 +342,11 @@ void undo_move(Move m)
 
         bitboards[King] ^= from_to;
         bitboards[Rook] ^= rfrom_to;
-        bitboards[Us] ^= from_to ^ rfrom_to;
+        bitboards[Us]   ^= from_to ^ rfrom_to;
 
-        board[to] = NO_PIECE;
-        board[rto] = NO_PIECE;
-        board[from] = King;
+        board[to]    = NO_PIECE;
+        board[rto]   = NO_PIECE;
+        board[from]  = King;
         board[rfrom] = Rook;
 
         return;
@@ -355,13 +356,13 @@ void undo_move(Move m)
 
         Square capsq = to + (Us == WHITE ? SOUTH : NORTH);
 
-        bitboards[Pawn] ^= from_to;
-        bitboards[Us] ^= from_to;
+        bitboards[Pawn]      ^= from_to;
+        bitboards[Us]        ^= from_to;
         bitboards[EnemyPawn] ^= square_bb(capsq);
-        bitboards[Them] ^= square_bb(capsq);
+        bitboards[Them]      ^= square_bb(capsq);
 
-        board[to] = NO_PIECE;
-        board[from] = Pawn;
+        board[to]    = NO_PIECE;
+        board[from]  = Pawn;
         board[capsq] = EnemyPawn;
 
         return;

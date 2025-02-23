@@ -42,14 +42,13 @@ uint64_t generate_magic(uint64_t mask)
 {
     int permutations = 1 << popcount(mask);
 
-    uint64_t occupied[4096];
+    uint64_t occupied[4096], magic;
     bool visited[4096], failed;
 
     for (int p = 0; p < permutations; p++)
         occupied[p] = generate_occupancy(mask, p);
 
     std::mt19937_64 rng(0);
-    uint64_t magic;
 
     do
     {
@@ -170,19 +169,19 @@ void Bitboards::init()
                 }
 
                 const int pawn_weights[8][6] =
-                { // [H1..A1][LSB..MSB]
-                    {10, 20, 15, 5, 10, 5},{5,    25, 15, 0, 0,    5},
-                    {20, 15, 10, 0, 0,    0},{0,    0,    0,    0, 0,    0},
-                    {0,    0,    0,    0, 0,    0},{10, 15, 20, 0, 0,    0},
-                    {15, 25, 5,    5, 0,    0},{15, 20, 10, 5, 10, 5}
+                { // [H...A][LSB...MSB]
+                    { 10, 20, 15, 5, 10, 5 }, { 5,  25, 15, 0, 0,  5 },
+                    { 20, 15, 10, 0, 0,  0 }, { 0,  0,  0,  0, 0,  0 },
+                    { 0,  0,  0,  0, 0,  0 }, { 10, 15, 20, 0, 0,  0 },
+                    { 15, 25, 5,  5, 0,  0 }, { 15, 20, 10, 5, 10, 5 }
                 };
 
                 const int file_weights[8][3] =
-                { // [H1..A1][right, middle, left]
-                    {40, 50, 45},{40, 50, 45},
-                    {50, 45, 40},{0,    0,     0},
-                    {0,    0,     0},{40, 45, 50},
-                    {45, 50, 40},{45, 50, 40}
+                { // [H...A][right, middle, left]
+                    { 40, 50, 45 }, {40, 50, 45 },
+                    { 50, 45, 40 }, {0,  0,  0  },
+                    { 0,  0,  0  }, {40, 45, 50 },
+                    { 45, 50, 40 }, {45, 50, 40 }
                 };
 
                 Bitboard shield_mask  = KingShield[c][ksq];
@@ -190,18 +189,18 @@ void Bitboards::init()
                 Bitboard file_mid     = file_right << 1;
                 Bitboard file_left    = file_right << 2;
                 int      score        = 0;
-                Square   relative_ksq = c == WHITE ? ksq : ksq - 56;
+                int      king_file    = ksq & 7;
 
-                if ((king_shield & file_right) == 0) score -= file_weights[relative_ksq][0];
-                if ((king_shield & file_mid)   == 0) score -= file_weights[relative_ksq][1];
-                if ((king_shield & file_left)  == 0) score -= file_weights[relative_ksq][2];
+                if ((king_shield & file_right) == 0) score -= file_weights[king_file][0];
+                if ((king_shield & file_mid)   == 0) score -= file_weights[king_file][1];
+                if ((king_shield & file_left)  == 0) score -= file_weights[king_file][2];
 
                 for (int i = 0; shield_mask; clear_lsb(shield_mask), i++)
                 {
                     int index = (c == WHITE) ? i : ((i < 3) ? (i + 3) : (i - 3));
 
                     if (king_shield & square_bb(lsb(shield_mask)))
-                        score += pawn_weights[relative_ksq][index];
+                        score += pawn_weights[king_file][index];
                 }
 
                 KingShieldScores[c][ksq][i] = std::clamp(score, MIN_SCORE, MAX_SCORE);

@@ -8,7 +8,7 @@
 
 #include "types.h",
 
-Move* get_moves(Move *list);
+Move *get_moves(Move *list);
 
 namespace Debug {
 

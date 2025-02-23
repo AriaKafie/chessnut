@@ -144,24 +144,8 @@ std::string rep_table_to_string()
 
 extern int reductions[128][128];
 
-//uint64_t generate_occupancy(Bitboard b, int i);
 void Debug::go()
 {
-    /*while (1)
-    {
-        int  c;
-        int  s;
-
-        std::cin >> c >> s;
-
-        Bitboard m = KingShield[c][s];
-        for (int i = 0; i < 1 << popcount(m); i++)
-        {
-            std::cout << to_string(generate_occupancy(m, i)) << std::endl;
-            std::cout << KingShieldScores[c][s][i] << "\n" << std::endl;
-        }
-    }*/
-
     std::cout << rep_table_to_string() << std::endl;
 }
 

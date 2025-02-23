@@ -17,17 +17,9 @@ int reductions[MAX_PLY][MAX_PLY];
 
 void Search::init()
 {
-    /*for (int depth = 0; depth < MAX_PLY; depth++)
-        for (int move_num = 0; move_num < MAX_PLY; move_num++)
-            reductions[depth][move_num] = int(std::log(move_num + 2) / std::log(std::min(14, depth) + 2));*/
-
     for (int depth = 0; depth < MAX_PLY; depth++)
         for (int move_num = 1; move_num < MAX_PLY; move_num++)
             reductions[depth][move_num] = int(std::log(move_num + 2) * 2 / std::log(std::min(10, depth) + 2));
-
-    /*for (int depth = 0; depth < MAX_PLY; depth++)
-        for (int move_num = 1; move_num < MAX_PLY; move_num++)
-            reductions[depth][move_num] = int(std::log(move_num + 1.5) * 1.5 / std::log(std::min(12, depth) + 2));*/
 }
 
 template<Color SideToMove>
