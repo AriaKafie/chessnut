@@ -10,9 +10,9 @@
     #define ForceInline __attribute__((always_inline))
 #endif
 
-//#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
-//    #define PEXT
-//#endif
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+    #define PEXT
+#endif
 
 typedef uint64_t Bitboard;
 typedef int      MoveType;
