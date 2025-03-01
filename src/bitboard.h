@@ -12,12 +12,27 @@
 #define popcount(b) _mm_popcnt_u64(b)
 #define lsb(b) _tzcnt_u64(b)
 
+#ifndef PEXT
+    typedef struct
+    {
+        Bitboard *ptr;
+        Bitboard  mask;
+        Bitboard  magic;
+        int       shift;
+    } Magic;
+
+    inline Magic bishop_magics[SQUARE_NB];
+    inline Magic rook_magics[SQUARE_NB];
+#endif
+
 std::string to_string(Bitboard b);
 
 namespace Bitboards { void init(); }
 
 inline Bitboard pext_table[0x1a480];
-inline Bitboard xray_table[0x1a480];
+#ifdef PEXT
+    inline Bitboard xray_table[0x1a480];
+#endif
 
 inline Bitboard bishop_masks[SQUARE_NB];
 inline Bitboard rook_masks[SQUARE_NB];
@@ -39,13 +54,6 @@ inline uint8_t CenterDistance[SQUARE_NB];
 inline uint8_t CastleMasks[COLOR_NB][1 << 5];
 inline Bitboard KingShield[COLOR_NB][SQUARE_NB];
 inline int KingShieldScores[COLOR_NB][SQUARE_NB][1 << 6];
-
-#ifndef PEXT
-    inline uint64_t rook_magics[SQUARE_NB];
-    inline uint64_t bishop_magics[SQUARE_NB];
-    inline uint64_t castle_magics[COLOR_NB];
-    inline uint64_t king_safety_magics[COLOR_NB][SQUARE_NB];
-#endif
 
 constexpr Bitboard ALL_SQUARES = 0xffffffffffffffffull;
 constexpr Bitboard FILE_A = 0x8080808080808080ull;
@@ -180,23 +188,45 @@ inline Bitboard knight_attacks(Square sq) {
 }
 
 inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
+#ifdef PEXT
     return pext_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
+#else
+    occupied &=  bishop_magics[sq].mask;
+    occupied *=  bishop_magics[sq].magic;
+    occupied >>= bishop_magics[sq].shift;
+    return       bishop_magics[sq].ptr[occupied];
+#endif
 }
 
 inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
+#ifdef PEXT
     return xray_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
+#else
+    return bishop_attacks(sq, occupied ^ bishop_attacks(sq, occupied) & occupied);
+#endif
 }
 
 inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
+#ifdef PEXT
     return pext_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
+#else
+    occupied &=  rook_magics[sq].mask;
+    occupied *=  rook_magics[sq].magic;
+    occupied >>= rook_magics[sq].shift;
+    return       rook_magics[sq].ptr[occupied];
+#endif
 }
 
 inline Bitboard rook_xray(Square sq, Bitboard occupied) {
+#ifdef PEXT
     return xray_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
+#else
+    return rook_attacks(sq, occupied ^ rook_attacks(sq, occupied) & occupied);
+#endif
 }
 
 inline Bitboard queen_attacks(Square sq, Bitboard occupied) {
-    return pext_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])] | pext_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
+    return bishop_attacks(sq, occupied) | rook_attacks(sq, occupied);
 }
 
 inline Bitboard king_attacks(Square sq) {
