@@ -69,7 +69,6 @@ uint64_t generate_magic(uint64_t mask)
 }
 #endif*/
 
-#include <iostream>
 void Bitboards::init()
 {
     for (Square s1 = H1; s1 <= A8; s1++)
@@ -130,26 +129,26 @@ void Bitboards::init()
         Bitboard w_occ = generate_occupancy(square_bb(A1, E1, H1, A8, H8), i);
         Bitboard b_occ = generate_occupancy(square_bb(A8, E8, H8, A1, H1), i);
 
-        uint8_t w_rights = 0xf;
-        uint8_t b_rights = 0xf;
+        uint8_t w_mask = 0xf;
+        uint8_t b_mask = 0xf;
 
-        if ((w_occ & square_bb(A1)) == 0) w_rights &= clearQ;
-        if ((w_occ & square_bb(E1)) == 0) w_rights &= clearK & clearQ;
-        if ((w_occ & square_bb(H1)) == 0) w_rights &= clearK;
-        if ((w_occ & square_bb(A8)) != 0) w_rights &= clearq;
-        if ((w_occ & square_bb(H8)) != 0) w_rights &= cleark;
+        if ((w_occ & square_bb(A1)) == 0) w_mask &= clearQ;
+        if ((w_occ & square_bb(E1)) == 0) w_mask &= clearK & clearQ;
+        if ((w_occ & square_bb(H1)) == 0) w_mask &= clearK;
+        if ((w_occ & square_bb(A8)) != 0) w_mask &= clearq;
+        if ((w_occ & square_bb(H8)) != 0) w_mask &= cleark;
 
-        if ((b_occ & square_bb(A8)) == 0) b_rights &= clearq;
-        if ((b_occ & square_bb(E8)) == 0) b_rights &= cleark & clearq;
-        if ((b_occ & square_bb(H8)) == 0) b_rights &= cleark;
-        if ((b_occ & square_bb(A1)) != 0) b_rights &= clearQ;
-        if ((b_occ & square_bb(H1)) != 0) b_rights &= clearK;
+        if ((b_occ & square_bb(A8)) == 0) b_mask &= clearq;
+        if ((b_occ & square_bb(E8)) == 0) b_mask &= cleark & clearq;
+        if ((b_occ & square_bb(H8)) == 0) b_mask &= cleark;
+        if ((b_occ & square_bb(A1)) != 0) b_mask &= clearQ;
+        if ((b_occ & square_bb(H1)) != 0) b_mask &= clearK;
 #ifdef PEXT
-        CastleMasks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_rights;
-        CastleMasks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_rights;
+        CastleMasks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_mask;
+        CastleMasks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_mask;
 #else
-        CastleMasks[WHITE][w_occ * 0x4860104020003061ull >> 59] = w_rights;
-        CastleMasks[BLACK][b_occ * 0x1080000400400c21ull >> 59] = b_rights;
+        CastleMasks[WHITE][w_occ * 0x4860104020003061ull >> 59] = w_mask;
+        CastleMasks[BLACK][b_occ * 0x1080000400400c21ull >> 59] = b_mask;
 #endif
     }
 
