@@ -21,8 +21,7 @@ typedef struct
     int       shift;
 } Magic;
 
-inline Magic bishop_magics[SQUARE_NB];
-inline Magic rook_magics[SQUARE_NB];
+inline Magic magics[SQUARE_NB][2];
 #endif
 
 std::string to_string(Bitboard b);
@@ -191,10 +190,10 @@ inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
 #ifdef PEXT
     return pext_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
 #else
-    occupied &=  bishop_magics[sq].mask;
-    occupied *=  bishop_magics[sq].magic;
-    occupied >>= bishop_magics[sq].shift;
-    return       bishop_magics[sq].ptr[occupied];
+    occupied &=  magics[sq][0].mask;
+    occupied *=  magics[sq][0].magic;
+    occupied >>= magics[sq][0].shift;
+    return       magics[sq][0].ptr[occupied];
 #endif
 }
 
@@ -210,10 +209,10 @@ inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
 #ifdef PEXT
     return pext_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
 #else
-    occupied &=  rook_magics[sq].mask;
-    occupied *=  rook_magics[sq].magic;
-    occupied >>= rook_magics[sq].shift;
-    return       rook_magics[sq].ptr[occupied];
+    occupied &=  magics[sq][1].mask;
+    occupied *=  magics[sq][1].magic;
+    occupied >>= magics[sq][1].shift;
+    return       magics[sq][1].ptr[occupied];
 #endif
 }
 

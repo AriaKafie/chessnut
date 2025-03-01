@@ -69,6 +69,7 @@ uint64_t generate_magic(uint64_t mask)
 }
 #endif*/
 
+#include <iostream>
 void Bitboards::init()
 {
     for (Square s1 = H1; s1 <= A8; s1++)
@@ -143,9 +144,13 @@ void Bitboards::init()
         if ((b_occ & square_bb(H8)) == 0) b_rights &= cleark;
         if ((b_occ & square_bb(A1)) != 0) b_rights &= clearQ;
         if ((b_occ & square_bb(H1)) != 0) b_rights &= clearK;
-
+#ifdef PEXT
         CastleMasks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_rights;
         CastleMasks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_rights;
+#else
+        CastleMasks[WHITE][w_occ * 0x4860104020003061ull >> 59] = w_rights;
+        CastleMasks[BLACK][b_occ * 0x1080000400400c21ull >> 59] = b_rights;
+#endif
     }
 
     for (Color c : { WHITE, BLACK })
@@ -217,15 +222,15 @@ void init_magics()
         int      *base = pt == BISHOP ? bishop_base  : rook_base;
         Bitboard *mask = pt == BISHOP ? bishop_masks : rook_masks;
 
-        for (Square s = H1; s <= A8; s++)
+        for (Square sq = H1; sq <= A8; sq++)
         {
-            base[s] = pext - pext_table;
-            mask[s] = attacks_bb(pt, s, 0) & ~((FILE_A | FILE_H) & ~file_bb(s) | (RANK_1 | RANK_8) & ~rank_bb(s));
+            base[sq] = pext - pext_table;
+            mask[sq] = attacks_bb(pt, sq, 0) & ~((FILE_A | FILE_H) & ~file_bb(sq) | (RANK_1 | RANK_8) & ~rank_bb(sq));
 
-            for (Bitboard occupied = 0, i = 0; i < 1 << popcount(mask[s]); occupied = generate_occupancy(mask[s], ++i))
+            for (Bitboard occupied = 0, i = 0; i < 1 << popcount(mask[sq]); occupied = generate_occupancy(mask[sq], ++i))
             {
-                *pext++ = attacks_bb(pt, s, occupied);
-                *xray++ = attacks_bb(pt, s, occupied ^ attacks_bb(pt, s, occupied) & occupied);
+                *pext++ = attacks_bb(pt, sq, occupied);
+                *xray++ = attacks_bb(pt, sq, occupied ^ attacks_bb(pt, sq, occupied) & occupied);
             }
         }
     }
@@ -233,11 +238,11 @@ void init_magics()
     Bitboard magic, occupied[4096], attacks[4096], *base = pext_table;
 
     for (PieceType pt : { BISHOP, ROOK })
-        for (Square s = H1; s <= A8; s++)
+        for (Square sq = H1; sq <= A8; sq++)
         {
-            Bitboard mask = attacks_bb(pt, s, 0) & ~((FILE_A | FILE_H) & ~file_bb(s) | (RANK_1 | RANK_8) & ~rank_bb(s));
+            Bitboard mask = attacks_bb(pt, sq, 0) & ~((FILE_A | FILE_H) & ~file_bb(sq) | (RANK_1 | RANK_8) & ~rank_bb(sq));
 
-            Magic& m            = pt == BISHOP ? bishop_magics[s] : rook_magics[s];
+            Magic& m            = magics[sq][pt - BISHOP];
             int    permutations = 1 << popcount(mask);
             int    shift        = 64 - popcount(mask);
             bool   failed       = false;
@@ -249,7 +254,7 @@ void init_magics()
             for (int p = 0; p < permutations; p++)
             {
                 occupied[p] = generate_occupancy(mask, p);
-                attacks [p] = attacks_bb(pt, s, occupied[p]);
+                attacks [p] = attacks_bb(pt, sq, occupied[p]);
             }
 
             std::mt19937_64 rng(0);
