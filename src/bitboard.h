@@ -13,16 +13,16 @@
 #define lsb(b) _tzcnt_u64(b)
 
 #ifndef PEXT
-    typedef struct
-    {
-        Bitboard *ptr;
-        Bitboard  mask;
-        Bitboard  magic;
-        int       shift;
-    } Magic;
+typedef struct
+{
+    Bitboard *ptr;
+    Bitboard  mask;
+    Bitboard  magic;
+    int       shift;
+} Magic;
 
-    inline Magic bishop_magics[SQUARE_NB];
-    inline Magic rook_magics[SQUARE_NB];
+inline Magic bishop_magics[SQUARE_NB];
+inline Magic rook_magics[SQUARE_NB];
 #endif
 
 std::string to_string(Bitboard b);
@@ -31,7 +31,7 @@ namespace Bitboards { void init(); }
 
 inline Bitboard pext_table[0x1a480];
 #ifdef PEXT
-    inline Bitboard xray_table[0x1a480];
+inline Bitboard xray_table[0x1a480];
 #endif
 
 inline Bitboard bishop_masks[SQUARE_NB];
