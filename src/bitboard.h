@@ -31,13 +31,13 @@ namespace Bitboards { void init(); }
 inline Bitboard pext_table[0x1a480];
 #ifdef PEXT
 inline Bitboard xray_table[0x1a480];
-#endif
 
 inline Bitboard bishop_masks[SQUARE_NB];
 inline Bitboard rook_masks[SQUARE_NB];
 
 inline int bishop_base[SQUARE_NB];
 inline int rook_base[SQUARE_NB];
+#endif
 
 inline Bitboard DoubleCheck[SQUARE_NB];
 inline Bitboard KnightAttacks[SQUARE_NB];
