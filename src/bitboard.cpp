@@ -243,12 +243,11 @@ void init_magics()
 
             Magic& m            = magics[sq][pt - BISHOP];
             int    permutations = 1 << popcount(mask);
-            int    shift        = 64 - popcount(mask);
             bool   failed       = false;
 
+            m.shift = 64 - popcount(mask);
             m.ptr   = base;
             m.mask  = mask;
-            m.shift = shift;
 
             for (int p = 0; p < permutations; p++)
             {
@@ -263,13 +262,14 @@ void init_magics()
                 magic = rng() & rng() & rng();
                 memset(base, 0, sizeof(Bitboard) * permutations);
 
-                for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> shift)
+                for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> m.shift)
                 {
-                    if (failed = base[key] && (base[key] != attacks[p]))
+                    if (failed = base[key] && base[key] != attacks[p])
                         break;
 
                     base[key] = attacks[p];
                 }
+
             } while (failed);
 
             m.magic = magic;
