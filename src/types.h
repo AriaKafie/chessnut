@@ -2,6 +2,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#pragma warning(disable: 4146)
+
 #include <cstdint>
 
 #ifdef _MSC_VER
@@ -10,9 +12,7 @@
     #define ForceInline __attribute__((always_inline))
 #endif
 
-#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
-    #define PEXT
-#endif
+#define BMI
 
 typedef uint64_t Bitboard;
 typedef int      MoveType;

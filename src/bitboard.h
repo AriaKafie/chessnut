@@ -3,16 +3,46 @@
 #define BITBOARD_H
 
 #include <cmath>
-#include <immintrin.h>
 #include <string>
 
 #include "types.h"
 
 #define pext(b, m) _pext_u64(b, m)
-#define popcount(b) _mm_popcnt_u64(b)
-#define lsb(b) _tzcnt_u64(b)
 
-#ifndef PEXT
+#ifdef BMI
+    #include <immintrin.h>
+
+    #define popcount(b) _mm_popcnt_u64(b)
+    #define lsb(b) _tzcnt_u64(b)
+#else
+
+inline const int index64[64] = {
+    0,  1, 48,  2, 57, 49, 28,  3,
+   61, 58, 50, 42, 38, 29, 17,  4,
+   62, 55, 59, 36, 53, 51, 43, 22,
+   45, 39, 33, 30, 24, 18, 12,  5,
+   63, 47, 56, 27, 60, 41, 37, 16,
+   54, 35, 52, 21, 44, 32, 23, 11,
+   46, 26, 40, 15, 34, 20, 31, 10,
+   25, 14, 19,  9, 13,  8,  7,  6
+};
+
+inline int lsb(Bitboard b) {
+    return index64[((b & -b) * 0x03f79d71b4cb0a89ull) >> 58];
+}
+
+inline uint8_t popcnt16[1 << 16];
+
+inline int popcount(Bitboard b) {
+    union {
+        Bitboard bb;
+        uint16_t v[4];
+    } u = {b};
+    return popcnt16[u.v[0]] + popcnt16[u.v[1]] + popcnt16[u.v[2]] + popcnt16[u.v[3]];
+}
+
+inline Bitboard KingShieldMagics[COLOR_NB][SQUARE_NB];
+
 typedef struct
 {
     Bitboard *ptr;
@@ -29,14 +59,15 @@ std::string to_string(Bitboard b);
 namespace Bitboards { void init(); }
 
 inline Bitboard pext_table[0x1a480];
-#ifdef PEXT
-inline Bitboard xray_table[0x1a480];
 
-inline Bitboard bishop_masks[SQUARE_NB];
-inline Bitboard rook_masks[SQUARE_NB];
+#ifdef BMI
+    inline Bitboard xray_table[0x1a480];
 
-inline int bishop_base[SQUARE_NB];
-inline int rook_base[SQUARE_NB];
+    inline Bitboard bishop_masks[SQUARE_NB];
+    inline Bitboard rook_masks[SQUARE_NB];
+
+    inline int bishop_base[SQUARE_NB];
+    inline int rook_base[SQUARE_NB];
 #endif
 
 inline Bitboard DoubleCheck[SQUARE_NB];
@@ -175,11 +206,19 @@ inline Bitboard mask(Square s, Direction d)
 }
 
 inline void clear_lsb(Bitboard& b) {
+#ifdef BMI
     b = _blsr_u64(b);
+#else
+    b = b & (b - 1);
+#endif
 }
 
 inline bool more_than_one(Bitboard b) {
+#ifdef BMI
     return _blsr_u64(b);
+#else
+    return b & (b - 1);
+#endif
 }
 
 inline Bitboard knight_attacks(Square sq) {
@@ -187,7 +226,7 @@ inline Bitboard knight_attacks(Square sq) {
 }
 
 inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
-#ifdef PEXT
+#ifdef BMI
     return pext_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
 #else
     occupied &=  magics[sq][0].mask;
@@ -198,7 +237,7 @@ inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
 }
 
 inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
-#ifdef PEXT
+#ifdef BMI
     return xray_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
 #else
     return bishop_attacks(sq, occupied ^ bishop_attacks(sq, occupied) & occupied);
@@ -206,7 +245,7 @@ inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
 }
 
 inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
-#ifdef PEXT
+#ifdef BMI
     return pext_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
 #else
     occupied &=  magics[sq][1].mask;
@@ -217,7 +256,7 @@ inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
 }
 
 inline Bitboard rook_xray(Square sq, Bitboard occupied) {
-#ifdef PEXT
+#ifdef BMI
     return xray_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
 #else
     return rook_attacks(sq, occupied ^ rook_attacks(sq, occupied) & occupied);
@@ -248,7 +287,14 @@ inline void toggle_square(Bitboard& b, Square s) {
 
 template<Color C>
 int king_safety(Square ksq, Bitboard occ) {
+#ifdef BMI
     return KingShieldScores[C][ksq][pext(occ, KingShield[C][ksq])];
+#else
+    occ &=  KingShield[C][ksq];
+    occ *=  KingShieldMagics[C][ksq];
+    occ >>= 58;
+    return KingShieldScores[C][ksq][occ];
+#endif
 }
 
 inline int file_distance(Square a, Square b) {

@@ -2,7 +2,7 @@
 #include "bitboard.h"
 
 #include <algorithm>
-#ifndef PEXT
+#ifndef BMI
     #include <cstring>
     #include <random>
 #endif
@@ -14,7 +14,7 @@ Bitboard generate_occupancy(Bitboard mask, int permutation)
     Bitboard occupied = 0;
 
     for (;mask; clear_lsb(mask), permutation >>= 1)
-        if (permutation & 1) occupied |= mask & (mask ^ 0xffffffffffffffff) + 1;
+        if (permutation & 1) occupied |= mask & -mask;
 
     return occupied;
 }
@@ -37,7 +37,7 @@ Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
     return attacks;
 }
 
-/*#ifndef PEXT
+#ifndef BMI
 uint64_t generate_magic(uint64_t mask)
 {
     int permutations = 1 << popcount(mask);
@@ -67,10 +67,14 @@ uint64_t generate_magic(uint64_t mask)
 
     return magic;
 }
-#endif*/
+#endif
 
 void Bitboards::init()
 {
+#ifndef BMI
+    for (int i = 0; i < 1 << 16; i++)
+        for (int j = i; j; j &= j - 1) popcnt16[i]++;
+#endif
     for (Square s1 = H1; s1 <= A8; s1++)
     {
         FileBB[s1] = FILE_H << s1 % 8;
@@ -143,7 +147,7 @@ void Bitboards::init()
         if ((b_occ & square_bb(H8)) == 0) b_mask &= cleark;
         if ((b_occ & square_bb(A1)) != 0) b_mask &= clearQ;
         if ((b_occ & square_bb(H1)) != 0) b_mask &= clearK;
-#ifdef PEXT
+#ifdef BMI
         CastleMasks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_mask;
         CastleMasks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_mask;
 #else
@@ -154,6 +158,10 @@ void Bitboards::init()
 
     for (Color c : { WHITE, BLACK })
         for (Square ksq = H1; ksq <= A8; ksq++)
+        {
+#ifndef BMI
+            KingShieldMagics[c][ksq] = generate_magic(KingShield[c][ksq]);
+#endif
             for (int i = 0; i < 1 << popcount(KingShield[c][ksq]); i++)
             {
                 Bitboard king_shield = generate_occupancy(KingShield[c][ksq], i);
@@ -162,13 +170,21 @@ void Bitboards::init()
 
                 if (!(square_bb(ksq) & (c == WHITE ? RANK_1 : RANK_8)) || (popcount(king_shield) < 2))
                 {
+#ifdef BMI
                     KingShieldScores[c][ksq][i] = MIN_SCORE;
+#else
+                    KingShieldScores[c][ksq][king_shield * KingShieldMagics[c][ksq] >> 58] = MIN_SCORE;
+#endif
                     continue;
                 }
 
                 if (square_bb(ksq) & (FILE_E | FILE_D))
                 {
+#ifdef BMI
                     KingShieldScores[c][ksq][i] = 10;
+#else
+                    KingShieldScores[c][ksq][king_shield * KingShieldMagics[c][ksq] >> 58] = 10;
+#endif
                     continue;
                 }
 
@@ -207,13 +223,19 @@ void Bitboards::init()
                         score += pawn_weights[king_file][index];
                 }
 
-                KingShieldScores[c][ksq][i] = std::clamp(score, MIN_SCORE, MAX_SCORE);
+                score = std::clamp(score, MIN_SCORE, MAX_SCORE);
+#ifdef BMI
+                KingShieldScores[c][ksq][i] = score;
+#else
+                KingShieldScores[c][ksq][king_shield * KingShieldMagics[c][ksq] >> 58] = score;
+#endif
             }
+        }
 }
 
 void init_magics()
 {
-#ifdef PEXT
+#ifdef BMI
     Bitboard *pext = pext_table, *xray = xray_table;
 
     for (PieceType pt : { BISHOP, ROOK })

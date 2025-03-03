@@ -89,7 +89,7 @@ template<Color JustMoved>
 ForceInline void update_castling_rights()
 {
     constexpr Bitboard mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
-#ifdef PEXT
+#ifdef BMI
     state_ptr->castling_rights &= CastleMasks[JustMoved][pext(bitboards[JustMoved], mask)];
 #else
     constexpr Bitboard magic = JustMoved == WHITE ? 0x4860104020003061ull : 0x1080000400400c21ull;
