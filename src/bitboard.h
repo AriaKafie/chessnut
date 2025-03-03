@@ -7,11 +7,10 @@
 
 #include "types.h"
 
-#define pext(b, m) _pext_u64(b, m)
-
 #ifdef BMI
     #include <immintrin.h>
 
+    #define pext(b, m) _pext_u64(b, m)
     #define popcount(b) _mm_popcnt_u64(b)
     #define lsb(b) _tzcnt_u64(b)
 #else

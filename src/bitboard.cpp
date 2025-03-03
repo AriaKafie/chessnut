@@ -165,26 +165,22 @@ void Bitboards::init()
             for (int i = 0; i < 1 << popcount(KingShield[c][ksq]); i++)
             {
                 Bitboard king_shield = generate_occupancy(KingShield[c][ksq], i);
-
+#ifdef BMI
+                int table_index = i;
+#else
+                int table_index = king_shield * KingShieldMagics[c][ksq] >> 58;
+#endif
                 const int MIN_SCORE = -45, MAX_SCORE = 45;
 
                 if (!(square_bb(ksq) & (c == WHITE ? RANK_1 : RANK_8)) || (popcount(king_shield) < 2))
                 {
-#ifdef BMI
-                    KingShieldScores[c][ksq][i] = MIN_SCORE;
-#else
-                    KingShieldScores[c][ksq][king_shield * KingShieldMagics[c][ksq] >> 58] = MIN_SCORE;
-#endif
+                    KingShieldScores[c][ksq][table_index] = MIN_SCORE;
                     continue;
                 }
 
                 if (square_bb(ksq) & (FILE_E | FILE_D))
                 {
-#ifdef BMI
-                    KingShieldScores[c][ksq][i] = 10;
-#else
-                    KingShieldScores[c][ksq][king_shield * KingShieldMagics[c][ksq] >> 58] = 10;
-#endif
+                    KingShieldScores[c][ksq][table_index] = 10;
                     continue;
                 }
 
@@ -223,12 +219,7 @@ void Bitboards::init()
                         score += pawn_weights[king_file][index];
                 }
 
-                score = std::clamp(score, MIN_SCORE, MAX_SCORE);
-#ifdef BMI
-                KingShieldScores[c][ksq][i] = score;
-#else
-                KingShieldScores[c][ksq][king_shield * KingShieldMagics[c][ksq] >> 58] = score;
-#endif
+                KingShieldScores[c][ksq][table_index] = std::clamp(score, MIN_SCORE, MAX_SCORE);
             }
         }
 }
