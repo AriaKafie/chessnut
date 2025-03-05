@@ -37,38 +37,6 @@ Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
     return attacks;
 }
 
-#ifndef BMI
-uint64_t generate_magic(uint64_t mask)
-{
-    int permutations = 1 << popcount(mask);
-
-    uint64_t occupied[4096], magic;
-    bool visited[4096], failed;
-
-    for (int p = 0; p < permutations; p++)
-        occupied[p] = generate_occupancy(mask, p);
-
-    std::mt19937_64 rng(0);
-
-    do
-    {
-        magic = rng() & rng() & rng();
-        memset(visited, false, permutations);
-
-        for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
-        {
-            if (failed = visited[key])
-                break;
-
-            visited[key] = true;
-        }
-        
-    } while (failed);
-
-    return magic;
-}
-#endif
-
 void Bitboards::init()
 {
 #ifndef BMI
@@ -160,7 +128,33 @@ void Bitboards::init()
         for (Square ksq = H1; ksq <= A8; ksq++)
         {
 #ifndef BMI
-            KingShieldMagics[c][ksq] = generate_magic(KingShield[c][ksq]);
+            Bitboard mask = KingShield[c][ksq], occupied[64], magic;
+            bool visited[64] = {}, failed;
+            
+            int permutations = 1 << popcount(mask);
+
+            for (int p = 0; p < permutations; p++)
+                occupied[p] = generate_occupancy(mask, p);
+
+            std::mt19937_64 rng(0);
+
+            do
+            {
+                magic = rng() & rng() & rng();
+                
+                for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> 64 - popcount(mask))
+                {
+                    if (failed = visited[key])
+                        break;
+
+                    visited[key] = true;
+                }
+
+                memset(visited, false, permutations);
+
+            } while (failed);
+
+            KingShieldMagics[c][ksq] = magic;
 #endif
             for (int i = 0; i < 1 << popcount(KingShield[c][ksq]); i++)
             {

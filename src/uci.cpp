@@ -73,13 +73,18 @@ void UCI::loop()
         std::istringstream is(cmd);
         is >> token;
 
-        if      (token == "uci")     std::cout << "id name chestnut\n"
+        if      (token == "uci")     std::cout << "id name chessnut\n"
                                                << "id author Aria Kafie\n"
                                                << "uciok"               << std::endl;
         else if (token == "isready") std::cout << "readyok"             << std::endl;
         else if (token == "d")       std::cout << Position::to_string() << std::endl;
         else if (token == "fen")     std::cout << Position::fen()       << std::endl;
-
+        else if (token == "bmi")
+#ifdef BMI
+            std::cout << "yes" << std::endl;
+#else
+            std::cout << "no"  << std::endl;
+#endif
         else if (token == "ucinewgame")
         {
             Search::clear();
