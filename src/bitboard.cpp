@@ -77,13 +77,13 @@ void Bitboards::init()
                              SOUTH+SOUTH_WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTH+NORTH_WEST })
             KnightAttacks[s1] |= safe_step(s1, d);
 
-        Square sq = s1 & ~7 | 1;
+        Square sq = s1 &~ 7 | 1;
 
         KingShield[WHITE][s1] =
-            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);
+            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, NORTH);
 
         KingShield[BLACK][s1] =
-            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5);
+            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, SOUTH);
 
         DoubleCheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
 

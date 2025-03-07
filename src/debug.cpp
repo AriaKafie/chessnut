@@ -142,7 +142,6 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
-Bitboard generate_occupancy(Bitboard mask, int permutation);
 void Debug::go()
 {
     std::cout << rep_table_to_string() << std::endl;
