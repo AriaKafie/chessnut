@@ -25,6 +25,8 @@ typedef struct
 extern Bitboard bitboards[16];
 extern Piece board[SQUARE_NB];
 
+extern Square ep_lut[2][SQUARE_NB][SQUARE_NB];
+
 extern StateInfo state_stack[MAX_PLY], *state_ptr;
 
 namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; inline uint64_t hash[B_KING + 1][SQUARE_NB]; }
@@ -88,12 +90,12 @@ inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
 template<Color JustMoved>
 ForceInline void update_castling_rights()
 {
-    constexpr Bitboard mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
+    constexpr Bitboard Mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
 #ifdef BMI
-    state_ptr->castling_rights &= CastleMasks[JustMoved][pext(bitboards[JustMoved], mask)];
+    state_ptr->castling_rights &= CastleMasks[JustMoved][pext(bitboards[JustMoved], Mask)];
 #else
-    constexpr Bitboard magic = JustMoved == WHITE ? 0x4860104020003061ull : 0x1080000400400c21ull;
-    state_ptr->castling_rights &= CastleMasks[JustMoved][(bitboards[JustMoved] & mask) * magic >> 59];
+    constexpr Bitboard Magic = JustMoved == WHITE ? 0x4860104020003061ull : 0x1080000400400c21ull;
+    state_ptr->castling_rights &= CastleMasks[JustMoved][(bitboards[JustMoved] & Mask) * Magic >> 59];
 #endif
 }
 
@@ -112,23 +114,27 @@ ForceInline void do_capture(Move m)
     switch (type_of(m))
     {
     case NORMAL:
-        bitboards[board[to]] ^= to_bb;
-        bitboards[Them] ^= to_bb;
+        bitboards[board[to]]   ^= to_bb;
+        bitboards[Them]        ^= to_bb;
         bitboards[board[from]] ^= from_to;
-        bitboards[Us] ^= from_to;
-        board[to] = board[from];
+        bitboards[Us]          ^= from_to;
+
+        board[to]   = board[from];
         board[from] = NO_PIECE;
+
         return;
     case PROMOTION:
         Piece promotion = make_piece(Us, promotion_type_of(m));
 
         bitboards[board[to]] ^= to_bb;
-        bitboards[Them] ^= to_bb;
-        bitboards[Pawn] ^= square_bb(from);
+        bitboards[Them]      ^= to_bb;
+        bitboards[Pawn]      ^= square_bb(from);
         bitboards[promotion] ^= to_bb;
-        bitboards[Us] ^= from_to;
-        board[to] = promotion;
+        bitboards[Us]        ^= from_to;
+
+        board[to]   = promotion;
         board[from] = NO_PIECE;
+
         return;
     }
 }
@@ -149,20 +155,24 @@ ForceInline void undo_capture(Move m, Piece captured)
     {
     case NORMAL:
         bitboards[board[to]] ^= from_to;
-        bitboards[Us] ^= from_to;
-        bitboards[captured] ^= to_bb;
-        bitboards[Them] ^= to_bb;
+        bitboards[Us]        ^= from_to;
+        bitboards[captured]  ^= to_bb;
+        bitboards[Them]      ^= to_bb;
+
         board[from] = board[to];
-        board[to] = captured;
+        board[to]   = captured;
+
         return;
     case PROMOTION:
         bitboards[board[to]] ^= to_bb;
-        bitboards[Pawn] ^= square_bb(from);
-        bitboards[Us] ^= from_to;
-        bitboards[captured] ^= to_bb;
-        bitboards[Them] ^= to_bb;
+        bitboards[Pawn]      ^= square_bb(from);
+        bitboards[Us]        ^= from_to;
+        bitboards[captured]  ^= to_bb;
+        bitboards[Them]      ^= to_bb;
+
         board[from] = Pawn;
-        board[to] = captured;
+        board[to]   = captured;
+
         return;
     }
 }

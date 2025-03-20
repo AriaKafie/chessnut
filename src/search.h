@@ -10,20 +10,14 @@
 #include "moveordering.h"
 #include "types.h"
 
-//inline constexpr int root_reductions[MAX_PLY] =
-//{
-//    0,1,1,1,1,2,2,2,2,2,
-//    2,2,2,2,2,3,3,3,3,3,
-//    3,3,3,3,3,3,3,3,3,3,
-//    3,3,3,3,3,3,3,3,3,3,
-//    4,4,4,4,4,4,4,4,4,4,
-//    5,5,5,5,5,5,5,5,5,5,
-//    6,6,6,6,6,6,6,6,6,6,
-//    7,7,7,7,7,7,7,7,7,7,
-//    8,8,8,8,8,8,8,8,8,8,
-//};
-
 constexpr int matescore = 100000;
+
+class Status {
+public:
+    inline static Move          root_move;
+    inline static int           nodes;
+    inline static volatile bool search_cancelled;
+};
 
 namespace Search
 {
@@ -32,19 +26,14 @@ namespace Search
     void count_nodes(int depth);
 
     inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA = killers[ply].moveB = NO_MOVE; }
-
-    inline Move root_move;
-    inline int  nodes;
 }
-
-inline volatile bool search_cancelled;
 
 inline void handle_search_stop(uint64_t thinktime)
 {
     if (thinktime)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(thinktime));
-        search_cancelled = true;
+        Status::search_cancelled = true;
         return;
     }
 
@@ -53,7 +42,7 @@ inline void handle_search_stop(uint64_t thinktime)
         std::getline(std::cin, in);
     while (in != "stop");
 
-    search_cancelled = true;
+    Status::search_cancelled = true;
 }
 
 #endif

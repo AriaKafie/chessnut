@@ -58,10 +58,10 @@ template<Color Us>
 void CaptureList<Us>::sort()
 {
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
-            
+
     for (Move& m : *this)
     {  
-        uint32_t score = 0x8000;
+        uint32_t score = 0x7fff;
 
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -124,7 +124,7 @@ void MoveList<Us>::sort(Move best_move, int ply)
             continue;
         }
         
-        uint32_t score = 0x8000;
+        uint32_t score = 0x7fff;
     
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -149,7 +149,7 @@ void MoveList<Us>::sort(Move best_move, int ply)
         }
         
         if (type_of(m) == PROMOTION)
-            score += promotion_type_of(m) / 16;
+            score += promotion_type_of(m);
 
         if (square_bb(to) & seen_by_pawn)
             score -= SEEN_BY_PAWN_MALUS;

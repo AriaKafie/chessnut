@@ -35,8 +35,8 @@ inline void MoveGen::init()
                 
                 const Move *src = no_castle;
 
-                bool rights_k = rights & (c == WHITE ? 0b1000 : 0b0010);
-                bool rights_q = rights & (c == WHITE ? 0b0100 : 0b0001);
+                bool rights_k = rights & (c == WHITE ? 8 : 2);
+                bool rights_q = rights & (c == WHITE ? 4 : 1);
                 bool rights_kq = rights_k && rights_q;
 
                 if (rights_k || rights_q)
@@ -53,19 +53,16 @@ inline void MoveGen::init()
 template<MoveType Type, Direction D>
 ForceInline Move *make_pawn_moves(Move *list, Bitboard attacks)
 {
-    if constexpr (Type == NORMAL)
+    for (;attacks; clear_lsb(attacks))
     {
-        for (;attacks; clear_lsb(attacks))
+        Square to = lsb(attacks);
+
+        if constexpr (Type == NORMAL)
         {
-            Square to = lsb(attacks);
             *list++ = make_move(to - D, to);
         }
-    }
-    else if constexpr (Type == PROMOTION)
-    {
-        for (;attacks; clear_lsb(attacks))
+        else if constexpr (Type == PROMOTION)
         {
-            Square to = lsb(attacks);
             *list++ = make_move<KNIGHT_PROMOTION>(to - D, to);
             *list++ = make_move<BISHOP_PROMOTION>(to - D, to);
             *list++ = make_move<ROOK_PROMOTION  >(to - D, to);
@@ -136,10 +133,10 @@ MoveList<Us>::MoveList()
     constexpr Direction Up2     = Us == WHITE ? NORTH * 2  : SOUTH * 2;
     constexpr Direction UpRight = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
     constexpr Direction UpLeft  = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
-    constexpr Bitboard  Rank2   = Us == WHITE ? RANK_2     : RANK_7;
-    constexpr Bitboard  Rank3   = Us == WHITE ? RANK_3     : RANK_6;
-    constexpr Bitboard  Rank6   = Us == WHITE ? RANK_6     : RANK_3;
-    constexpr Bitboard  Rank7   = Us == WHITE ? RANK_7     : RANK_2;
+    constexpr Bitboard  Rank2   = Us == WHITE ? RANK_2BB   : RANK_7BB;
+    constexpr Bitboard  Rank3   = Us == WHITE ? RANK_3BB   : RANK_6BB;
+    constexpr Bitboard  Rank6   = Us == WHITE ? RANK_6BB   : RANK_3BB;
+    constexpr Bitboard  Rank7   = Us == WHITE ? RANK_7BB   : RANK_2BB;
 
     Bitboard empty = ~occupied;
     Bitboard e     = shift<Up>(Rank3 & empty) & empty;
@@ -262,7 +259,7 @@ CaptureList<Us>::CaptureList()
 
     constexpr Direction UpRight = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
     constexpr Direction UpLeft  = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
-    constexpr Bitboard  Rank7   = Us == WHITE ? RANK_7     : RANK_2;
+    constexpr Bitboard  Rank7   = Us == WHITE ? RANK_7BB   : RANK_2BB;
 
     if (Bitboard promotable = bb(FriendlyPawn) & Rank7)
     {

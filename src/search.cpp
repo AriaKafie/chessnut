@@ -25,7 +25,7 @@ void Search::init()
 template<Color SideToMove>
 int qsearch(int alpha, int beta)
 {
-    Search::nodes++;
+    Status::nodes++;
 
     int eval = static_eval<SideToMove>();
 
@@ -61,9 +61,9 @@ int qsearch(int alpha, int beta)
 template<bool Root, Color SideToMove>
 int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
 {
-    Search::nodes++;
+    Status::nodes++;
 
-    if (search_cancelled) [[unlikely]]
+    if (Status::search_cancelled) [[unlikely]]
         return 0;
         
     if (!Root && RepetitionTable::draw())
@@ -82,7 +82,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
         int eval = -search<false, !SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
         state_ptr->key ^= Zobrist::Side;
 
-        if (search_cancelled) [[unlikely]]
+        if (Status::search_cancelled) [[unlikely]]
             return 0;
 
         if (eval >= beta)
@@ -123,7 +123,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
         
         undo_move<SideToMove>(moves[i]);
 
-        if (search_cancelled) [[unlikely]]
+        if (Status::search_cancelled) [[unlikely]]
             return 0;
 
         if (eval >= beta)
@@ -143,7 +143,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
             bound_type = EXACT;
 
             if (Root)
-                Search::root_move = best_move;
+                Status::root_move = best_move;
         }
     }
 
@@ -165,7 +165,7 @@ void iterative_deepening(int max_depth = 64)
 
         int eval = search<true, SideToMove>(alpha, beta, depth, 0, false);
 
-        if (search_cancelled)
+        if (Status::search_cancelled)
             break;
 
         if (eval <= alpha)
@@ -186,30 +186,30 @@ void iterative_deepening(int max_depth = 64)
         alpha = eval - window;
         beta  = eval + window;
 
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << Search::nodes << " pv " << Debug::pv() << std::endl;
+        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << Status::nodes << " pv " << Debug::pv() << std::endl;
     }
 }
 
 void Search::go(uint64_t thinktime)
 {
-    search_cancelled = false;
-    nodes = 0;
+    Status::search_cancelled = false;
+    Status::nodes = 0;
 
     std::thread t(handle_search_stop, thinktime);
     t.detach();
 
-    if (Position::white_to_move()) iterative_deepening<WHITE>();
-    else                           iterative_deepening<BLACK>();
+    Position::white_to_move() ? iterative_deepening<WHITE>()
+                              : iterative_deepening<BLACK>();
 
-    while (!search_cancelled)
+    while (!Status::search_cancelled)
     {}
 
-    std::cout << "bestmove " << move_to_uci(root_move) << std::endl;
+    std::cout << "bestmove " << move_to_uci(Status::root_move) << std::endl;
 }
 
 void Search::count_nodes(int depth)
 {
-    search_cancelled = false;
+    Status::search_cancelled = false;
 
     int maxw = 0;
 
@@ -222,7 +222,7 @@ void Search::count_nodes(int depth)
 
     for (const std::string& fen : Debug::fens)
     {
-        nodes = 0;
+        Status::nodes = 0;
 
         std::cout << std::left << std::setw(maxw + 1) << fen;
 
@@ -235,9 +235,9 @@ void Search::count_nodes(int depth)
         if (Position::white_to_move()) iterative_deepening<WHITE>(depth);
         else                           iterative_deepening<BLACK>(depth);
 
-        std::cout << nodes << std::endl;
+        std::cout << Status::nodes << std::endl;
 
-        total_nodes += nodes;
+        total_nodes += Status::nodes;
     }
 
     std::cout << "total: " << total_nodes << std::endl;

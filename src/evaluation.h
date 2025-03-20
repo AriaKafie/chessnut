@@ -117,8 +117,8 @@ int midgame()
 
     score += king_safety<Us>(lsb(bb(FriendlyKing)), bb(FriendlyPawn)) - king_safety<Them>(lsb(bb(EnemyKing)), bb(EnemyPawn));
 
-    constexpr Bitboard Rank567 = Us == WHITE ? RANK_5 | RANK_6 | RANK_7 : RANK_2 | RANK_3 | RANK_4;
-    constexpr Bitboard Rank234 = Us == WHITE ? RANK_2 | RANK_3 | RANK_4 : RANK_5 | RANK_6 | RANK_7;
+    constexpr Bitboard Rank567 = Us == WHITE ? RANK_5BB | RANK_6BB | RANK_7BB : RANK_2BB | RANK_3BB | RANK_4BB;
+    constexpr Bitboard Rank234 = Us == WHITE ? RANK_2BB | RANK_3BB | RANK_4BB : RANK_5BB | RANK_6BB | RANK_7BB;
 
     score += 4 * (popcount(bb(FriendlyPawn) & Rank567) -  popcount(bb(EnemyPawn) & Rank234));
 
@@ -146,24 +146,24 @@ int endgame()
     score += end_king_squares[lsb(bb(FriendlyKing))];
     score -= end_king_squares[lsb(bb(EnemyKing   ))];
 
-    constexpr Bitboard RANK2 = Us == WHITE ? RANK_2 : RANK_7;
-    constexpr Bitboard RANK3 = Us == WHITE ? RANK_3 : RANK_6;
-    constexpr Bitboard RANK4 = Us == WHITE ? RANK_4 : RANK_5;
-    constexpr Bitboard RANK5 = Us == WHITE ? RANK_5 : RANK_4;
-    constexpr Bitboard RANK6 = Us == WHITE ? RANK_6 : RANK_3;
-    constexpr Bitboard RANK7 = Us == WHITE ? RANK_7 : RANK_2;
+    constexpr Bitboard Rank2 = Us == WHITE ? RANK_2BB : RANK_7BB;
+    constexpr Bitboard Rank3 = Us == WHITE ? RANK_3BB : RANK_6BB;
+    constexpr Bitboard Rank4 = Us == WHITE ? RANK_4BB : RANK_5BB;
+    constexpr Bitboard Rank5 = Us == WHITE ? RANK_5BB : RANK_4BB;
+    constexpr Bitboard Rank6 = Us == WHITE ? RANK_6BB : RANK_3BB;
+    constexpr Bitboard Rank7 = Us == WHITE ? RANK_7BB : RANK_2BB;
 
     Bitboard friendly_pawn = bitboard<make_piece(Us,   PAWN)>();
     Bitboard enemy_pawn    = bitboard<make_piece(Them, PAWN)>();
 
-    score += 10 * popcount(friendly_pawn & RANK4);
-    score -= 10 * popcount(enemy_pawn    & RANK5);
-    score += 20 * popcount(friendly_pawn & RANK5);
-    score -= 20 * popcount(enemy_pawn    & RANK4);
-    score += 50 * popcount(friendly_pawn & RANK6);
-    score -= 50 * popcount(enemy_pawn    & RANK3);
-    score += 90 * popcount(friendly_pawn & RANK7);
-    score -= 90 * popcount(enemy_pawn    & RANK2);
+    score += 10 * popcount(friendly_pawn & Rank4);
+    score -= 10 * popcount(enemy_pawn    & Rank5);
+    score += 20 * popcount(friendly_pawn & Rank5);
+    score -= 20 * popcount(enemy_pawn    & Rank4);
+    score += 50 * popcount(friendly_pawn & Rank6);
+    score -= 50 * popcount(enemy_pawn    & Rank3);
+    score += 90 * popcount(friendly_pawn & Rank7);
+    score -= 90 * popcount(enemy_pawn    & Rank2);
 
     return score;
 }

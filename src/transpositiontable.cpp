@@ -10,11 +10,9 @@ bool RepetitionTable::draw()
     RTEntry *r = &repetition_table[Position::key() & (RT_SIZE - 1)];
     return r->key == Position::key() && r->occurrences >= 3;
 }
-//#include <stdio.h>
+
 void RepetitionTable::push()
 {
-    //static int collisions = 0;
-
     RTEntry *r = &repetition_table[Position::key() & (RT_SIZE - 1)];
 
     if (r->key == Position::key())
@@ -26,11 +24,6 @@ void RepetitionTable::push()
         r->key = Position::key();
         r->occurrences = 1;
     }
-    /*else
-    {
-        printf("%d: %X is occupied by %llX, can't be given to %llX\n",
-               ++collisions, Position::key() & (RT_SIZE - 1), r->key, Position::key());
-    }*/
 }
 
 void RepetitionTable::pop()

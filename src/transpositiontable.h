@@ -23,20 +23,20 @@ constexpr int NO_EVAL = 0x7fffffff;
 constexpr int TT_SIZE = 1 << 23;
 constexpr int RT_SIZE = 1 << 15; // 512 KiB
 
-struct TTEntry
+typedef struct
 {
     uint64_t  key;
     int       eval;
     uint16_t  best_move;
     uint8_t   depth;
     BoundType flag;
-};
+} TTEntry;
 
-struct RTEntry
+typedef struct
 {
     uint64_t key;
     uint8_t  occurrences;
-};
+} RTEntry;
 
 namespace TranspositionTable
 {

@@ -17,6 +17,8 @@
 typedef uint64_t Bitboard;
 typedef int      MoveType;
 typedef int      Direction;
+typedef int      File;
+typedef int      Rank;
 typedef uint32_t Move;
 typedef int8_t   Square;
 typedef uint8_t  Piece;
@@ -64,6 +66,30 @@ enum
     BISHOP_PROMOTION = PROMOTION + ((BISHOP - KNIGHT) << 14),
     ROOK_PROMOTION   = PROMOTION + ((ROOK   - KNIGHT) << 14),
     QUEEN_PROMOTION  = PROMOTION + ((QUEEN  - KNIGHT) << 14)
+};
+
+enum
+{
+    FILE_H,
+    FILE_G,
+    FILE_F,
+    FILE_E,
+    FILE_D,
+    FILE_C,
+    FILE_B,
+    FILE_A
+};
+
+enum
+{
+    RANK_1,
+    RANK_2,
+    RANK_3,
+    RANK_4,
+    RANK_5,
+    RANK_6,
+    RANK_7,
+    RANK_8
 };
 
 enum
@@ -129,6 +155,18 @@ constexpr PieceType promotion_type_of(Move m) {
 
 inline uint32_t score_of(Move m) {
     return m >> 16;
+}
+
+inline File file_of(Square s) {
+    return s & 7;
+}
+
+inline Rank rank_of(Square s) {
+    return s >> 3;
+}
+
+inline Square make_square(Rank r, File f) {
+    return r * 8 + f;
 }
 
 #endif

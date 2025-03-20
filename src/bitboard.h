@@ -84,38 +84,35 @@ inline uint8_t CastleMasks[COLOR_NB][1 << 5];
 inline Bitboard KingShield[COLOR_NB][SQUARE_NB];
 inline int KingShieldScores[COLOR_NB][SQUARE_NB][1 << 6];
 
-constexpr Bitboard ALL_SQUARES = 0xffffffffffffffffull;
-constexpr Bitboard FILE_A = 0x8080808080808080ull;
-constexpr Bitboard FILE_B = FILE_A >> 1;
-constexpr Bitboard FILE_C = FILE_A >> 2;
-constexpr Bitboard FILE_D = FILE_A >> 3;
-constexpr Bitboard FILE_E = FILE_A >> 4;
-constexpr Bitboard FILE_F = FILE_A >> 5;
-constexpr Bitboard FILE_G = FILE_A >> 6;
-constexpr Bitboard FILE_H = FILE_A >> 7;
-constexpr Bitboard NOT_FILE_A = ~FILE_A;
-constexpr Bitboard NOT_FILE_H = ~FILE_H;
+constexpr Bitboard FILE_ABB = 0x8080808080808080ull;
+constexpr Bitboard FILE_BBB = FILE_ABB >> 1;
+constexpr Bitboard FILE_CBB = FILE_ABB >> 2;
+constexpr Bitboard FILE_DBB = FILE_ABB >> 3;
+constexpr Bitboard FILE_EBB = FILE_ABB >> 4;
+constexpr Bitboard FILE_FBB = FILE_ABB >> 5;
+constexpr Bitboard FILE_GBB = FILE_ABB >> 6;
+constexpr Bitboard FILE_HBB = FILE_ABB >> 7;
 
-constexpr Bitboard RANK_1 = 0xffull;
-constexpr Bitboard RANK_2 = RANK_1 << 8;
-constexpr Bitboard RANK_3 = RANK_1 << 16;
-constexpr Bitboard RANK_4 = RANK_1 << 24;
-constexpr Bitboard RANK_5 = RANK_1 << 32;
-constexpr Bitboard RANK_6 = RANK_1 << 40;
-constexpr Bitboard RANK_7 = RANK_1 << 48;
-constexpr Bitboard RANK_8 = RANK_1 << 56;
+constexpr Bitboard RANK_1BB = 0xffull;
+constexpr Bitboard RANK_2BB = RANK_1BB << 8;
+constexpr Bitboard RANK_3BB = RANK_1BB << 16;
+constexpr Bitboard RANK_4BB = RANK_1BB << 24;
+constexpr Bitboard RANK_5BB = RANK_1BB << 32;
+constexpr Bitboard RANK_6BB = RANK_1BB << 40;
+constexpr Bitboard RANK_7BB = RANK_1BB << 48;
+constexpr Bitboard RANK_8BB = RANK_1BB << 56;
 
 template<Direction D>
 constexpr Bitboard shift(Bitboard bb)
 {
     if constexpr (D == NORTH)       return  bb << 8;
-    if constexpr (D == NORTH_EAST)  return (bb & NOT_FILE_H) << 7;
+    if constexpr (D == NORTH_EAST)  return (bb & ~FILE_HBB) << 7;
     if constexpr (D == EAST)        return  bb >> 1;
-    if constexpr (D == SOUTH_EAST)  return (bb & NOT_FILE_H) >> 9;
+    if constexpr (D == SOUTH_EAST)  return (bb & ~FILE_HBB) >> 9;
     if constexpr (D == SOUTH)       return  bb >> 8;
-    if constexpr (D == SOUTH_WEST)  return (bb & NOT_FILE_A) >> 7;
+    if constexpr (D == SOUTH_WEST)  return (bb & ~FILE_ABB) >> 7;
     if constexpr (D == WEST)        return  bb << 1;
-    if constexpr (D == NORTH_WEST)  return (bb & NOT_FILE_A) << 9;
+    if constexpr (D == NORTH_WEST)  return (bb & ~FILE_ABB) << 9;
     if constexpr (D == NORTH+NORTH) return  bb << 16;
     if constexpr (D == SOUTH+SOUTH) return  bb >> 16;
 }
@@ -177,7 +174,7 @@ inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
 }
 
 inline Bitboard rank_bb(Square s) {
-    return RANK_1 << 8 * (s / 8);
+    return RANK_1BB << 8 * (s / 8);
 }
 
 inline Bitboard safe_step(Square s, int step)
@@ -199,7 +196,7 @@ inline Bitboard mask(Square s, Direction d)
     Bitboard m = 0;
 
     while (safe_step(s, d) && is_ok(s += d))
-        m |= d == NORTH || d == SOUTH ? rank_bb(s) : FILE_H << s % 8;
+        m |= d == NORTH || d == SOUTH ? rank_bb(s) : FILE_HBB << s % 8;
 
     return m;
 }

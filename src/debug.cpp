@@ -19,8 +19,6 @@
 #include "transpositiontable.h"
 #include "uci.h"
 
-extern RTEntry repetition_table[];
-
 template<Color STM>
 std::string PV()
 {
@@ -126,6 +124,8 @@ void Debug::perft(std::istringstream& is)
 
 std::string rep_table_to_string()
 {
+    extern RTEntry repetition_table[];
+
     std::stringstream ss;
     std::string s = "+------------------+------+----+\n";
 

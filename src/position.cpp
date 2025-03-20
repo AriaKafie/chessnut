@@ -101,27 +101,28 @@ std::string Position::fen()
 {
     std::stringstream fen;
 
-    for (int rank = 7; rank >= 0; rank--)
+    for (Rank r = RANK_8; r >= RANK_1; r--)
     {
-        for (int file = 7; file >= 0; file--)
+        for (File f = FILE_A; f >= FILE_H; f--)
         {
-            if (Piece pc = piece_on(rank * 8 + file))
+            if (Piece pc = piece_on(r * 8 + f))
+            {
                 fen << "  PNBRQK  pnbrqk"[pc];
+            }
             else
             {
-                int empty = 0, f;
+                int empty = 0;
 
-                for (f = file; f >= 0 && !piece_on(rank * 8 + f); f--)
+                for (;f >= FILE_H && !piece_on(r * 8 + f); f--)
                     empty++;
 
                 fen << empty;
 
-                file = f + 1;
+                f++;
             }
         }
 
-        if (rank)
-            fen << "/";
+        if (r) fen << "/";
     }
 
     fen << " " << "wb"[side_to_move()] << " ";
@@ -172,7 +173,7 @@ void set_gamephase()
                             5 * piece_count(make_piece(them, ROOK))   +
                             9 * piece_count(make_piece(them, QUEEN));
 
-    bool pawns = bitboards[W_PAWN] | bitboards[B_PAWN];
+    bool pawns = bitboards[W_PAWN] || bitboards[B_PAWN];
 
     if (!pawns && (enemy_material < 5 && friendly_material >= 5 || friendly_material < 5 && enemy_material >= 5))
         state_ptr->gamephase = MOPUP;

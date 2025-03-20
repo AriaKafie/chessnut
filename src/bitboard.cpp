@@ -45,7 +45,7 @@ void Bitboards::init()
 #endif
     for (Square s1 = H1; s1 <= A8; s1++)
     {
-        FileBB[s1] = FILE_H << s1 % 8;
+        FileBB[s1] = FILE_HBB << s1 % 8;
 
         for (Square s2 = H1; s2 <= A8; s2++)
             SquareDistance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
@@ -77,7 +77,7 @@ void Bitboards::init()
                              SOUTH+SOUTH_WEST, SOUTH_WEST+WEST, NORTH_WEST+WEST, NORTH+NORTH_WEST })
             KnightAttacks[s1] |= safe_step(s1, d);
 
-        Square sq = s1 &~ 7 | 1;
+        Square sq = make_square(rank_of(s1), FILE_G);
 
         KingShield[WHITE][s1] =
             ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, NORTH);
@@ -166,13 +166,13 @@ void Bitboards::init()
 #endif
                 const int MIN_SCORE = -45, MAX_SCORE = 45;
 
-                if (!(square_bb(ksq) & (c == WHITE ? RANK_1 : RANK_8)) || (popcount(king_shield) < 2))
+                if (!(square_bb(ksq) & (c == WHITE ? RANK_1BB : RANK_8BB)) || (popcount(king_shield) < 2))
                 {
                     KingShieldScores[c][ksq][hash] = MIN_SCORE;
                     continue;
                 }
 
-                if (square_bb(ksq) & (FILE_E | FILE_D))
+                if (square_bb(ksq) & (FILE_EBB | FILE_DBB))
                 {
                     KingShieldScores[c][ksq][hash] = 10;
                     continue;
@@ -231,7 +231,7 @@ void init_magics()
         for (Square sq = H1; sq <= A8; sq++)
         {
             base[sq] = pext - pext_table;
-            mask[sq] = attacks_bb(pt, sq, 0) & ~((FILE_A | FILE_H) & ~file_bb(sq) | (RANK_1 | RANK_8) & ~rank_bb(sq));
+            mask[sq] = attacks_bb(pt, sq, 0) & ~((FILE_ABB | FILE_HBB) & ~file_bb(sq) | (RANK_1BB | RANK_8BB) & ~rank_bb(sq));
 
             for (Bitboard occupied = 0, i = 0; i < 1 << popcount(mask[sq]); occupied = generate_occupancy(mask[sq], ++i))
             {
@@ -246,7 +246,7 @@ void init_magics()
     for (PieceType pt : { BISHOP, ROOK })
         for (Square sq = H1; sq <= A8; sq++)
         {
-            Bitboard mask = attacks_bb(pt, sq, 0) & ~((FILE_A | FILE_H) & ~file_bb(sq) | (RANK_1 | RANK_8) & ~rank_bb(sq));
+            Bitboard mask = attacks_bb(pt, sq, 0) & ~((FILE_ABB | FILE_HBB) & ~file_bb(sq) | (RANK_1BB | RANK_8BB) & ~rank_bb(sq));
 
             Magic& m            = magics[sq][pt - BISHOP];
             int    permutations = 1 << popcount(mask);
@@ -293,7 +293,7 @@ std::string to_string(Bitboard b)
     {
         s += bit & b ? "| @ " : "|   ";
 
-        if (bit & FILE_H)
+        if (bit & FILE_HBB)
             s += "|\n" + l;
     }
 
