@@ -113,12 +113,10 @@ std::string Position::fen()
             {
                 int empty = 0;
 
-                for (;f >= FILE_H && !piece_on(r * 8 + f); f--)
-                    empty++;
+                for (File fi = f++; fi >= FILE_H && !piece_on(r * 8 + fi); fi--)
+                    empty++, f--;
 
                 fen << empty;
-
-                f++;
             }
         }
 
