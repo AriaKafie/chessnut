@@ -33,7 +33,7 @@ void Position::set(const std::string& fen)
     const std::string piece_to_char = "  PNBRQK  pnbrqk";
 
     memset(board, NO_PIECE, 64 * sizeof(Piece));
-    memset(bitboards, 0ull, 16 * sizeof(Bitboard));
+    memset(bitboards, 0, 16 * sizeof(Bitboard));
 
     Square             sq = A8;
     std::istringstream is(fen);
@@ -45,7 +45,7 @@ void Position::set(const std::string& fen)
     {
         if (std::isdigit(token))
         {
-            sq -= token - '0'; 
+            sq -= token - '0';
         }
         else if (size_t piece = piece_to_char.find(token); piece != std::string::npos)
         {
@@ -145,8 +145,8 @@ void Position::commit_move(Move m)
     if (is_capture(m) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
         RepetitionTable::clear();
 
-    if (white_to_move()) do_move<WHITE>(m);
-    else                 do_move<BLACK>(m);
+    white_to_move() ? do_move<WHITE>(m)
+                    : do_move<BLACK>(m);
 
     memcpy(state_stack, state_ptr, sizeof(StateInfo));
     state_ptr = state_stack;

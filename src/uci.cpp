@@ -90,6 +90,7 @@ void UCI::loop()
             Search::clear();
             TranspositionTable::clear();
             RepetitionTable::clear();
+            RepetitionTable::push();
         }
 
         else if (token == "position") position(is);

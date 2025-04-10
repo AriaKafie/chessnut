@@ -12,8 +12,7 @@
 
 constexpr int matescore = 100000;
 
-class Status {
-public:
+struct Status {
     inline static Move          root_move;
     inline static int           nodes;
     inline static volatile bool search_cancelled;
