@@ -142,8 +142,8 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
-void Debug::go()
-{
+void Debug::go() {
+    //std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl;
     std::cout << rep_table_to_string() << std::endl;
 }
 

@@ -12,14 +12,14 @@
 
 constexpr int matescore = 100000;
 
-struct Status {
-    inline static Move          root_move;
-    inline static int           nodes;
-    inline static volatile bool search_cancelled;
-};
-
 namespace Search
 {
+    inline struct {
+        Move          root_move;
+        int           nodes;
+        volatile bool search_cancelled;
+    } status;
+
     void init();
     void go(uint64_t thinktime = 0);
     void count_nodes(int depth);
@@ -32,7 +32,7 @@ inline void handle_search_stop(uint64_t thinktime)
     if (thinktime)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(thinktime));
-        Status::search_cancelled = true;
+        Search::status.search_cancelled = true;
         return;
     }
 
@@ -41,7 +41,7 @@ inline void handle_search_stop(uint64_t thinktime)
         std::getline(std::cin, in);
     while (in != "stop");
 
-    Status::search_cancelled = true;
+    Search::status.search_cancelled = true;
 }
 
 #endif

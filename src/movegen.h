@@ -130,7 +130,6 @@ MoveList<Us>::MoveList()
         pinned |= check_ray(ksq, lsb(pinners));
 
     constexpr Direction Up      = Us == WHITE ? NORTH      : SOUTH;
-    constexpr Direction Up2     = Us == WHITE ? NORTH * 2  : SOUTH * 2;
     constexpr Direction UpRight = Us == WHITE ? NORTH_EAST : SOUTH_WEST;
     constexpr Direction UpLeft  = Us == WHITE ? NORTH_WEST : SOUTH_EAST;
     constexpr Bitboard  Rank2   = Us == WHITE ? RANK_2BB   : RANK_7BB;
@@ -145,7 +144,7 @@ MoveList<Us>::MoveList()
     last = make_pawn_moves<NORMAL, UpRight>(last, shift<UpRight>(pawns & (~pinned | anti_diag(ksq))) & bb(Them) & checkmask);
     last = make_pawn_moves<NORMAL, UpLeft >(last, shift<UpLeft >(pawns & (~pinned | main_diag(ksq))) & bb(Them) & checkmask);
     last = make_pawn_moves<NORMAL, Up     >(last, shift<Up     >(pawns & (~pinned | file_bb  (ksq))) & empty    & checkmask);
-    last = make_pawn_moves<NORMAL, Up2    >(last, shift<Up2    >(pawns & (~pinned | file_bb  (ksq))) & e        & checkmask);
+    last = make_pawn_moves<NORMAL, Up*2   >(last, shift<Up*2   >(pawns & (~pinned | file_bb  (ksq))) & e        & checkmask);
 
     if (Bitboard promotable = bb(FriendlyPawn) & Rank7)
     {

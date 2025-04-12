@@ -12,8 +12,7 @@
 
 #define bb(P) bitboard<P>()
 
-typedef struct
-{
+typedef struct {
     uint64_t  key;
     uint8_t   castling_rights;
     Square    ep_sq;

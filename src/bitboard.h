@@ -42,8 +42,7 @@ inline int popcount(Bitboard b) {
 
 inline Bitboard KingShieldMagics[COLOR_NB][SQUARE_NB];
 
-typedef struct
-{
+typedef struct {
     Bitboard *ptr;
     Bitboard  mask;
     Bitboard  magic;

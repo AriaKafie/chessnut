@@ -259,7 +259,7 @@ void init_magics()
             for (int p = 0; p < permutations; p++)
             {
                 occupied[p] = generate_occupancy(mask, p);
-                attacks [p] = attacks_bb(pt, sq, occupied[p]);
+                attacks[p] = attacks_bb(pt, sq, occupied[p]);
             }
 
             std::mt19937_64 rng(0);

@@ -16,15 +16,14 @@ constexpr int NO_EVAL = 0x7fffffff;
 *  |            24 | 256 |
 *  +---------------+-----+
 *  |            23 | 128 |
-*  +===============+=====+
+*  +---------------+-----+
 *  |            22 |  64 |
-*  +===============+=====+
+*  +---------------+-----+
 */
 constexpr int TT_SIZE = 1 << 23;
 constexpr int RT_SIZE = 1 << 15; // 512 KiB
 
-typedef struct
-{
+typedef struct {
     uint64_t  key;
     int       eval;
     uint16_t  best_move;
@@ -32,8 +31,7 @@ typedef struct
     BoundType flag;
 } TTEntry;
 
-typedef struct
-{
+typedef struct {
     uint64_t key;
     uint8_t  occurrences;
 } RTEntry;
