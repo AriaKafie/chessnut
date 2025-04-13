@@ -141,23 +141,19 @@ std::string rep_table_to_string()
 
     return ss.str() + s;
 }
-
-/*#include <cmath>
-#include <thread>
-#include <time.h>
-
+/*
 void search(int seed)
 {
-    Bitboard magic;
-
-    bool visited[64], failed;
-
+    Bitboard        magic;
+    bool            visited[64], failed;
     std::mt19937_64 rng(seed);
-    
-    time_t start = time(NULL);
+    time_t          start = time(NULL);
+
+    uint64_t tries = 0;
 
     do
     {
+        tries++;
         memset(visited, false, 64);
 
         magic = rng();
@@ -176,40 +172,13 @@ void search(int seed)
 
     int seconds = time(NULL) - start;
 
-    printf("seed %d: 0x%llx\nTime taken: %d minutes, %d seconds\n", seed, magic, seconds / 60, seconds % 60);
-}*/
-
+    printf("seed %d: 0x%llx\nTime taken: %d minutes, %d seconds, %llu tries\n", seed, magic, seconds / 60, seconds % 60, tries);
+}
+*/
 void Debug::go()
 {
-    /*printf("inline const int bitscan[64] {");
-
-    int bitscan[64];
-    for (int i = 0; i < 64; i++)
-        bitscan[(1ull << i) * 0x756e2f651a4fcc2ull >> (64 - 6)] = lsb(1ull << i);
-
-    for (int i = 0; i < 64; i++)
-    {
-        if (i % 8 == 0)
-            printf("\n    ");
-
-        printf("%d, ", bitscan[i]);
-    }
-
-    printf("\n};\n");*/
-
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
               << rep_table_to_string()                       << std::endl;
-
-    /*int num_threads;
-    std::cin >> num_threads;
-
-    std::vector<std::thread> threads;
-
-    for (int seed = 0; seed < num_threads; seed++)
-        threads.push_back(std::thread(search, seed));
-
-    for (std::thread& t : threads)
-        t.join();*/
 }
 
 Move *get_moves(Move *list)

@@ -27,7 +27,7 @@ inline const int bitscan[64] {
 };
 
 inline int lsb(Bitboard b) {
-    return bitscan[((b & -b) * 0x756e2f651a4fcc2ull) >> 58];
+    return bitscan[(b & -b) * 0x756e2f651a4fcc2ull >> 58];
 }
 
 inline uint8_t popcnt16[1 << 16];

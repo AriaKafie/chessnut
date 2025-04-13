@@ -24,7 +24,10 @@ namespace Search
     void go(uint64_t thinktime = 0);
     void count_nodes(int depth);
 
-    inline void clear() { for (int ply = 0; ply < MAX_PLY; ply++) killers[ply].moveA = killers[ply].moveB = NO_MOVE; }
+    inline void clear() {
+        for (int ply = 0; ply < MAX_PLY; ply++)
+            killers[ply].moveA = killers[ply].moveB = NO_MOVE;
+    }
 }
 
 inline void handle_search_stop(uint64_t thinktime)
