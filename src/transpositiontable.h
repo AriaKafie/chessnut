@@ -8,7 +8,8 @@
 
 enum BoundType : uint8_t { EXACT, UPPER_BOUND, LOWER_BOUND };
 
-constexpr int NO_EVAL = 0x7fffffff;
+const int NO_EVAL = 0x7fffffff;
+
 /*
 *  +---------------+-----+
 *  | log2(TT_SIZE) | MiB |
@@ -20,8 +21,9 @@ constexpr int NO_EVAL = 0x7fffffff;
 *  |            22 |  64 |
 *  +---------------+-----+
 */
-constexpr int TT_SIZE = 1 << 23;
-constexpr int RT_SIZE = 1 << 15; // 512 KiB
+
+const int TT_SIZE = 1 << 23;
+const int RT_SIZE = 1 << 10; // 16 KB
 
 typedef struct {
     uint64_t  key;
