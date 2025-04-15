@@ -12,6 +12,8 @@
     #define ForceInline __attribute__((always_inline))
 #endif
 
+//#define PASSER16
+
 #define BMI
 
 typedef uint64_t Bitboard;

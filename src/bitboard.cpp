@@ -80,15 +80,36 @@ void Bitboards::init()
         Square sq = make_square(rank_of(s1), FILE_G);
 
         KingShield[WHITE][s1] =
-            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH+NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, NORTH);
+            ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH + NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, NORTH);
 
         KingShield[BLACK][s1] =
-            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH+SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, SOUTH);
+            ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH + SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, SOUTH);
 
         DoubleCheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
 
         PawnAttacks[WHITE][s1] = pawn_attacks<WHITE>(square_bb(s1));
         PawnAttacks[BLACK][s1] = pawn_attacks<BLACK>(square_bb(s1));
+    }
+
+    for (Color c : { WHITE, BLACK })
+    {
+        Bitboard rank_7 = c == WHITE ? RANK_7BB : RANK_2BB;
+
+        for (int i = 0; i < 1 << popcount(rank_7); i++)
+        {
+            Bitboard passers;
+            Bitboard scope = 0ull;
+            Bitboard enemy_pawns = generate_occupancy(rank_7, i);
+
+            for (;enemy_pawns; clear_lsb(enemy_pawns))
+            {
+                Square psq = lsb(enemy_pawns);
+
+                scope |= (file_bb(psq) | file_bb(psq + EAST) & ~FILE_ABB | file_bb(psq + WEST) & ~FILE_HBB) & mask(psq, c == WHITE ? SOUTH : NORTH);
+            }
+
+            passers8[c][i] = ~scope;
+        }
     }
 
     for (int i = 0; i < 1 << 5; i++)

@@ -176,47 +176,110 @@ void search(int seed = 0)
 }
 */
 
-Bitboard pawn_scope(Bitboard pawns)
-{
-    Bitboard scope = 0ull;
+//Bitboard passer_mask(Bitboard pawns, Color c)
+//{
+//    Bitboard scope = 0ull;
+//
+//    for (;pawns; clear_lsb(pawns))
+//    {
+//        Square psq = lsb(pawns);
+//
+//        scope |= (file_bb(psq) | file_bb(psq + EAST) & ~FILE_ABB | file_bb(psq + WEST) & ~FILE_HBB) & mask(psq, c == WHITE ? SOUTH : NORTH);
+//    }
+//
+//    return ~scope;
+//}
 
-    for (;pawns; clear_lsb(pawns))
-    {
-        Square psq = lsb(pawns);
-
-        scope |= (file_bb(psq) | file_bb(psq + EAST) | file_bb(psq + WEST)) & mask(psq, SOUTH);
-    }
-
-    return scope;
-}
-
-Bitboard generate_occupancy(Bitboard o, int i);
+//Bitboard generate_occupancy(Bitboard o, int i);
+//Bitboard passer_masks16[1 << 16];
+//Bitboard passer_masks8[1 << 8];
 
 void Debug::go()
 {
-    Bitboard pawn_scopes[1 << 10];
+    /*Color c = BLACK;
 
-    Bitboard m1 = 0x03030303030000ull;
-    Bitboard m2 = m1 << 2;
-    Bitboard m3 = m1 << 4;
-    Bitboard m4 = m1 << 6;
-
-    for (int i = 0; i < 1 << popcount(m2); i++)
+    for (;;)
     {
-        Bitboard occ = generate_occupancy(m2, i);
-        pawn_scopes[i] = pawn_scope(occ);
+        static std::mt19937_64 rng(0);
+
+        Bitboard pawns = rng() & rng() & rng() & ~(RANK_1BB | RANK_8BB | (c == WHITE ? RANK_2BB : RANK_7BB));
+
+        Bitboard m1 =         passers8[c][pawns >> 48];
+        Bitboard m2 = int64_t(passers8[c][pawns >> 40 & 0xff]) >> 8;
+        Bitboard m3 = int64_t(passers8[c][pawns >> 32 & 0xff]) >> 16;
+        Bitboard m4 = int64_t(passers8[c][pawns >> 24 & 0xff]) >> 24;
+        Bitboard m5 = int64_t(passers8[c][pawns >> 16 & 0xff]) >> 32;
+
+        Bitboard m1 = passers8[c][pawns >> 8  & 0xff];
+        Bitboard m2 = passers8[c][pawns >> 16 & 0xff] << 8  | 0x000000ff;
+        Bitboard m3 = passers8[c][pawns >> 24 & 0xff] << 16 | 0x0000ffff;
+        Bitboard m4 = passers8[c][pawns >> 32 & 0xff] << 24 | 0x00ffffff;
+        Bitboard m5 = passers8[c][pawns >> 40 & 0xff] << 32 | 0xffffffff;
+
+        std::cout << to_string(pawns) << to_string(m1 & m2 & m3 & m4 & m5) << std::endl;
+
+        if ((m1 & m2 & m3 & m4 & m5) != passer_mask(pawns, c))
+        {
+            std::cout << to_string(pawns) << to_string(m1 & m2 & m3 & m4 & m5) << "\nFAILED";
+            std::exit(0);
+        }
+    }*/
+
+    /*std::cout << (sizeof(passer_masks8) / 1024) << " KB" << std::endl;
+
+    Bitboard mask = RANK_7BB;
+
+    for (int i = 0; i < 1 << popcount(mask); i++)
+    {
+        Bitboard occ = generate_occupancy(mask, i);
+        passer_masks8[i] = passer_mask(occ);
     }
 
-    Bitboard pawns = bb(B_PAWN);
+    for (;;)
+    {
+        static std::mt19937_64 rng(0);
 
-    Bitboard s1 = pawn_scopes[pext(pawns, m1)] >> 2 & ~FILE_ABB;
-    Bitboard s2 = pawn_scopes[pext(pawns, m2)];
-    Bitboard s3 = pawn_scopes[pext(pawns, m3)] << 2;
-    Bitboard s4 = pawn_scopes[pext(pawns, m4)] << 4 & ~FILE_HBB;
+        Bitboard pawns = rng() & rng() & ~(RANK_1BB | RANK_2BB | RANK_8BB);
 
-    std::cout << to_string(s1 | s2 | s3 | s4) << std::endl;
+        Bitboard m1 =         passer_masks8[pawns >> 48];
+        Bitboard m2 = int64_t(passer_masks8[pawns >> 40 & 0xff]) >> 8;
+        Bitboard m3 = int64_t(passer_masks8[pawns >> 32 & 0xff]) >> 16;
+        Bitboard m4 = int64_t(passer_masks8[pawns >> 24 & 0xff]) >> 24;
+        Bitboard m5 = int64_t(passer_masks8[pawns >> 16 & 0xff]) >> 32;
 
-    return;
+        if ((m1 & m2 & m3 & m4 & m5) != passer_mask(pawns))
+        {
+            std::cout << to_string(pawns) << to_string(m1 & m2 & m3) << "\nFAILED";
+            std::exit(0);
+        }
+    }
+
+    Bitboard mask = RANK_7BB | RANK_6BB;
+
+    for (int i = 0; i < 1 << popcount(mask); i++)
+    {
+        Bitboard occ = generate_occupancy(mask, i);
+        passer_masks16[i] = passer_mask(occ);
+    }
+
+    for (;;)
+    {
+        static std::mt19937_64 rng(0);
+
+        Bitboard pawns = rng() & rng() & ~(RANK_1BB | RANK_2BB | RANK_8BB);
+
+        Bitboard m1 =         passer_masks16[pawns >> 40];
+        Bitboard m2 = int64_t(passer_masks16[pawns >> 24 & 0xffff]) >> 16;
+        Bitboard m3 = int64_t(passer_masks16[pawns >> 16 & 0x00ff]) >> 24;
+
+        if ((m1&m2&m3) != passer_mask(pawns))
+        {
+            std::cout << to_string(pawns) << to_string(m1&m2&m3) << "\nFAILED";
+            std::exit(0);
+        }
+    }
+
+    return;*/
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
               << rep_table_to_string()                       << std::endl;
 }

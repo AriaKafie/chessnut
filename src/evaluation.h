@@ -131,6 +131,32 @@ int midgame()
             score -= square_score<Them>(pt, lsb(b));
     }
 
+    Bitboard wpawn = bitboard<W_PAWN>();
+    Bitboard bpawn = bitboard<B_PAWN>();
+
+    Bitboard wpassers = passers8[WHITE][bpawn >> 48]
+              & int64_t(passers8[WHITE][bpawn >> 40 & 0xff]) >> 8
+              & int64_t(passers8[WHITE][bpawn >> 32 & 0xff]) >> 16
+              & int64_t(passers8[WHITE][bpawn >> 24 & 0xff]) >> 24
+              & int64_t(passers8[WHITE][bpawn >> 16 & 0xff]) >> 32;
+
+    Bitboard bpassers = passers8[BLACK][wpawn >> 8  & 0xff]
+                      & passers8[BLACK][wpawn >> 16 & 0xff] << 8  | 0x000000ff
+                      & passers8[BLACK][wpawn >> 24 & 0xff] << 16 | 0x0000ffff
+                      & passers8[BLACK][wpawn >> 32 & 0xff] << 24 | 0x00ffffff
+                      & passers8[BLACK][wpawn >> 40 & 0xff] << 32 | 0xffffffff;
+
+    if constexpr (Us == WHITE)
+    {
+        score += 8 * popcount(wpawn & wpassers);
+        score -= 8 * popcount(bpawn & bpassers);
+    } 
+    else
+    {
+        score -= 8 * popcount(wpawn & wpassers);
+        score += 8 * popcount(bpawn & bpassers);
+    }
+
     return score;
 }
 
@@ -164,6 +190,32 @@ int endgame()
     score -= 50 * popcount(enemy_pawn    & Rank3);
     score += 90 * popcount(friendly_pawn & Rank7);
     score -= 90 * popcount(enemy_pawn    & Rank2);
+
+    Bitboard wpawn = bitboard<W_PAWN>();
+    Bitboard bpawn = bitboard<B_PAWN>();
+
+    Bitboard wpassers = passers8[WHITE][bpawn >> 48]
+              & int64_t(passers8[WHITE][bpawn >> 40 & 0xff]) >> 8
+              & int64_t(passers8[WHITE][bpawn >> 32 & 0xff]) >> 16
+              & int64_t(passers8[WHITE][bpawn >> 24 & 0xff]) >> 24
+              & int64_t(passers8[WHITE][bpawn >> 16 & 0xff]) >> 32;
+
+    Bitboard bpassers = passers8[BLACK][wpawn >> 8  & 0xff]
+                      & passers8[BLACK][wpawn >> 16 & 0xff] << 8  | 0x000000ff
+                      & passers8[BLACK][wpawn >> 24 & 0xff] << 16 | 0x0000ffff
+                      & passers8[BLACK][wpawn >> 32 & 0xff] << 24 | 0x00ffffff
+                      & passers8[BLACK][wpawn >> 40 & 0xff] << 32 | 0xffffffff;
+
+    if constexpr (Us == WHITE)
+    {
+        score += 16 * popcount(wpawn & wpassers);
+        score -= 16 * popcount(bpawn & bpassers);
+    } 
+    else
+    {
+        score -= 16 * popcount(wpawn & wpassers);
+        score += 16 * popcount(bpawn & bpassers);
+    }
 
     return score;
 }

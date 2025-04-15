@@ -186,7 +186,7 @@ void iterative_deepening(int max_depth = 64)
         alpha = eval - window;
         beta  = eval + window;
 
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << Search::status.nodes << " pv " << Debug::pv() << std::endl;
+        //std::cout << "info depth " << depth << " score cp " << eval << " nodes " << Search::status.nodes << " pv " << Debug::pv() << std::endl;
     }
 }
 

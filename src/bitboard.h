@@ -83,6 +83,12 @@ inline uint8_t CastleMasks[COLOR_NB][1 << 5];
 inline Bitboard KingShield[COLOR_NB][SQUARE_NB];
 inline int KingShieldScores[COLOR_NB][SQUARE_NB][1 << 6];
 
+#ifndef PASSER16
+    inline Bitboard passers8[COLOR_NB][1 << 8];
+#else
+    inline Bitboard passers16[COLOR_NB][1 << 16];
+#endif
+
 constexpr Bitboard FILE_ABB = 0x8080808080808080ull;
 constexpr Bitboard FILE_BBB = FILE_ABB >> 1;
 constexpr Bitboard FILE_CBB = FILE_ABB >> 2;
