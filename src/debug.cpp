@@ -142,7 +142,7 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 /*
-void search(int seed)
+void search(int seed = 0)
 {
     Bitboard        magic;
     bool            visited[64], failed;
@@ -175,8 +175,54 @@ void search(int seed)
     printf("seed %d: 0x%llx\nTime taken: %d minutes, %d seconds, %llu tries\n", seed, magic, seconds / 60, seconds % 60, tries);
 }
 */
+
+Bitboard pawn_scope(Bitboard pawns)
+{
+    Bitboard scope = 0ull;
+
+    for (;pawns; clear_lsb(pawns))
+    {
+        Square psq = lsb(pawns);
+
+        scope |= (file_bb(psq) | file_bb(psq + EAST) | file_bb(psq + WEST)) & mask(psq, SOUTH);
+    }
+
+    return scope;
+}
+
+Bitboard generate_occupancy(Bitboard o, int i);
+
 void Debug::go()
 {
+    Bitboard pawn_scopes[1 << 10];
+
+    Bitboard m1 = 0x03030303030000ull;
+    Bitboard m2 = m1 << 2;
+    Bitboard m3 = m1 << 4;
+    Bitboard m4 = m1 << 6;
+
+    for (int i = 0; i < 1 << popcount(m2); i++)
+    {
+        Bitboard occ = generate_occupancy(m2, i);
+        pawn_scopes[i] = pawn_scope(occ);
+    }
+
+    for (const std::string& fen : Debug::fens)
+    {
+        Position::set(fen);
+        std::cout << Position::to_string() << std::endl;
+        
+        Bitboard pawns = bb(B_PAWN);
+
+        Bitboard s1 = pawn_scopes[pext(pawns, m1)] >> 2 & ~FILE_ABB;
+        Bitboard s2 = pawn_scopes[pext(pawns, m2)];
+        Bitboard s3 = pawn_scopes[pext(pawns, m3)] << 2;
+        Bitboard s4 = pawn_scopes[pext(pawns, m4)] << 4 & ~FILE_HBB;
+
+        std::cout << to_string(s1 | s2 | s3 | s4) << std::endl;
+    }
+
+    return;
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
               << rep_table_to_string()                       << std::endl;
 }

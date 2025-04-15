@@ -4,8 +4,8 @@
 
 #include "types.h"
 
-constexpr int MAX_MOVES    = 128;
-constexpr int MAX_CAPTURES = 32;
+const int MAX_MOVES    = 128;
+const int MAX_CAPTURES = 32;
 
 template<Color Us>
 class MoveList {
@@ -13,8 +13,8 @@ class MoveList {
 public:
     MoveList();
 
-    Move*  begin()                 { return moves; }
-    Move*  end()                   { return last; }
+    Move  *begin()                 { return moves; }
+    Move  *end()                   { return last; }
     size_t size()            const { return last - moves; }
     bool   in_check()        const { return ~checkmask; }
     Move   operator[](int i) const { return moves[i]; }
@@ -37,8 +37,8 @@ class CaptureList {
 public:
     CaptureList();
 
-    Move*  begin()               { return moves; }
-    Move*  end()                 { return last; }
+    Move  *begin()               { return moves; }
+    Move  *end()                 { return last; }
     size_t size()          const { return last - moves; }
     Move operator[](int i) const { return moves[i]; }
 
