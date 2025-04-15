@@ -207,20 +207,14 @@ void Debug::go()
         pawn_scopes[i] = pawn_scope(occ);
     }
 
-    for (const std::string& fen : Debug::fens)
-    {
-        Position::set(fen);
-        std::cout << Position::to_string() << std::endl;
-        
-        Bitboard pawns = bb(B_PAWN);
+    Bitboard pawns = bb(B_PAWN);
 
-        Bitboard s1 = pawn_scopes[pext(pawns, m1)] >> 2 & ~FILE_ABB;
-        Bitboard s2 = pawn_scopes[pext(pawns, m2)];
-        Bitboard s3 = pawn_scopes[pext(pawns, m3)] << 2;
-        Bitboard s4 = pawn_scopes[pext(pawns, m4)] << 4 & ~FILE_HBB;
+    Bitboard s1 = pawn_scopes[pext(pawns, m1)] >> 2 & ~FILE_ABB;
+    Bitboard s2 = pawn_scopes[pext(pawns, m2)];
+    Bitboard s3 = pawn_scopes[pext(pawns, m3)] << 2;
+    Bitboard s4 = pawn_scopes[pext(pawns, m4)] << 4 & ~FILE_HBB;
 
-        std::cout << to_string(s1 | s2 | s3 | s4) << std::endl;
-    }
+    std::cout << to_string(s1 | s2 | s3 | s4) << std::endl;
 
     return;
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
