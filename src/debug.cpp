@@ -142,7 +142,7 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
-Bitboard passer_mask(Bitboard pawns, Color c)
+/*Bitboard passer_mask(Bitboard pawns, Color c)
 {
     Bitboard scope = 0ull;
 
@@ -160,13 +160,13 @@ int colex(int i)
 {
     int t = i | (i-1);
     return (t+1) | ((~t & -(~t))-1)>>(lsb(i)+1);
-}
+}*/
 
-Bitboard image[4][1 << 10];
+//Bitboard image[4][1 << 10];
 
 void Debug::go()
 {
-    Color c = BLACK;
+    /*Color c = BLACK;
 
     Bitboard relevancy = relative_rank_bb(c, RANK_7)
                        | relative_rank_bb(c, RANK_6)
@@ -221,7 +221,7 @@ void Debug::go()
         }
     }
 
-    return;
+    return;*/
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
               << rep_table_to_string()                       << std::endl;
 }

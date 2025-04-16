@@ -1,36 +1,111 @@
 
 #include "uci.h"
 
-Move Position::uci_to_move(const std::string& uci) const
+#include <iostream>
+#include <sstream>
+
+#include "debug.h"
+#include "movegen.h"
+#include "position.h"
+#include "search.h"
+#include "transpositiontable.h"
+
+void position(std::istringstream& is)
+{
+    std::string fen, token;
+    is >> token;
+
+    if (token == "startpos")
+    {
+        fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -";
+        is >> token;
+    }
+
+    else if (token == "fen")
+        for (;is >> token && token != "moves"; fen += token + " ");
+
+    Position::set(fen);
+    
+    for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
+}
+
+void go(std::istringstream& is)
+{
+    if (is.eof()) { Search::go(); return; }
+
+    std::string token;
+    is       >> token;
+
+    if (int movetime; token == "movetime" && is >> movetime)
+        Search::go(movetime);
+
+    else if (int depth; token == "nodes" && is >> depth)
+        Search::count_nodes(depth);
+
+    else
+    {
+        is.str(is.str()), is.clear();
+
+        int wtime = 100, winc = 0, btime = 100, binc = 0;
+
+        for (std::string token; is >> token;)
+        {
+            if (token == "wtime") is >> wtime;
+            if (token == "winc")  is >> winc;
+            if (token == "btime") is >> btime;
+            if (token == "binc")  is >> binc;
+        }
+
+        Search::go(Position::white_to_move() ? (wtime + winc) / 15 : (btime + binc) / 15);
+    }
+}
+
+void UCI::loop()
+{
+    Position::set("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -");
+
+    std::string cmd, token;
+
+    do
+    {
+        std::getline(std::cin, cmd);
+
+        std::istringstream is(cmd);
+        is >> token;
+
+        if      (token == "uci")     std::cout << "id name chessnut\n"
+                                               << "id author Aria Kafie\n"
+                                               << "uciok"               << std::endl;
+        else if (token == "isready") std::cout << "readyok"             << std::endl;
+        else if (token == "d")       std::cout << Position::to_string() << std::endl;
+        else if (token == "fen")     std::cout << Position::fen()       << std::endl;
+        else if (token == "bmi")
+#ifdef BMI
+            std::cout << "yes" << std::endl;
+#else
+            std::cout << "no"  << std::endl;
+#endif
+        else if (token == "ucinewgame")
+        {
+            Search::clear();
+            TranspositionTable::clear();
+            RepetitionTable::clear();
+            RepetitionTable::push();
+        }
+
+        else if (token == "position") position(is);
+        else if (token == "go")       go(is);
+        else if (token == "moves")    for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
+        else if (token == "perft")    Debug::perft(is);
+        else if (token == "debug")    Debug::go();
+        
+    } while (cmd != "quit");
+}
+
+Move uci_to_move(const std::string& uci)
 {
     for (Move list[MAX_MOVES], *m = list, *end = get_moves(list); m != end; m++)
         if (move_to_uci(*m) == uci) return *m;
 
-    return Move::null();
-}
-
-std::string move_to_san(Move m, Position& pos)
-{
-    char pt2c[] = "  PNBRQK";
-
-    Square from = m.from_sq(), to = m.to_sq();
-    PieceType pt = pos.piece_type_on(from);
-    bool capture = pos.piece_on(to) || m.type_of() == ENPASSANT;
-
-    std::string san;
-
-    if (pt == PAWN)
-    {
-        if (capture)
-            san = std::string(1, "hgfedcba"[from % 8]) + "x" + square_to_uci(to);
-        else
-            san = square_to_uci(to);
-
-        return m.type_of() == PROMOTION ? san + "=" + pt2c[m.promotion_type()] : san;
-    }
-
-    if (capture)
-        return std::string(1, pt2c[pt]) + square_to_uci(from) + "x" + square_to_uci(to);
-
-    return std::string(1, pt2c[pt]) + square_to_uci(from) + square_to_uci(to);
+    return NULLMOVE;
 }

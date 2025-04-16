@@ -2,25 +2,36 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <stdint.h>
+#pragma warning(disable: 4146)
+
+#include <cstdint>
+
+#ifdef _MSC_VER
+    #define ForceInline __forceinline
+#else
+    #define ForceInline __attribute__((always_inline))
+#endif
+
+#define BMI
 
 typedef uint64_t Bitboard;
-typedef uint16_t MoveType;
+typedef int      MoveType;
+typedef int      Direction;
+typedef int      File;
+typedef int      Rank;
+typedef uint32_t Move;
+typedef int8_t   Square;
 typedef uint8_t  Piece;
 typedef uint8_t  PieceType;
 typedef uint8_t  Color;
-typedef int8_t   Direction;
-typedef int8_t   Square;
 
-enum { WHITE, BLACK, COLOR_NB = 2 };
+constexpr Move NULLMOVE = 0;
+constexpr Move NO_MOVE  = 0;
 
-enum
-{
-    NO_PIECE,
-      PAWN =          2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
-    W_PAWN =       PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
-    B_PAWN = W_PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING,
-};
+constexpr int MAX_PLY  = 128;
+constexpr int INFINITE = 0x7fffffff;
+
+enum GamePhase : uint8_t { MIDGAME, ENDGAME, MOPUP };
 
 enum
 {
@@ -32,83 +43,138 @@ enum
     H6, G6, F6, E6, D6, C6, B6, A6,
     H7, G7, F7, E7, D7, C7, B7, A7,
     H8, G8, F8, E8, D8, C8, B8, A8,
-    NO_SQ = 0, SQUARE_NB = 64
+    SQUARE_NB = 64
 };
 
 enum
 {
-    NORMAL           = 0,
+    NO_PIECE, PIECE_TYPE_NB = 6,
+      PAWN =        2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
+    W_PAWN =     PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
+    B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
+};
+
+enum { WHITE, BLACK, COLOR_NB = 2 };
+
+enum
+{
+    NORMAL           = 0 << 12,
     PROMOTION        = 1 << 12,
     ENPASSANT        = 2 << 12,
     CASTLING         = 3 << 12,
     KNIGHT_PROMOTION = PROMOTION + ((KNIGHT - KNIGHT) << 14),
     BISHOP_PROMOTION = PROMOTION + ((BISHOP - KNIGHT) << 14),
-    ROOK_PROMOTION   = PROMOTION + ((ROOK - KNIGHT) << 14),
-    QUEEN_PROMOTION  = PROMOTION + ((QUEEN - KNIGHT) << 14)
+    ROOK_PROMOTION   = PROMOTION + ((ROOK   - KNIGHT) << 14),
+    QUEEN_PROMOTION  = PROMOTION + ((QUEEN  - KNIGHT) << 14)
 };
 
 enum
 {
-    NORTH      = 8,
+    FILE_H,
+    FILE_G,
+    FILE_F,
+    FILE_E,
+    FILE_D,
+    FILE_C,
+    FILE_B,
+    FILE_A
+};
+
+enum
+{
+    RANK_1,
+    RANK_2,
+    RANK_3,
+    RANK_4,
+    RANK_5,
+    RANK_6,
+    RANK_7,
+    RANK_8
+};
+
+enum
+{
+    NORTH      =  8,
     EAST       = -1,
     SOUTH      = -8,
-    WEST       = 1,
+    WEST       =  1,
     NORTH_EAST = NORTH + EAST,
     SOUTH_EAST = SOUTH + EAST,
+    NORTH_WEST = NORTH + WEST,
     SOUTH_WEST = SOUTH + WEST,
-    NORTH_WEST = NORTH + WEST
 };
 
-class Move
-{
-public:
-    Move() = default;
-    constexpr Move(Square from, Square to) : data((from << 6) + to) {}
-    constexpr Move(uint16_t d) : data(d) {}
+constexpr Bitboard relative_rank_bb(Color c, Rank r) {
+    return 0xffull << 8 * (r ^ c*7);
+}
 
-    static Move null() { return Move(0); }
-
-    template<MoveType T>
-    static constexpr Move make(Square from, Square to) {
-        return Move(T + (from << 6) + to);
-    }
-
-    constexpr Square from_sq() const { return (data >> 6) & 0x3f; }
-    constexpr Square to_sq() const { return data & 0x3f; }
-
-    constexpr MoveType type_of() const { return data & 0x3000; }
-
-    constexpr PieceType promotion_type() const { return (data >> 14) + KNIGHT; }
-
-    constexpr bool operator==(Move m) const { return data == m.data; }
-    constexpr bool operator!=(Move m) const { return data != m.data; }
-
-private:
-    uint16_t data;
-};
-
-constexpr Square relative_square(Color c, Square sq) {
-    return c == WHITE ? sq : sq ^ 63;
+constexpr Bitboard relative_file_bb(Color c, File f) {
+    return 0x0101010101010101ull << (f ^ c*7);
 }
 
 constexpr Direction relative_direction(Color c, Direction d) {
     return c == WHITE ? d : -d;
 }
 
-constexpr PieceType type_of(Piece p) {
-    return p & 7;
-}
-
 constexpr Piece make_piece(Color c, PieceType pt) {
     return pt + (c << 3);
 }
 
-inline Color color_of(Piece p) {
+constexpr PieceType type_of(Piece p) {
+    return p & 7;
+}
+
+constexpr Color color_of(Piece p) {
     return p >> 3;
+}
+
+ForceInline constexpr Move make_move(Square from, Square to) {
+    return from + (to << 6);
+}
+
+template<MoveType T>
+ForceInline constexpr Move make_move(Square from, Square to) {
+    return T + from + (to << 6);
 }
 
 inline bool is_ok(Square s) {
     return s >= H1 && s <= A8;
+}
+
+constexpr Square from_sq(Move m) {
+    return m & 0x3f;
+}
+
+constexpr Square to_sq(Move m) {
+    return (m >> 6) & 0x3f;
+}
+
+constexpr int from_to(Move m) {
+    return m & 0xfff;
+}
+
+constexpr MoveType type_of(Move m) {
+    return m & 0x3000;
+}
+
+constexpr PieceType promotion_type_of(Move m) {
+    return (m >> 14 & 3) + KNIGHT;
+}
+
+inline uint32_t score_of(Move m) {
+    return m >> 16;
+}
+
+inline File file_of(Square s) {
+    return s & 7;
+}
+
+inline Rank rank_of(Square s) {
+    return s >> 3;
+}
+
+inline Square make_square(Rank r, File f) {
+    return r * 8 + f;
 }
 
 #endif
