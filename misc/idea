@@ -1,0 +1,83 @@
+int colex(int i)
+{
+    int t = i | (i-1);
+    return (t+1) | ((~t & -(~t))-1)>>(lsb(i)+1);
+}
+
+const int N = 263950;
+Bitboard preimage[N], image[N], ref[N];
+bool visited[N];
+
+#include <unordered_set>
+
+Bitboard image_[4][1 << 10];
+
+void Debug::go()
+{
+    std::cout << sizeof(image_)
+    Bitboard generate_occupancy(Bitboard b, int i);
+    Bitboard mask = 0x0f0f0f0f0f0000ull;
+
+    for (int num_bits = 0, k = 0; num_bits <= 8; num_bits++)
+    {
+        for (int j = (1 << num_bits) - 1, i = j; i <= j << (20-popcount(j)); i = i ? colex(i) : 1, k++)
+        {
+            preimage[k] = generate_occupancy(mask, i);
+            image[k] = passer_mask(preimage[k], WHITE);
+        }
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        std::cout << to_string(preimage[i]) << std::endl;
+    }
+
+    /*std::unordered_set<Bitboard> unique_images;
+    for (int i = 0; i < N; i++)
+    {
+        unique_images.insert(image[i]);
+    }
+
+    for (Bitboard b : unique_images)
+        std::cout << to_string(b) << std::endl;*/
+
+    return;
+
+    std::mt19937_64 rng(0);
+
+    int max_i = 0;
+
+    for (int key_size = 19;; key_size--)
+    {
+        Bitboard magic;
+        bool failed;
+
+        do
+        {
+            magic = rng() & rng() & rng();
+
+            memset(visited, false, sizeof(visited));
+
+            for (int i = 0; i < N; i++)
+            {
+                int key = magic * preimage[i] >> (64 - key_size);
+
+                if (failed = visited[key] && ref[key] != image[i])
+                {
+                    if (i > max_i)
+                    {
+                        max_i = i;
+                        std::cout << "max i: " << i << std::endl;
+                    }
+
+                    break;
+                }
+
+                ref[key] = image[i];
+                visited[key] = true;
+            }
+
+        } while (failed);
+
+        printf("key size: %d (%d KB), magic: 0x%llx\n", key_size, (1 << key_size) * sizeof(Bitboard) * 4 / 1024, magic);
+    }
