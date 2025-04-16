@@ -131,16 +131,18 @@ int midgame()
             score -= square_score<Them>(pt, lsb(b));
     }
 
-    Bitboard wpawn = bitboard<W_PAWN>();
-    Bitboard bpawn = bitboard<B_PAWN>();
+    const Bitboard wpawn = bitboard<W_PAWN>();
+    const Bitboard bpawn = bitboard<B_PAWN>();
 
-    Bitboard wpassers = passers8[WHITE][bpawn >> 48]
+    Bitboard wpassers = wpawn
+              &         passers8[WHITE][bpawn >> 48]
               & int64_t(passers8[WHITE][bpawn >> 40 & 0xff]) >> 8
               & int64_t(passers8[WHITE][bpawn >> 32 & 0xff]) >> 16
               & int64_t(passers8[WHITE][bpawn >> 24 & 0xff]) >> 24
               & int64_t(passers8[WHITE][bpawn >> 16 & 0xff]) >> 32;
 
-    Bitboard bpassers = passers8[BLACK][wpawn >> 8  & 0xff]
+    Bitboard bpassers = bpawn
+                     &  passers8[BLACK][wpawn >> 8  & 0xff]
                      & (passers8[BLACK][wpawn >> 16 & 0xff] << 8  | 0x000000ff)
                      & (passers8[BLACK][wpawn >> 24 & 0xff] << 16 | 0x0000ffff)
                      & (passers8[BLACK][wpawn >> 32 & 0xff] << 24 | 0x00ffffff)
@@ -148,13 +150,13 @@ int midgame()
 
     if constexpr (Us == WHITE)
     {
-        score += 8 * popcount(wpawn & wpassers);
-        score -= 8 * popcount(bpawn & bpassers);
+        score += 8 * popcount(wpassers);
+        score -= 8 * popcount(bpassers);
     } 
     else
     {
-        score -= 8 * popcount(wpawn & wpassers);
-        score += 8 * popcount(bpawn & bpassers);
+        score -= 8 * popcount(wpassers);
+        score += 8 * popcount(bpassers);
     }
 
     return score;
