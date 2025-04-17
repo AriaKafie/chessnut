@@ -13,7 +13,7 @@ Bitboard pdep(Bitboard mask, int src)
 {
     Bitboard dst = 0;
 
-    for (;mask; clear_lsb(mask), src >>= 1)
+    for (;src; clear_lsb(mask), src >>= 1)
         if (src & 1) dst |= mask & -mask;
 
     return dst;

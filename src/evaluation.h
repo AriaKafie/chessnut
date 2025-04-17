@@ -9,6 +9,21 @@ constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 
 inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
 
+template<Color Us>
+Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn)
+{
+    constexpr Bitboard m1 = Us == WHITE ? 0x03030303030000ull : 0xc0c0c0c0c000ull;
+    constexpr Bitboard m2 = Us == WHITE ? 0x0c0c0c0c0c0000ull : 0x303030303000ull;
+    constexpr Bitboard m3 = Us == WHITE ? 0x30303030300000ull : 0x0c0c0c0c0c00ull;
+    constexpr Bitboard m4 = Us == WHITE ? 0xc0c0c0c0c00000ull : 0x030303030300ull;
+
+    return friendly_pawn
+        & Passers[Us][0][pext(opponent_pawn, m1)]
+        & Passers[Us][1][pext(opponent_pawn, m2)]
+        & Passers[Us][2][pext(opponent_pawn, m3)]
+        & Passers[Us][3][pext(opponent_pawn, m4)];
+}
+
 constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] = 
 {
 // scored from black's pov (promotion = 0-7) with a maximizer perspective
@@ -111,16 +126,16 @@ int midgame()
 
     constexpr Color Them         = !Us;
     constexpr Piece FriendlyPawn = make_piece(Us,   PAWN);
-    constexpr Piece EnemyPawn    = make_piece(Them, PAWN);
+    constexpr Piece OpponentPawn = make_piece(Them, PAWN);
     constexpr Piece FriendlyKing = make_piece(Us,   KING);
-    constexpr Piece EnemyKing    = make_piece(Them, KING);
+    constexpr Piece OpponentKing = make_piece(Them, KING);
 
-    score += king_safety<Us>(lsb(bb(FriendlyKing)), bb(FriendlyPawn)) - king_safety<Them>(lsb(bb(EnemyKing)), bb(EnemyPawn));
+    score += king_safety<Us>(lsb(bb(FriendlyKing)), bb(FriendlyPawn)) - king_safety<Them>(lsb(bb(OpponentKing)), bb(OpponentPawn));
 
     constexpr Bitboard Rank567 = Us == WHITE ? RANK_5BB | RANK_6BB | RANK_7BB : RANK_2BB | RANK_3BB | RANK_4BB;
     constexpr Bitboard Rank234 = Us == WHITE ? RANK_2BB | RANK_3BB | RANK_4BB : RANK_5BB | RANK_6BB | RANK_7BB;
 
-    score += 4 * (popcount(bb(FriendlyPawn) & Rank567) -  popcount(bb(EnemyPawn) & Rank234));
+    score += 4 * (popcount(bb(FriendlyPawn) & Rank567) -  popcount(bb(OpponentPawn) & Rank234));
 
     for (PieceType pt : { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING })
     {
@@ -131,32 +146,20 @@ int midgame()
             score -= square_score<Them>(pt, lsb(b));
     }
 
-    Bitboard wpawn = bitboard<W_PAWN>();
-    Bitboard bpawn = bitboard<B_PAWN>();
+    Bitboard friendly_passers = passers<Us  >(bb(FriendlyPawn), bb(OpponentPawn));
+    Bitboard opponent_passers = passers<Them>(bb(OpponentPawn), bb(FriendlyPawn));
 
-    Bitboard wpassers = wpawn
-        & Passers[WHITE][0][pext(bpawn, 0x03030303030000ull)]
-        & Passers[WHITE][1][pext(bpawn, 0x0c0c0c0c0c0000ull)]
-        & Passers[WHITE][2][pext(bpawn, 0x30303030300000ull)]
-        & Passers[WHITE][3][pext(bpawn, 0xc0c0c0c0c00000ull)];
+    constexpr Bitboard Rank23 = relative_rank_bb(Us, RANK_2) | relative_rank_bb(Us, RANK_3);
+    constexpr Bitboard Rank45 = relative_rank_bb(Us, RANK_4) | relative_rank_bb(Us, RANK_5);
+    constexpr Bitboard Rank67 = relative_rank_bb(Us, RANK_6) | relative_rank_bb(Us, RANK_7);
 
+    score += 8  * popcount(friendly_passers);
+    score += 8  * popcount(friendly_passers & (Rank45 | Rank67));
+    score += 16 * popcount(friendly_passers & Rank67);
 
-    Bitboard bpassers = bpawn
-        & Passers[BLACK][0][pext(wpawn, 0xc0c0c0c0c000ull)]
-        & Passers[BLACK][1][pext(wpawn, 0x303030303000ull)]
-        & Passers[BLACK][2][pext(wpawn, 0x0c0c0c0c0c00ull)]
-        & Passers[BLACK][3][pext(wpawn, 0x030303030300ull)];
-
-    if constexpr (Us == WHITE)
-    {
-        score += 8 * popcount(wpassers);
-        score -= 8 * popcount(bpassers);
-    } 
-    else
-    {
-        score -= 8 * popcount(wpassers);
-        score += 8 * popcount(bpassers);
-    }
+    score -= 8  * popcount(opponent_passers);
+    score -= 8  * popcount(opponent_passers & (Rank45 | Rank23));
+    score -= 16 * popcount(opponent_passers & Rank23);
 
     return score;
 }
@@ -168,10 +171,10 @@ int endgame()
 
     constexpr Color Them         = !Us;
     constexpr Piece FriendlyKing = make_piece(Us,   KING);
-    constexpr Piece EnemyKing    = make_piece(Them, KING);
+    constexpr Piece OpponentKing = make_piece(Them, KING);
 
     score += end_king_squares[lsb(bb(FriendlyKing))];
-    score -= end_king_squares[lsb(bb(EnemyKing   ))];
+    score -= end_king_squares[lsb(bb(OpponentKing))];
 
     constexpr Bitboard Rank2 = Us == WHITE ? RANK_2BB : RANK_7BB;
     constexpr Bitboard Rank3 = Us == WHITE ? RANK_3BB : RANK_6BB;
@@ -181,43 +184,31 @@ int endgame()
     constexpr Bitboard Rank7 = Us == WHITE ? RANK_7BB : RANK_2BB;
 
     Bitboard friendly_pawn = bitboard<make_piece(Us,   PAWN)>();
-    Bitboard enemy_pawn    = bitboard<make_piece(Them, PAWN)>();
+    Bitboard opponent_pawn = bitboard<make_piece(Them, PAWN)>();
 
     score += 10 * popcount(friendly_pawn & Rank4);
-    score -= 10 * popcount(enemy_pawn    & Rank5);
     score += 20 * popcount(friendly_pawn & Rank5);
-    score -= 20 * popcount(enemy_pawn    & Rank4);
     score += 50 * popcount(friendly_pawn & Rank6);
-    score -= 50 * popcount(enemy_pawn    & Rank3);
-    score += 90 * popcount(friendly_pawn & Rank7);
-    score -= 90 * popcount(enemy_pawn    & Rank2);
+    score += 32 * popcount(friendly_pawn & Rank7);
+    score -= 10 * popcount(opponent_pawn & Rank5);
+    score -= 20 * popcount(opponent_pawn & Rank4);
+    score -= 50 * popcount(opponent_pawn & Rank3);
+    score -= 32 * popcount(opponent_pawn & Rank2);
 
-    Bitboard wpawn = bitboard<W_PAWN>();
-    Bitboard bpawn = bitboard<B_PAWN>();
+    Bitboard friendly_passers = passers<Us  >(friendly_pawn, opponent_pawn);
+    Bitboard opponent_passers = passers<Them>(opponent_pawn, friendly_pawn);
 
-    Bitboard wpassers = wpawn
-        & Passers[WHITE][0][pext(bpawn, 0x03030303030000ull)]
-        & Passers[WHITE][1][pext(bpawn, 0x0c0c0c0c0c0000ull)]
-        & Passers[WHITE][2][pext(bpawn, 0x30303030300000ull)]
-        & Passers[WHITE][3][pext(bpawn, 0xc0c0c0c0c00000ull)];
+    constexpr Bitboard Rank23 = relative_rank_bb(Us, RANK_2) | relative_rank_bb(Us, RANK_3);
+    constexpr Bitboard Rank45 = relative_rank_bb(Us, RANK_4) | relative_rank_bb(Us, RANK_5);
+    constexpr Bitboard Rank67 = relative_rank_bb(Us, RANK_6) | relative_rank_bb(Us, RANK_7);
 
+    score += 8  * popcount(friendly_passers);
+    score += 8  * popcount(friendly_passers & (Rank45 | Rank67));
+    score += 16 * popcount(friendly_passers & Rank67);
 
-    Bitboard bpassers = bpawn
-        & Passers[BLACK][0][pext(wpawn, 0xc0c0c0c0c000ull)]
-        & Passers[BLACK][1][pext(wpawn, 0x303030303000ull)]
-        & Passers[BLACK][2][pext(wpawn, 0x0c0c0c0c0c00ull)]
-        & Passers[BLACK][3][pext(wpawn, 0x030303030300ull)];
-
-    if constexpr (Us == WHITE)
-    {
-        score += 16 * popcount(wpawn & wpassers);
-        score -= 16 * popcount(bpawn & bpassers);
-    } 
-    else
-    {
-        score -= 16 * popcount(wpawn & wpassers);
-        score += 16 * popcount(bpawn & bpassers);
-    }
+    score -= 8  * popcount(opponent_passers);
+    score -= 8  * popcount(opponent_passers & (Rank45 | Rank23));
+    score -= 16 * popcount(opponent_passers & Rank23);
 
     return score;
 }
@@ -228,10 +219,10 @@ int mopup()
     int score = material_count<Us>();
 
     constexpr Piece FriendlyKing = make_piece( Us, KING);
-    constexpr Piece EnemyKing    = make_piece(!Us, KING);
+    constexpr Piece OpponentKing = make_piece(!Us, KING);
 
-    return score > 0 ? score + 10 * distance_from_center(lsb(bb(EnemyKing   ))) + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))))
-                     : score - 10 * distance_from_center(lsb(bb(FriendlyKing))) - 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(EnemyKing))));
+    return score > 0 ? score + 10 * distance_from_center(lsb(bb(OpponentKing))) + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(OpponentKing))))
+                     : score - 10 * distance_from_center(lsb(bb(FriendlyKing))) - 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(OpponentKing))));
 }
 
 template<Color Perspective>int static_eval()
