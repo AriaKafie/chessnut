@@ -149,17 +149,7 @@ int midgame()
     Bitboard friendly_passers = passers<Us  >(bb(FriendlyPawn), bb(OpponentPawn));
     Bitboard opponent_passers = passers<Them>(bb(OpponentPawn), bb(FriendlyPawn));
 
-    constexpr Bitboard Rank23 = relative_rank_bb(Us, RANK_2) | relative_rank_bb(Us, RANK_3);
-    constexpr Bitboard Rank45 = relative_rank_bb(Us, RANK_4) | relative_rank_bb(Us, RANK_5);
-    constexpr Bitboard Rank67 = relative_rank_bb(Us, RANK_6) | relative_rank_bb(Us, RANK_7);
-
-    score += 8  * popcount(friendly_passers);
-    score += 8  * popcount(friendly_passers & (Rank45 | Rank67));
-    score += 16 * popcount(friendly_passers & Rank67);
-
-    score -= 8  * popcount(opponent_passers);
-    score -= 8  * popcount(opponent_passers & (Rank45 | Rank23));
-    score -= 16 * popcount(opponent_passers & Rank23);
+    score += 8 * (popcount(friendly_passers) - popcount(opponent_passers));
 
     return score;
 }
@@ -182,33 +172,24 @@ int endgame()
     constexpr Bitboard Rank5 = Us == WHITE ? RANK_5BB : RANK_4BB;
     constexpr Bitboard Rank6 = Us == WHITE ? RANK_6BB : RANK_3BB;
     constexpr Bitboard Rank7 = Us == WHITE ? RANK_7BB : RANK_2BB;
-
+    
     Bitboard friendly_pawn = bitboard<make_piece(Us,   PAWN)>();
     Bitboard opponent_pawn = bitboard<make_piece(Them, PAWN)>();
 
     score += 10 * popcount(friendly_pawn & Rank4);
     score += 20 * popcount(friendly_pawn & Rank5);
     score += 50 * popcount(friendly_pawn & Rank6);
-    score += 32 * popcount(friendly_pawn & Rank7);
+    score += 90 * popcount(friendly_pawn & Rank7);
+
     score -= 10 * popcount(opponent_pawn & Rank5);
     score -= 20 * popcount(opponent_pawn & Rank4);
     score -= 50 * popcount(opponent_pawn & Rank3);
-    score -= 32 * popcount(opponent_pawn & Rank2);
+    score -= 90 * popcount(opponent_pawn & Rank2);
 
     Bitboard friendly_passers = passers<Us  >(friendly_pawn, opponent_pawn);
     Bitboard opponent_passers = passers<Them>(opponent_pawn, friendly_pawn);
 
-    constexpr Bitboard Rank23 = relative_rank_bb(Us, RANK_2) | relative_rank_bb(Us, RANK_3);
-    constexpr Bitboard Rank45 = relative_rank_bb(Us, RANK_4) | relative_rank_bb(Us, RANK_5);
-    constexpr Bitboard Rank67 = relative_rank_bb(Us, RANK_6) | relative_rank_bb(Us, RANK_7);
-
-    score += 8  * popcount(friendly_passers);
-    score += 8  * popcount(friendly_passers & (Rank45 | Rank67));
-    score += 16 * popcount(friendly_passers & Rank67);
-
-    score -= 8  * popcount(opponent_passers);
-    score -= 8  * popcount(opponent_passers & (Rank45 | Rank23));
-    score -= 16 * popcount(opponent_passers & Rank23);
+    score += 16 * (popcount(friendly_passers) - popcount(opponent_passers));
 
     return score;
 }
