@@ -93,16 +93,12 @@ void Bitboards::init()
 
     for (Color c : { WHITE, BLACK })
     {
-        Bitboard relevancy = relative_rank_bb(c, RANK_7)
-                           | relative_rank_bb(c, RANK_6)
-                           | relative_rank_bb(c, RANK_5)
-                           | relative_rank_bb(c, RANK_4)
-                           | relative_rank_bb(c, RANK_3);
+        Bitboard relevancy = relative_rank(c, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7);
 
-        Bitboard masks[4] = { relevancy & (relative_file_bb(c, FILE_G) | relative_file_bb(c, FILE_H)),
-                              relevancy & (relative_file_bb(c, FILE_E) | relative_file_bb(c, FILE_F)),
-                              relevancy & (relative_file_bb(c, FILE_C) | relative_file_bb(c, FILE_D)),
-                              relevancy & (relative_file_bb(c, FILE_A) | relative_file_bb(c, FILE_B)) };
+        Bitboard masks[4] = { relevancy & relative_file(c, FILE_G, FILE_H),
+                              relevancy & relative_file(c, FILE_E, FILE_F),
+                              relevancy & relative_file(c, FILE_C, FILE_D),
+                              relevancy & relative_file(c, FILE_A, FILE_B), };
 
         for (int i = 0; i < 4; i++)
         {

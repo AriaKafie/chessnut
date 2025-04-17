@@ -173,6 +173,24 @@ inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
     return square_bb(sq) | square_bb(sqs...);
 }
 
+constexpr Bitboard relative_rank(Color c, Rank r) {
+    return RANK_1BB << 8 * (r ^ c*7);
+}
+
+template<typename... Ranks>
+inline constexpr Bitboard relative_rank(Color c, Rank rank, Ranks... ranks) {
+    return relative_rank(c, rank) | relative_rank(c, ranks...);
+}
+
+constexpr Bitboard relative_file(Color c, File f) {
+    return FILE_HBB << (f ^ c*7);
+}
+
+template<typename... Files>
+inline constexpr Bitboard relative_file(Color c, File file, Files... files) {
+    return relative_file(c, file) | relative_file(c, files...);
+}
+
 inline Bitboard rank_bb(Square s) {
     return RANK_1BB << 8 * (s / 8);
 }

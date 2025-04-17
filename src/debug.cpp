@@ -168,16 +168,16 @@ void Debug::go()
 {
     /*Color c = BLACK;
 
-    Bitboard relevancy = relative_rank_bb(c, RANK_7)
-                       | relative_rank_bb(c, RANK_6)
-                       | relative_rank_bb(c, RANK_5)
-                       | relative_rank_bb(c, RANK_4)
-                       | relative_rank_bb(c, RANK_3);
+    Bitboard relevancy = relative_rank(c, RANK_7)
+                       | relative_rank(c, RANK_6)
+                       | relative_rank(c, RANK_5)
+                       | relative_rank(c, RANK_4)
+                       | relative_rank(c, RANK_3);
 
-    Bitboard masks_[4] = {relevancy & (relative_file_bb(c, FILE_G) | relative_file_bb(c, FILE_H)),
-                          relevancy & (relative_file_bb(c, FILE_E) | relative_file_bb(c, FILE_F)),
-                          relevancy & (relative_file_bb(c, FILE_C) | relative_file_bb(c, FILE_D)),
-                          relevancy & (relative_file_bb(c, FILE_A) | relative_file_bb(c, FILE_B)) };
+    Bitboard masks_[4] = {relevancy & (relative_file(c, FILE_G) | relative_file(c, FILE_H)),
+                          relevancy & (relative_file(c, FILE_E) | relative_file(c, FILE_F)),
+                          relevancy & (relative_file(c, FILE_C) | relative_file(c, FILE_D)),
+                          relevancy & (relative_file(c, FILE_A) | relative_file(c, FILE_B)) };
 
     for (int i = 0; i < 4; i++)
         printf("0x%llxull\n", masks_[i]);return;
@@ -205,7 +205,7 @@ void Debug::go()
     {
         static std::mt19937_64 rng(0);
 
-        Bitboard pawns = rng() & rng() & rng() & ~(RANK_1BB | relative_rank_bb(c, RANK_2) | RANK_8BB);
+        Bitboard pawns = rng() & rng() & rng() & ~(RANK_1BB | relative_rank(c, RANK_2) | RANK_8BB);
 
         Bitboard passers = Passers[c][0][pext(pawns, m1)]
                          & Passers[c][1][pext(pawns, m2)]

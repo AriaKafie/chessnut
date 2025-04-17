@@ -104,14 +104,6 @@ enum
     SOUTH_WEST = SOUTH + WEST,
 };
 
-constexpr Bitboard relative_rank_bb(Color c, Rank r) {
-    return 0xffull << 8 * (r ^ c*7);
-}
-
-constexpr Bitboard relative_file_bb(Color c, File f) {
-    return 0x0101010101010101ull << (f ^ c*7);
-}
-
 constexpr Direction relative_direction(Color c, Direction d) {
     return c == WHITE ? d : -d;
 }
