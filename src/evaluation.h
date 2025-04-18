@@ -149,8 +149,8 @@ int midgame()
     Bitboard friendly_passers = passers<Us  >(bb(FriendlyPawn), bb(OpponentPawn));
     Bitboard opponent_passers = passers<Them>(bb(OpponentPawn), bb(FriendlyPawn));
 
-    score += 16 * (popcount(friendly_passers & Rank234) - popcount(opponent_passers & Rank567));
-    score += 32 * (popcount(friendly_passers & Rank567) - popcount(opponent_passers & Rank234));
+    score += 8  * (popcount(friendly_passers & Rank234) - popcount(opponent_passers & Rank567));
+    score += 16 * (popcount(friendly_passers & Rank567) - popcount(opponent_passers & Rank234));
 
     return score;
 }
