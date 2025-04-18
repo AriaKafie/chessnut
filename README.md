@@ -7,7 +7,7 @@ cd src
 make && ./chessnut
 ```
 
-On hardware that doesn't support BMI or BMI2 (for instructions like BLSR, PEXT, etc.) repeat these commands only after removing the following line in src/types.h:
+On hardware that doesn't support BMI or BMI2 (for instructions like BLSR, PEXT, etc.) repeat those commands only after removing the following line in src/types.h:
 ```
 #define BMI
 ```
