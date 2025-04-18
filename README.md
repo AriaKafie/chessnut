@@ -45,7 +45,7 @@ int king_safety(Square ksq, Bitboard occ) {
 #endif
 }
 ```
-And to detect passed pawns:
+And to detect passed pawns in constant time:
 ```
 // evaluation.h
 
