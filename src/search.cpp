@@ -1,4 +1,6 @@
 
+#define VERBOSE 0
+
 #include "search.h"
 
 #include <algorithm>
@@ -13,12 +15,12 @@
 #include "position.h"
 #include "uci.h"
 
-int reductions[MAX_PLY][MAX_PLY];
+int reductions[MAX_DEPTH][MAX_DEPTH];
 
 void Search::init()
 {
-    for (int depth = 0; depth < MAX_PLY; depth++)
-        for (int move_num = 1; move_num < MAX_PLY; move_num++)
+    for (int depth = 0; depth < MAX_DEPTH; depth++)
+        for (int move_num = 1; move_num < MAX_DEPTH; move_num++)
             reductions[depth][move_num] = int(std::log(move_num + 2) * 2 / std::log(std::min(10, depth) + 2));
 }
 
@@ -104,13 +106,18 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
     for (int i = 0; i < moves.size(); i++)
     {
         int reduction = reductions[depth][i];
+        int seldepth  = depth - reduction + extension;
 
-        if (depth - 1 - reduction + extension <= 0 && type_of(moves[i]) == NORMAL && is_quiet(moves[i]))
+        if (seldepth <= 3 && type_of(moves[i]) == NORMAL)
         {
+            const int depth_scale = 100;
+
             if (static_evaluation == NO_EVAL)
                 static_evaluation = static_eval<SideToMove>();
 
-            if (static_evaluation + 200 <= alpha)
+            int margin = seldepth == 1 ? 200 : 200 + depth_scale * seldepth;
+
+            if (static_evaluation + piece_weight(piece_type_on(to_sq(moves[i]))) + margin <= alpha)
                 continue;
         }
 
@@ -156,8 +163,9 @@ template<Color SideToMove>
 void iterative_deepening(int max_depth = 64)
 {
     const int window = 50;
-
     int guess, alpha = -INFINITE, beta = INFINITE;
+
+    uint64_t start = unix_ms();
 
     for (int depth = 1; depth <= max_depth; depth++)
     {
@@ -185,8 +193,13 @@ void iterative_deepening(int max_depth = 64)
 
         alpha = eval - window;
         beta  = eval + window;
-
-        std::cout << "info depth " << depth << " score cp " << eval << " nodes " << Search::status.nodes << " pv " << Debug::pv() << std::endl;
+#if VERBOSE
+        std::cout << "info depth " << depth
+                  << " score cp "  << eval
+                  << " nodes "     << Search::status.nodes
+                  << " time "      << (unix_ms() - start)
+                  << " pv "        << Debug::pv() << std::endl;
+#endif
     }
 }
 

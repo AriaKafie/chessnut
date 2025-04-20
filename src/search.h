@@ -12,6 +12,10 @@
 
 constexpr int matescore = 100000;
 
+inline uint64_t unix_ms() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 namespace Search
 {
     inline struct {
@@ -25,7 +29,7 @@ namespace Search
     void count_nodes(int depth);
 
     inline void clear() {
-        for (int ply = 0; ply < MAX_PLY; ply++)
+        for (int ply = 0; ply < MAX_DEPTH; ply++)
             killers[ply].moveA = killers[ply].moveB = NO_MOVE;
     }
 }

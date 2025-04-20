@@ -24,7 +24,7 @@ typedef struct {
 extern Bitboard bitboards[16];
 extern Piece board[SQUARE_NB];
 
-extern StateInfo state_stack[MAX_PLY], *state_ptr;
+extern StateInfo state_stack[MAX_DEPTH], *state_ptr;
 
 namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; inline uint64_t hash[B_KING + 1][SQUARE_NB]; }
 

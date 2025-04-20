@@ -14,7 +14,7 @@ void set_gamephase();
 Bitboard bitboards[16];
 Piece board[SQUARE_NB];
 
-StateInfo state_stack[MAX_PLY], *state_ptr = state_stack;
+StateInfo state_stack[MAX_DEPTH], *state_ptr = state_stack;
 
 void Position::init()
 {

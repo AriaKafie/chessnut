@@ -6,15 +6,13 @@
 #include "movelist.h"
 #include "position.h"
 
-struct Killer
-{
+struct Killer {
+
     Move moveA;
     Move moveB;
 
-    void add(Move m)
-    {
-        if (m != moveA)
-        {
+    void add(Move m) {
+        if (m != moveA) {
             moveB = moveA;
             moveA = m;
         }
@@ -25,7 +23,7 @@ struct Killer
     }
 };
 
-inline Killer killers[MAX_PLY];
+inline Killer killers[MAX_DEPTH];
 
 constexpr uint32_t MAX_SCORE          = 0xffff0000;
 constexpr uint32_t GOOD_CAPTURE_BONUS = 8000;

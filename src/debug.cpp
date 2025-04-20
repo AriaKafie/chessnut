@@ -17,6 +17,7 @@
 #include "moveordering.h"
 #include "position.h"
 #include "transpositiontable.h"
+#include "search.h"
 #include "uci.h"
 
 template<Color STM>
@@ -149,18 +150,21 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
-extern TTEntry transposition_table[];
-void Debug::go()
+void go()
 {
-    TTEntry *tt = transposition_table;
+    extern TTEntry transposition_table[TT_SIZE];
+    TTEntry* tt = transposition_table;
+
     uint64_t entries = 0;
     for (int i = 0; i < TT_SIZE; i++)
         if (tt[i].key) entries++;
-    printf("tt size: %dMB at %f%% capacity\n", sizeof(TTEntry) * TT_SIZE / (1024 * 1024), double(entries)/TT_SIZE);
+    printf("tt size: %dMB at %f%% capacity\n", sizeof(TTEntry) * TT_SIZE / (1024 * 1024), double(entries) / TT_SIZE);
 
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
               << rep_table_to_string()                       << std::endl;
 }
+
+void Debug::go() {::go();}
 
 Move *get_moves(Move *list)
 {
