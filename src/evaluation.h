@@ -90,11 +90,14 @@ constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] =
 };
 
 template<Color Perspective>
-constexpr int square_score(PieceType pt, Square sq)
-{
+constexpr int square_score(PieceType pt, Square sq) {
     if constexpr (Perspective == WHITE) return square_scores[pt - 2][sq ^ 63];
-    else                                return square_scores[pt - 2][sq     ];
+    else                                return square_scores[pt - 2][sq];
 }
+
+/*constexpr int pawn_end_squares[] = {
+
+};*/
 
 constexpr int end_king_squares[] =
 {
@@ -211,8 +214,8 @@ int mopup()
                      : score - 10 * distance_from_center(lsb(bb(FriendlyKing))) - 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(OpponentKing))));
 }
 
-template<Color Perspective>int static_eval()
-{
+template<Color Perspective>
+int static_eval() {
     return Position::midgame() ? midgame<Perspective>() : Position::endgame() ? endgame<Perspective>() : mopup<Perspective>();
 }
 

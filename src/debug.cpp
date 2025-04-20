@@ -31,6 +31,14 @@ std::string PV()
     if (best == NO_MOVE)
         return "";
 
+    bool legal = false;
+
+    MoveList<STM> moves;
+    for (Move m : moves)
+        if (m == best) legal = true;
+
+    if (!legal) return "";
+
     else
     {
         do_move<STM>(best);
@@ -41,8 +49,7 @@ std::string PV()
     return line;
 }
 
-std::string Debug::pv()
-{
+std::string Debug::pv() {
     return Position::white_to_move() ? PV<WHITE>()
                                      : PV<BLACK>();
 }
@@ -142,86 +149,15 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
-/*Bitboard passer_mask(Bitboard pawns, Color c)
-{
-    Bitboard scope = 0ull;
-
-    for (;pawns; clear_lsb(pawns))
-    {
-        Square psq = lsb(pawns);
-
-        scope |= (file_bb(psq) | file_bb(psq + EAST) & ~FILE_ABB | file_bb(psq + WEST) & ~FILE_HBB) & mask(psq, c == WHITE ? SOUTH : NORTH);
-    }
-
-    return ~scope;
-}
-
-int colex(int i)
-{
-    int t = i | (i-1);
-    return (t+1) | ((~t & -(~t))-1)>>(lsb(i)+1);
-}*/
-
-//Bitboard image[4][1 << 10];
-
+extern TTEntry transposition_table[];
 void Debug::go()
 {
-    /*Color c = BLACK;
+    TTEntry *tt = transposition_table;
+    uint64_t entries = 0;
+    for (int i = 0; i < TT_SIZE; i++)
+        if (tt[i].key) entries++;
+    printf("tt size: %dMB at %f%% capacity\n", sizeof(TTEntry) * TT_SIZE / (1024 * 1024), double(entries)/TT_SIZE);
 
-    Bitboard relevancy = relative_rank(c, RANK_7)
-                       | relative_rank(c, RANK_6)
-                       | relative_rank(c, RANK_5)
-                       | relative_rank(c, RANK_4)
-                       | relative_rank(c, RANK_3);
-
-    Bitboard masks_[4] = {relevancy & (relative_file(c, FILE_G) | relative_file(c, FILE_H)),
-                          relevancy & (relative_file(c, FILE_E) | relative_file(c, FILE_F)),
-                          relevancy & (relative_file(c, FILE_C) | relative_file(c, FILE_D)),
-                          relevancy & (relative_file(c, FILE_A) | relative_file(c, FILE_B)) };
-
-    for (int i = 0; i < 4; i++)
-        printf("0x%llxull\n", masks_[i]);return;
-
-    Bitboard pdep(Bitboard b, int i);
-
-    Bitboard m1 = masks_[0];
-    Bitboard m2 = masks_[1];
-    Bitboard m3 = masks_[2];
-    Bitboard m4 = masks_[3];
-
-    Bitboard masks[4] = {m1,m2,m3,m4};
-
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 1 << popcount(masks[i]); j++)
-        {
-            Bitboard pawns = pdep(masks[i], j);
-
-            image[i][j] = passer_mask(pawns, WHITE);
-        }
-    }
-
-    for (;;)
-    {
-        static std::mt19937_64 rng(0);
-
-        Bitboard pawns = rng() & rng() & rng() & ~(RANK_1BB | relative_rank(c, RANK_2) | RANK_8BB);
-
-        Bitboard passers = Passers[c][0][pext(pawns, m1)]
-                         & Passers[c][1][pext(pawns, m2)]
-                         & Passers[c][2][pext(pawns, m3)]
-                         & Passers[c][3][pext(pawns, m4)];
-        
-        std::cout << to_string(pawns) << to_string(passers) << std::endl;
-
-        if (passers != passer_mask(pawns, c))
-        {
-            std::cout << "fail\n";
-            std::exit(0);
-        }
-    }
-
-    return;*/
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
               << rep_table_to_string()                       << std::endl;
 }
