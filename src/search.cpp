@@ -1,5 +1,5 @@
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 #include "search.h"
 
@@ -17,11 +17,14 @@
 
 int reductions[MAX_DEPTH][MAX_DEPTH];
 
-void Search::init()
-{
+void Search::init() {
     for (int depth = 0; depth < MAX_DEPTH; depth++)
         for (int move_num = 1; move_num < MAX_DEPTH; move_num++)
             reductions[depth][move_num] = int(std::log(move_num + 2) * 2 / std::log(std::min(10, depth) + 2));
+}
+
+int reduction(Move m, int depth, int mn, int ply) {
+    return reductions[depth][mn];
 }
 
 template<Color SideToMove>
@@ -78,10 +81,14 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
         if (int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root); lookup != NO_EVAL)
             return lookup;
 
+    int static_ev = NO_EVAL;
+
     if (null_ok && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
     {
+        const int R = 3;
+
         state_ptr->key ^= Zobrist::Side;
-        int eval = -search<false, !SideToMove>(-beta, -beta + 1, depth - 3, ply_from_root + 1, false);
+        int eval = -search<false, !SideToMove>(-beta, -beta + 1, depth - R, ply_from_root + 1, false);
         state_ptr->key ^= Zobrist::Side;
 
         if (Search::status.search_cancelled) [[unlikely]]
@@ -101,31 +108,31 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok)
 
     moves.sort(TranspositionTable::lookup_move(), ply_from_root);
 
-    int static_evaluation = NO_EVAL, extension = Root ? 0 : moves.in_check();
+    int extension = Root ? 0 : moves.in_check();
 
     for (int i = 0; i < moves.size(); i++)
     {
-        int reduction = reductions[depth][i];
-        int seldepth  = depth - reduction + extension;
+        int R         = reduction(moves[i], depth, i, ply_from_root);
+        int seldepth  = depth - R + extension;
 
         if (seldepth <= 3 && type_of(moves[i]) == NORMAL)
         {
             const int depth_scale = 100;
 
-            if (static_evaluation == NO_EVAL)
-                static_evaluation = static_eval<SideToMove>();
+            if (static_ev == NO_EVAL)
+                static_ev = static_eval<SideToMove>();
 
             int margin = seldepth == 1 ? 200 : 200 + depth_scale * seldepth;
 
-            if (static_evaluation + piece_weight(piece_type_on(to_sq(moves[i]))) + margin <= alpha)
+            if (static_ev + piece_weight(piece_type_on(to_sq(moves[i]))) + margin <= alpha)
                 continue;
         }
 
         do_move<SideToMove>(moves[i]);
 
-        int eval = -search<false, !SideToMove>(-beta, -alpha, depth - 1 - reduction + extension, ply_from_root + 1, true);
+        int eval = -search<false, !SideToMove>(-beta, -alpha, depth - 1 - R + extension, ply_from_root + 1, true);
 
-        if (eval > alpha && reduction && depth - 1 + extension > 0)
+        if (eval > alpha && R && depth - 1 + extension > 0)
             eval = -search<false, !SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true);
         
         undo_move<SideToMove>(moves[i]);
