@@ -11,8 +11,9 @@
 #include "types.h"
 
 typedef struct {
-    int  static_ev;
-} Ply;
+    int static_ev;
+    int ply;
+} SearchInfo;
 
 const int matescore = 100000;
 

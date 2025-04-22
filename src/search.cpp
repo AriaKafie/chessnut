@@ -13,8 +13,6 @@
 #include "position.h"
 #include "uci.h"
 
-Ply search_stack[MAX_DEPTH];
-
 int reductions[MAX_DEPTH];
 
 void Search::init()
@@ -67,7 +65,7 @@ int qsearch(int alpha, int beta)
 }
 
 template<bool Root, Color SideToMove>
-int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok, Ply *ply)
+int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 {
     Search::status.nodes++;
 
@@ -80,18 +78,17 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok, Ply 
     if (depth <= 0)
         return qsearch<SideToMove>(alpha, beta);
 
-    if (!Root)
-        if (int lookup = TranspositionTable::lookup(depth, alpha, beta, ply_from_root); lookup != NO_EVAL)
-            return lookup;
+    if (int lookup = TranspositionTable::lookup(depth, alpha, beta, si->ply); !Root && lookup != NO_EVAL)
+        return lookup;
 
-    ply->static_ev = static_eval<SideToMove>();
+    si->static_ev = static_eval<SideToMove>();
 
     if (null_ok && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
     {
-        int R = std::max(1, std::min(int(ply->static_ev - beta) / 232, 6) + depth / 3 + 5);
+        int R = std::max(1, std::min(int(si->static_ev - beta) / 232, 6) + depth / 3 + 5);
 
         state_ptr->key ^= Zobrist::Side;
-        int eval = -search<false, !SideToMove>(-beta, -beta + 1, depth - R, ply_from_root + 1, false, ply + 1);
+        int eval = -search<false, !SideToMove>(-beta, -beta + 1, depth - R, false, si + 1);
         state_ptr->key ^= Zobrist::Side;
 
         if (Search::status.search_cancelled) [[unlikely]]
@@ -103,14 +100,14 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok, Ply 
 
     Move      best_move  = NO_MOVE;
     BoundType bound_type = UPPER_BOUND;
-    bool      improving  = ply->static_ev > (ply - 2)->static_ev;
+    bool      improving  = si->static_ev > (si - 2)->static_ev;
 
     MoveList<SideToMove> moves;
 
     if (moves.size() == 0)
-        return moves.in_check() ? -matescore + ply_from_root : 0;
+        return moves.in_check() ? -matescore + si->ply : 0;
 
-    moves.sort(TranspositionTable::lookup_move(), ply_from_root);
+    moves.sort(TranspositionTable::lookup_move(), si->ply);
 
     int extension = Root ? 0 : moves.in_check();
 
@@ -130,16 +127,16 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok, Ply 
 
             int margin = 200 + depth_scale * new_depth;
 
-            if (ply->static_ev + piece_weight(piece_type_on(to_sq(moves[i]))) + margin <= alpha)
+            if (si->static_ev + piece_weight(piece_type_on(to_sq(moves[i]))) + margin <= alpha)
                 continue;
         }
 
         do_move<SideToMove>(moves[i]);
 
-        int eval = -search<false, !SideToMove>(-beta, -alpha, new_depth + extension, ply_from_root + 1, true, ply + 1);
+        int eval = -search<false, !SideToMove>(-beta, -alpha, new_depth + extension, true, si + 1);
 
         if (eval > alpha && new_depth < depth - 1)
-            eval = -search<false, !SideToMove>(-beta, -alpha, depth - 1 + extension, ply_from_root + 1, true, ply + 1);
+            eval = -search<false, !SideToMove>(-beta, -alpha, depth - 1 + extension, true, si + 1);
         
         undo_move<SideToMove>(moves[i]);
 
@@ -148,10 +145,10 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok, Ply 
 
         if (eval >= beta)
         {
-            TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], ply_from_root);
+            TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], si->ply);
 
             if (is_quiet(moves[i]))
-                killers[ply_from_root].add(moves[i] & 0xffff);
+                killers[si->ply].add(moves[i] & 0xffff);
 
             return eval;
         }
@@ -167,7 +164,7 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok, Ply 
         }
     }
 
-    TranspositionTable::record(depth, bound_type, alpha, best_move, ply_from_root);
+    TranspositionTable::record(depth, bound_type, alpha, best_move, si->ply);
 
     return alpha;
 }
@@ -175,6 +172,11 @@ int search(int alpha, int beta, int depth, int ply_from_root, bool null_ok, Ply 
 template<Color SideToMove>
 void iterative_deepening(int max_depth = 64)
 {
+    SearchInfo search_stack[MAX_DEPTH] = {}, *si = search_stack + 7;
+
+    for (SearchInfo *s = si + 1; s != search_stack + MAX_DEPTH; s++)
+        s->ply = (s - 1)->ply + 1;
+
     const int window = 50;
     int guess, alpha = -INFINITE, beta = INFINITE;
 
@@ -184,7 +186,7 @@ void iterative_deepening(int max_depth = 64)
     {
         fail:
 
-        int eval = search<true, SideToMove>(alpha, beta, depth, 0, false, search_stack + 7);
+        int eval = search<true, SideToMove>(alpha, beta, depth, false, si);
 
         if (Search::status.search_cancelled)
             break;
@@ -260,8 +262,8 @@ void Search::count_nodes(int depth)
         TranspositionTable::clear();
         RepetitionTable::clear();
 
-        if (Position::white_to_move()) iterative_deepening<WHITE>(depth);
-        else                           iterative_deepening<BLACK>(depth);
+        Position::white_to_move() ? iterative_deepening<WHITE>(depth)
+                                  : iterative_deepening<BLACK>(depth);
 
         std::cout << Search::status.nodes << std::endl;
 
