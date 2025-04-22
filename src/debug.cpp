@@ -150,11 +150,14 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
-void go()
+static void go()
 {
+    extern int reductions[MAX_DEPTH];
+    for (int i : reductions) std::cout << i << ", ";std::cout << std::endl;return;
+
     extern TTEntry transposition_table[TT_SIZE];
     TTEntry* tt = transposition_table;
-
+    
     uint64_t entries = 0;
     for (int i = 0; i < TT_SIZE; i++)
         if (tt[i].key) entries++;

@@ -10,7 +10,11 @@
 #include "moveordering.h"
 #include "types.h"
 
-constexpr int matescore = 100000;
+typedef struct {
+    int  static_ev;
+} Ply;
+
+const int matescore = 100000;
 
 inline uint64_t unix_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -18,11 +22,15 @@ inline uint64_t unix_ms() {
 
 namespace Search
 {
-    inline struct {
+    typedef struct {
         Move          root_move;
         int           nodes;
+        int           root_delta;
         volatile bool search_cancelled;
-    } status;
+        bool          verbose;
+    } Status;
+
+    inline Status status;
 
     void init();
     void go(uint64_t thinktime = 0);

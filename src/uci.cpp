@@ -93,11 +93,13 @@ void UCI::loop()
             RepetitionTable::push();
         }
 
-        else if (token == "position") position(is);
-        else if (token == "go")       go(is);
-        else if (token == "moves")    for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
-        else if (token == "perft")    Debug::perft(is);
-        else if (token == "debug")    Debug::go();
+        else if (token == "position")  position(is);
+        else if (token == "go")        go(is);
+        else if (token == "perft")     Debug::perft(is);
+        else if (token == "debug")     Debug::go();
+        else if (token == "noverbose") Search::status.verbose = false;
+        else if (token == "moves")
+            for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
         
     } while (cmd != "quit");
 }
