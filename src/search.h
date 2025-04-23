@@ -10,12 +10,12 @@
 #include "moveordering.h"
 #include "types.h"
 
+const int matescore = 100000;
+
 typedef struct {
     int static_ev;
     int ply;
 } SearchInfo;
-
-const int matescore = 100000;
 
 inline uint64_t unix_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();

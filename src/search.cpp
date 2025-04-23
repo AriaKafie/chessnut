@@ -99,6 +99,7 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
     }
 
     Move      best_move  = NO_MOVE;
+    int       best_eval  = -INFINITE;
     BoundType bound_type = UPPER_BOUND;
     bool      improving  = si->static_ev > (si - 2)->static_ev;
 
@@ -109,59 +110,64 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 
     moves.sort(TranspositionTable::lookup_move(), si->ply);
 
-    int extension = Root ? 0 : moves.in_check();
+    int extension  = Root ? 0 : moves.in_check();
+    int move_count = 0;
 
-    for (int i = 0; i < moves.size(); i++)
+    for (Move m : moves)
     {
+        move_count++;
+
         if (Root)
             Search::status.root_delta = beta - alpha;
 
         int new_depth = depth - 1;
 
-        if (depth >= 2 && i > 1)
-            new_depth = std::max(1, new_depth - reduction(improving, depth, i, beta - alpha) / 1024);
+        if (depth >= 2 && move_count > 1)
+            new_depth = std::max(1, new_depth - reduction(improving, depth, move_count, beta - alpha) / 1024);
 
-        if (new_depth <= 2 && type_of(moves[i]) == NORMAL)
+        if (new_depth <= 2 && type_of(m) == NORMAL)
         {
             const int depth_scale = 100;
 
             int margin = 200 + depth_scale * new_depth;
 
-            if (si->static_ev + piece_weight(piece_type_on(to_sq(moves[i]))) + margin <= alpha)
+            if (si->static_ev + piece_weight(piece_type_on(to_sq(m))) + margin <= alpha)
                 continue;
         }
 
-        do_move<SideToMove>(moves[i]);
+        do_move<SideToMove>(m);
 
         int eval = -search<false, !SideToMove>(-beta, -alpha, new_depth + extension, true, si + 1);
 
         if (eval > alpha && new_depth < depth - 1)
             eval = -search<false, !SideToMove>(-beta, -alpha, depth - 1 + extension, true, si + 1);
         
-        undo_move<SideToMove>(moves[i]);
+        undo_move<SideToMove>(m);
 
         if (Search::status.search_cancelled) [[unlikely]]
             return 0;
 
         if (eval >= beta)
         {
-            TranspositionTable::record(depth, LOWER_BOUND, eval, moves[i], si->ply);
+            TranspositionTable::record(depth, LOWER_BOUND, eval, m, si->ply);
 
-            if (is_quiet(moves[i]))
-                killers[si->ply].add(moves[i] & 0xffff);
+            if (is_quiet(m))
+                killers[si->ply].add(m & 0xffff);
 
             return eval;
         }
 
         if (eval > alpha)
         {
-            best_move = moves[i];
+            best_move = m;
             alpha = eval;
             bound_type = EXACT;
 
             if (Root)
                 Search::status.root_move = best_move;
         }
+
+        best_eval = std::max(eval, best_eval);
     }
 
     TranspositionTable::record(depth, bound_type, alpha, best_move, si->ply);
@@ -176,6 +182,8 @@ void iterative_deepening(int max_depth = 64)
 
     for (SearchInfo *s = si + 1; s != search_stack + MAX_DEPTH; s++)
         s->ply = (s - 1)->ply + 1;
+
+    Search::status.root_move = NO_MOVE;
 
     const int window = 50;
     int guess, alpha = -INFINITE, beta = INFINITE;
