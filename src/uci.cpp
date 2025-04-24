@@ -31,7 +31,7 @@ void position(std::istringstream& is)
 
 void go(std::istringstream& is)
 {
-    if (is.eof()) { Search::go(); return; }
+    if ((is >> std::ws).eof()) { Search::go(); return; }
 
     std::string token;
     is       >> token;
@@ -97,7 +97,7 @@ void UCI::loop()
         else if (token == "go")        go(is);
         else if (token == "perft")     Debug::perft(is);
         else if (token == "debug")     Debug::go();
-        else if (token == "noverbose") Search::status.verbose = false;
+        else if (token == "noverbose") Search::noverbose();
         else if (token == "moves")
             for (Move m; is >> token && (m = uci_to_move(token)); Position::commit_move(m));
         

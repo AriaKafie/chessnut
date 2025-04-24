@@ -23,7 +23,7 @@ struct Killer {
     }
 };
 
-inline Killer killers[MAX_DEPTH];
+inline Killer killers[MAX_PLIES];
 
 constexpr uint32_t MAX_SCORE          = 0xffff0000;
 constexpr uint32_t GOOD_CAPTURE_BONUS = 8000;

@@ -21,7 +21,7 @@
 #include "uci.h"
 
 template<Color STM>
-std::string PV()
+static std::string pv()
 {
     if (RepetitionTable::draw())
         return "";
@@ -43,7 +43,7 @@ std::string PV()
     else
     {
         do_move<STM>(best);
-        line = move_to_uci(best) + " " + PV<!STM>();
+        line = move_to_uci(best) + " " + pv<!STM>();
         undo_move<STM>(best);
     }
 
@@ -51,8 +51,8 @@ std::string PV()
 }
 
 std::string Debug::pv() {
-    return Position::white_to_move() ? PV<WHITE>()
-                                     : PV<BLACK>();
+    return Position::white_to_move() ? ::pv<WHITE>()
+                                     : ::pv<BLACK>();
 }
 
 template<bool Root, Color SideToMove>
@@ -152,7 +152,7 @@ std::string rep_table_to_string()
 
 static void go()
 {
-    extern int reductions[MAX_DEPTH];
+    extern int reductions[MAX_PLIES];
     for (int i : reductions) std::cout << i << ", ";std::cout << std::endl;return;
 
     extern TTEntry transposition_table[TT_SIZE];

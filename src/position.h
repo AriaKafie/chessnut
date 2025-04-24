@@ -24,12 +24,30 @@ typedef struct {
 extern Bitboard bitboards[16];
 extern Piece board[SQUARE_NB];
 
-extern StateInfo state_stack[MAX_DEPTH], *state_ptr;
+extern StateInfo state_stack[MAX_PLIES], *state_ptr;
 
 namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; inline uint64_t hash[B_KING + 1][SQUARE_NB]; }
 
 template<Piece P>
-Bitboard bitboard() { return bitboards[P]; }
+Bitboard bitboard() {
+    return bitboards[P];
+}
+
+inline Piece piece_on(Square sq) {
+    return board[sq];
+}
+
+inline PieceType piece_type_on(Square sq) {
+    return type_of(board[sq]);
+}
+
+inline bool is_capture(Move m) {
+    return piece_on(to_sq(m));
+}
+
+inline bool is_quiet(Move m) {
+    return !piece_on(to_sq(m));
+}
 
 namespace Position {
 
@@ -74,15 +92,37 @@ bool in_check()
       | rook_attacks  (ksq, occupied()) & (bb(EnemyQueen) | bb(EnemyRook));
 }
 
+template<Color Us>
+Bitboard non_pawn_material() {
+    return bitboards[Us] ^ (bitboards[make_piece(Us, PAWN)] | bitboards[make_piece(Us, KING)]);
+}
+
+template<Color Us>
+bool gives_check(Move m)
+{
+    constexpr Piece Pawn   = make_piece(Us, PAWN);
+    constexpr Piece Knight = make_piece(Us, KNIGHT);
+    constexpr Piece Bishop = make_piece(Us, BISHOP);
+    constexpr Piece Rook   = make_piece(Us, ROOK);
+    constexpr Piece Queen  = make_piece(Us, QUEEN);
+
+    Bitboard occ  = occupied();
+    Bitboard king = bitboard<make_piece(!Us, KING)>();
+    Piece    pc   = piece_on(from_sq(m));
+    Square   to   = to_sq(m);
+    
+    bool pawn         = pc == Pawn;
+    bool knight       = pc == Knight;
+    bool bishop_queen = pc == Bishop || pc == Queen;
+    bool rook_queen   = pc == Rook || pc == Queen;
+
+    return pawn         && (pawn_attacks<Us>(to)    & king)
+        || knight       && (knight_attacks(to)      & king)
+        || bishop_queen && (bishop_attacks(to, occ) & king)
+        || rook_queen   && (rook_attacks(to, occ)   & king);
+}
+
 } // namespace Position
-
-inline Piece piece_on(Square sq) { return board[sq]; }
-
-inline bool is_capture(Move m) { return piece_on(to_sq(m)); }
-
-inline bool is_quiet(Move m) { return !piece_on(to_sq(m)); }
-
-inline PieceType piece_type_on(Square sq) { return type_of(board[sq]); }
 
 template<Color JustMoved>
 ForceInline void update_castling_rights()

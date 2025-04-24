@@ -28,8 +28,26 @@ typedef uint8_t  Color;
 constexpr Move NULLMOVE = 0;
 constexpr Move NO_MOVE  = 0;
 
-constexpr int MAX_DEPTH  = 128;
-constexpr int INFINITE = 0x7fffffff;
+constexpr int MAX_DEPTH = 64;
+constexpr int MAX_PLIES = 128;
+constexpr int MATE      = 32000;
+constexpr int INFINITE  = MATE + 1;
+constexpr int NO_EVAL   = 0x7fffffff;
+
+constexpr int MATE_IN_MAX_PLY  = MATE - MAX_PLIES;
+constexpr int MATED_IN_MAX_PLY = -MATE_IN_MAX_PLY;
+
+inline bool is_win(int eval) {
+    return eval >= MATE_IN_MAX_PLY;
+}
+
+inline bool is_loss(int eval) {
+    return eval <= MATED_IN_MAX_PLY;
+}
+
+inline bool is_decisive(int eval) {
+    return is_win(eval) || is_loss(eval);
+}
 
 enum GamePhase : uint8_t { MIDGAME, ENDGAME, MOPUP };
 

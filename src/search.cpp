@@ -13,25 +13,53 @@
 #include "position.h"
 #include "uci.h"
 
-int reductions[MAX_DEPTH];
+int reductions[MAX_PLIES];
+
+static struct {
+    Move     best_move;
+    uint64_t nodes;
+    int      root_delta;
+    bool     search_cancelled;
+    bool     verbose;
+    std::vector<RootMove> root_moves;
+} status;
+
+void Search::noverbose() { status.verbose = false; }
 
 void Search::init()
 {
     status.verbose = true;
 
-    for (int i = 0; i < MAX_DEPTH; i++)
+    for (int i = 0; i < MAX_PLIES; i++)
         reductions[i] = int(2954 / 128.0 * std::log(i));
+}
+
+void handle_search_stop(uint64_t thinktime)
+{
+    if (thinktime)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(thinktime));
+        status.search_cancelled = true;
+        return;
+    }
+
+    std::string in;
+    do
+        std::getline(std::cin, in);
+    while (in != "stop");
+
+    status.search_cancelled = true;
 }
 
 int reduction(bool i, int depth, int mn, int delta) {
     int r = reductions[depth] * reductions[mn];
-    return r - delta * 764 / Search::status.root_delta + !i * r * 191 / 512 + 1087 - 32 * mn;
+    return r - delta * 764 / status.root_delta + !i * r * 191 / 512 + 1087 - 32 * mn;
 }
 
 template<Color SideToMove>
 int qsearch(int alpha, int beta)
 {
-    Search::status.nodes++;
+    status.nodes++;
 
     int eval = static_eval<SideToMove>();
 
@@ -64,12 +92,15 @@ int qsearch(int alpha, int beta)
     return alpha;
 }
 
-template<bool Root, Color SideToMove>
+template<NodeType NodeT, Color SideToMove>
 int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 {
-    Search::status.nodes++;
+    constexpr bool Root   = NodeT == ROOT;
+    constexpr bool PVNode = Root || NodeT == PV;
 
-    if (Search::status.search_cancelled) [[unlikely]]
+    status.nodes++;
+
+    if (status.search_cancelled) [[unlikely]]
         return 0;
         
     if (!Root && RepetitionTable::draw())
@@ -88,27 +119,28 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         int R = std::max(1, std::min(int(si->static_ev - beta) / 232, 6) + depth / 3 + 5);
 
         state_ptr->key ^= Zobrist::Side;
-        int eval = -search<false, !SideToMove>(-beta, -beta + 1, depth - R, false, si + 1);
+        int eval = -search<NONPV, !SideToMove>(-beta, -beta + 1, depth - R, false, si + 1);
         state_ptr->key ^= Zobrist::Side;
 
-        if (Search::status.search_cancelled) [[unlikely]]
+        if (status.search_cancelled) [[unlikely]]
             return 0;
 
         if (eval >= beta)
             return eval;
     }
 
-    Move      best_move  = NO_MOVE;
     int       best_eval  = -INFINITE;
+    Move      best_move  = NO_MOVE;
+    Move      ttmove     = TranspositionTable::lookup_move();
     BoundType bound_type = UPPER_BOUND;
     bool      improving  = si->static_ev > (si - 2)->static_ev;
 
     MoveList<SideToMove> moves;
 
     if (moves.size() == 0)
-        return moves.in_check() ? -matescore + si->ply : 0;
+        return moves.in_check() ? -MATE + si->ply : 0;
 
-    moves.sort(TranspositionTable::lookup_move(), si->ply);
+    moves.sort(ttmove, si->ply);
 
     int extension  = Root ? 0 : moves.in_check();
     int move_count = 0;
@@ -118,34 +150,83 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         move_count++;
 
         if (Root)
-            Search::status.root_delta = beta - alpha;
+            status.root_delta = beta - alpha;
 
-        int new_depth = depth - 1;
+        int eval      = -INFINITE;
+        int new_depth = depth - 1 + extension;
+        int r         = reduction(improving, depth, move_count, beta - alpha);
+        int lmr_depth = new_depth - r / 1024;
 
-        if (depth >= 2 && move_count > 1)
-            new_depth = std::max(1, new_depth - reduction(improving, depth, move_count, beta - alpha) / 1024);
-
-        if (new_depth <= 2 && type_of(m) == NORMAL)
+        if (!Root && lmr_depth < 7 && type_of(m) == NORMAL)
         {
-            const int depth_scale = 100;
+            int futility_value =
+                si->static_ev + piece_weight(piece_type_on(to_sq(m))) + 200 + 116 * lmr_depth;
 
-            int margin = 200 + depth_scale * new_depth;
-
-            if (si->static_ev + piece_weight(piece_type_on(to_sq(m))) + margin <= alpha)
+            if (futility_value <= alpha)
                 continue;
         }
 
         do_move<SideToMove>(m);
 
-        int eval = -search<false, !SideToMove>(-beta, -alpha, new_depth + extension, true, si + 1);
+        // LMR
+        if (depth >= 2 && move_count > 1)
+        {
+            int reduced = std::clamp(lmr_depth, 1, new_depth);
 
-        if (eval > alpha && new_depth < depth - 1)
-            eval = -search<false, !SideToMove>(-beta, -alpha, depth - 1 + extension, true, si + 1);
-        
+            eval = -search<NONPV, !SideToMove>(-(alpha + 1), -alpha, reduced, true, si + 1);
+
+            if (eval > alpha && reduced < new_depth)
+            {
+                bool doDeeperSearch    = eval > (best_eval + 43 + 2 * new_depth);
+                bool doShallowerSearch = eval < best_eval + 9;
+
+                new_depth += doDeeperSearch - doShallowerSearch;
+
+                if (new_depth > reduced)
+                    eval = -search<NONPV, !SideToMove>(-(alpha + 1), -alpha, new_depth, true, si + 1);
+            }
+            else if (eval > alpha && eval < best_eval + 9)
+                new_depth--;
+        }
+
+        // NO LMR
+        else if (!PVNode || move_count > 1)
+        {
+            if (!ttmove)
+                r += 1156;
+
+            eval = -search<NONPV, !SideToMove>(-(alpha + 1), -alpha,
+                new_depth - (r > 3495) - (r > 5510 && new_depth > 2), true, si + 1);
+        }
+
+        // PV OR PV FAIL HIGH
+        if (PVNode && (move_count == 1 || eval > alpha))
+        {
+            eval = -search<PV, !SideToMove>(-beta, -alpha, new_depth, true, si + 1);
+        }
+
         undo_move<SideToMove>(m);
 
-        if (Search::status.search_cancelled) [[unlikely]]
+        if (status.search_cancelled) [[unlikely]]
             return 0;
+
+        if (Root)
+        {
+            RootMove& rm =
+                *std::find(status.root_moves.begin(), status.root_moves.end(), m);
+
+            rm.average_score =
+                rm.average_score != -INFINITE ? (eval + rm.average_score) / 2 : eval;
+
+            rm.mean_squared_score = rm.mean_squared_score != -INFINITE * INFINITE
+                ? (eval * std::abs(eval) + rm.mean_squared_score) / 2
+                : eval * std::abs(eval);
+
+            if (move_count == 1 || eval > alpha)
+                rm.score = eval;
+            else
+                rm.score = -INFINITE;
+        }
 
         if (eval >= beta)
         {
@@ -164,7 +245,7 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
             bound_type = EXACT;
 
             if (Root)
-                Search::status.root_move = best_move;
+                status.best_move = best_move;
         }
 
         best_eval = std::max(eval, best_eval);
@@ -176,27 +257,90 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 }
 
 template<Color SideToMove>
-void iterative_deepening(int max_depth = 64)
+void iterative_deepening(int max_depth = MAX_DEPTH)
 {
-    SearchInfo search_stack[MAX_DEPTH] = {}, *si = search_stack + 7;
+    status.best_move = NO_MOVE;
+    status.nodes     = 0;
+    status.root_moves.clear();
 
-    for (SearchInfo *s = si + 1; s != search_stack + MAX_DEPTH; s++)
+    {
+        MoveList<SideToMove> moves;
+        moves.sort(TranspositionTable::lookup_move(), 0);
+
+        for (Move m : moves)
+            status.root_moves.push_back({m, -INFINITE, -INFINITE, -INFINITE, -INFINITE * INFINITE});
+    }
+
+    SearchInfo search_stack[MAX_PLIES] = {}, *si = search_stack + 7;
+
+    for (SearchInfo *s = si + 1; s != search_stack + MAX_PLIES; s++)
         s->ply = (s - 1)->ply + 1;
 
-    Search::status.root_move = NO_MOVE;
-
-    const int window = 50;
-    int guess, alpha = -INFINITE, beta = INFINITE;
-
-    uint64_t start = unix_ms();
+    uint64_t start     = unix_ms();
+    int      bestValue = -INFINITE;
+    /*int      window    = 50;
+    int guess, alpha   = -INFINITE, beta = INFINITE;*/
 
     for (int depth = 1; depth <= max_depth; depth++)
     {
-        fail:
+        for (RootMove& rm : status.root_moves)
+            rm.previous_score = rm.score;
 
-        int eval = search<true, SideToMove>(alpha, beta, depth, false, si);
+        int delta = 5 + std::abs(status.root_moves[0].mean_squared_score) / 11834;
+        int avg   = status.root_moves[0].average_score;
+        int alpha = std::max(avg - delta, -INFINITE);
+        int beta  = std::min(avg + delta, INFINITE);
 
-        if (Search::status.search_cancelled)
+        int failedHighCnt = 0;
+
+        for (;;)
+        {
+            int adjustedDepth = std::max(1, depth - failedHighCnt);
+            status.root_delta = beta - alpha;
+
+            bestValue = search<ROOT, SideToMove>(alpha, beta, adjustedDepth, false, si);
+
+            std::stable_sort(status.root_moves.begin(), status.root_moves.end());
+
+            if (status.search_cancelled)
+                break;
+
+            if (bestValue <= alpha)
+            {
+                beta  = (alpha + beta) / 2;
+                alpha = std::max(bestValue - delta, -INFINITE);
+
+                failedHighCnt = 0;
+            }
+            else if (bestValue >= beta)
+            {
+                beta = std::min(bestValue + delta, INFINITE);
+                ++failedHighCnt;
+            }
+            else
+                break;
+
+            delta += delta / 3;
+        }
+
+        std::stable_sort(status.root_moves.begin(), status.root_moves.end());
+
+        if (status.verbose)
+            std::cout << "info depth " << depth
+                      << " score cp "  << bestValue
+                      << " nodes "     << status.nodes
+                      << " nps "       << (status.nodes * 1000 / (unix_ms() - start))
+                      << " pv "        << Debug::pv() << std::endl;
+
+        if (status.search_cancelled) break;
+
+
+
+        /*fail:
+
+        int eval = search<ROOT, SideToMove>(alpha, beta, depth, false, si);
+
+        if (status.search_cancelled)
             break;
 
         if (eval <= alpha)
@@ -217,19 +361,19 @@ void iterative_deepening(int max_depth = 64)
         alpha = eval - window;
         beta  = eval + window;
 
-        if (Search::status.verbose)
+        if (status.verbose)
             std::cout << "info depth " << depth
                       << " score cp "  << eval
-                      << " nodes "     << Search::status.nodes
-                      << " time "      << (unix_ms() - start)
-                      << " pv "        << Debug::pv() << std::endl;
+                      << " nodes "     << status.nodes
+                      << " nps "       << (status.nodes * 1000 / (unix_ms() - start))
+                      << " pv "        << Debug::pv() << std::endl;*/
     }
 }
 
 void Search::go(uint64_t thinktime)
 {
-    Search::status.search_cancelled = false;
-    Search::status.nodes = 0;
+    status.search_cancelled = false;
+    status.nodes = 0;
 
     std::thread t(handle_search_stop, thinktime);
     t.detach();
@@ -237,15 +381,16 @@ void Search::go(uint64_t thinktime)
     Position::white_to_move() ? iterative_deepening<WHITE>()
                               : iterative_deepening<BLACK>();
 
-    while (!Search::status.search_cancelled)
+    while (!status.search_cancelled)
     {}
 
-    std::cout << "bestmove " << move_to_uci(Search::status.root_move) << std::endl;
+    std::cout << "bestmove " << move_to_uci(
+        status.best_move ? status.best_move : TranspositionTable::lookup_move()) << std::endl;
 }
 
 void Search::count_nodes(int depth)
 {
-    bool verbose            = status.verbose;
+    bool   verbose          = status.verbose;
     status.verbose          = false;
     status.search_cancelled = false;
 
@@ -260,8 +405,6 @@ void Search::count_nodes(int depth)
 
     for (const std::string& fen : Debug::fens)
     {
-        Search::status.nodes = 0;
-
         std::cout << std::left << std::setw(maxw + 1) << fen;
 
         Position::set(fen);
@@ -273,9 +416,9 @@ void Search::count_nodes(int depth)
         Position::white_to_move() ? iterative_deepening<WHITE>(depth)
                                   : iterative_deepening<BLACK>(depth);
 
-        std::cout << Search::status.nodes << std::endl;
+        std::cout << status.nodes << std::endl;
 
-        total_nodes += Search::status.nodes;
+        total_nodes += status.nodes;
     }
 
     std::cout << "total: " << total_nodes << std::endl;

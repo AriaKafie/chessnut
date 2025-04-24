@@ -8,8 +8,6 @@
 
 enum BoundType : uint8_t { EXACT, UPPER_BOUND, LOWER_BOUND };
 
-const int NO_EVAL = 0x7fffffff;
-
 /*
 *  +---------------+-----+
 *  | log2(TT_SIZE) | MiB |

@@ -47,8 +47,8 @@ int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root
 
     int eval = entry->eval;
 
-    eval -= ply_from_root * (eval >  90000);
-    eval += ply_from_root * (eval < -90000);
+    eval -= ply_from_root * is_win(eval);
+    eval += ply_from_root * is_loss(eval);
 
     if (entry->key == Position::key() && entry->depth >= depth)
     {
@@ -67,8 +67,8 @@ int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root
 
 void TranspositionTable::record(uint8_t depth, BoundType flag, int eval, Move best_move, int ply_from_root)
 {
-    eval += ply_from_root * (eval >  90000);
-    eval -= ply_from_root * (eval < -90000);
+    eval += ply_from_root * is_win(eval);
+    eval -= ply_from_root * is_loss(eval);
 
     TTEntry *e = &transposition_table[Position::key() & (TT_SIZE - 1)];
 

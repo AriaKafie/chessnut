@@ -10,12 +10,29 @@
 #include "moveordering.h"
 #include "types.h"
 
-const int matescore = 100000;
+enum NodeType { ROOT, PV, NONPV };
 
 typedef struct {
     int static_ev;
     int ply;
 } SearchInfo;
+
+struct RootMove {
+
+    bool operator==(Move m) {
+        return (m & 0xffff) == (move & 0xffff);
+    }
+
+    bool operator<(const RootMove& m) const {
+        return m.score != score ? m.score < score : m.previous_score < previous_score;
+    }
+
+    Move move;
+    int  score;
+    int  previous_score;
+    int  average_score;
+    int  mean_squared_score;
+};
 
 inline uint64_t unix_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -23,41 +40,16 @@ inline uint64_t unix_ms() {
 
 namespace Search
 {
-    typedef struct {
-        Move          root_move;
-        int           nodes;
-        int           root_delta;
-        volatile bool search_cancelled;
-        bool          verbose;
-    } Status;
-
-    inline Status status;
+    void noverbose();
 
     void init();
     void go(uint64_t thinktime = 0);
     void count_nodes(int depth);
 
     inline void clear() {
-        for (int ply = 0; ply < MAX_DEPTH; ply++)
+        for (int ply = 0; ply < MAX_PLIES; ply++)
             killers[ply].moveA = killers[ply].moveB = NO_MOVE;
     }
-}
-
-inline void handle_search_stop(uint64_t thinktime)
-{
-    if (thinktime)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(thinktime));
-        Search::status.search_cancelled = true;
-        return;
-    }
-
-    std::string in;
-    do
-        std::getline(std::cin, in);
-    while (in != "stop");
-
-    Search::status.search_cancelled = true;
 }
 
 #endif
