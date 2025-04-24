@@ -21,7 +21,7 @@ static struct {
     int      root_delta;
     bool     search_cancelled;
     bool     verbose;
-    std::vector<RootMove> root_moves;
+    //std::vector<RootMove> root_moves;
 } status;
 
 void Search::noverbose() { status.verbose = false; }
@@ -109,6 +109,14 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
     if (depth <= 0)
         return qsearch<SideToMove>(alpha, beta);
 
+    /*if (!PVNode)
+    {
+        int lookup = TranspositionTable::lookup(depth, alpha, beta, si->ply);
+
+        if (lookup != NO_EVAL)
+            return lookup;
+    }*/
+
     if (int lookup = TranspositionTable::lookup(depth, alpha, beta, si->ply); !Root && lookup != NO_EVAL)
         return lookup;
 
@@ -168,7 +176,6 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 
         do_move<SideToMove>(m);
 
-        // LMR
         if (depth >= 2 && move_count > 1)
         {
             int reduced = std::clamp(lmr_depth, 1, new_depth);
@@ -183,26 +190,24 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
                 new_depth += doDeeperSearch - doShallowerSearch;
 
                 if (new_depth > reduced)
-                    eval = -search<NONPV, !SideToMove>(-(alpha + 1), -alpha, new_depth, true, si + 1);
+                    eval = -search<NONPV, !SideToMove>(-(alpha + 1), -alpha, new_depth, !null_ok, si + 1);
             }
             else if (eval > alpha && eval < best_eval + 9)
                 new_depth--;
         }
 
-        // NO LMR
         else if (!PVNode || move_count > 1)
         {
             if (!ttmove)
                 r += 1156;
 
             eval = -search<NONPV, !SideToMove>(-(alpha + 1), -alpha,
-                new_depth - (r > 3495) - (r > 5510 && new_depth > 2), true, si + 1);
+                new_depth - (r > 3495) - (r > 5510 && new_depth > 2), !null_ok, si + 1);
         }
 
-        // PV OR PV FAIL HIGH
         if (PVNode && (move_count == 1 || eval > alpha))
         {
-            eval = -search<PV, !SideToMove>(-beta, -alpha, new_depth, true, si + 1);
+            eval = -search<PV, !SideToMove>(-beta, -alpha, new_depth, false, si + 1);
         }
 
         undo_move<SideToMove>(m);
@@ -210,7 +215,7 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         if (status.search_cancelled) [[unlikely]]
             return 0;
 
-        if (Root)
+        /*if (Root)
         {
             RootMove& rm =
                 *std::find(status.root_moves.begin(), status.root_moves.end(), m);
@@ -226,7 +231,7 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
                 rm.score = eval;
             else
                 rm.score = -INFINITE;
-        }
+        }*/
 
         if (eval >= beta)
         {
@@ -261,7 +266,7 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
 {
     status.best_move = NO_MOVE;
     status.nodes     = 0;
-    status.root_moves.clear();
+    /*status.root_moves.clear();
 
     {
         MoveList<SideToMove> moves;
@@ -269,7 +274,7 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
 
         for (Move m : moves)
             status.root_moves.push_back({m, -INFINITE, -INFINITE, -INFINITE, -INFINITE * INFINITE});
-    }
+    }*/
 
     SearchInfo search_stack[MAX_PLIES] = {}, *si = search_stack + 7;
 
@@ -278,12 +283,12 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
 
     uint64_t start     = unix_ms();
     int      bestValue = -INFINITE;
-    /*int      window    = 50;
-    int guess, alpha   = -INFINITE, beta = INFINITE;*/
+    int      window    = 50;
+    int guess, alpha   = -INFINITE, beta = INFINITE;
 
     for (int depth = 1; depth <= max_depth; depth++)
     {
-        for (RootMove& rm : status.root_moves)
+        /*for (RootMove& rm : status.root_moves)
             rm.previous_score = rm.score;
 
         int delta = 5 + std::abs(status.root_moves[0].mean_squared_score) / 11834;
@@ -329,14 +334,14 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
             std::cout << "info depth " << depth
                       << " score cp "  << bestValue
                       << " nodes "     << status.nodes
-                      << " nps "       << (status.nodes * 1000 / (unix_ms() - start))
+                      << " nps "       << status.nodes * 1000 / (std::max(1, int(unix_ms() - start)))
                       << " pv "        << Debug::pv() << std::endl;
 
-        if (status.search_cancelled) break;
+        if (status.search_cancelled) break;*/
 
 
 
-        /*fail:
+        fail:
 
         int eval = search<ROOT, SideToMove>(alpha, beta, depth, false, si);
 
@@ -365,8 +370,8 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
             std::cout << "info depth " << depth
                       << " score cp "  << eval
                       << " nodes "     << status.nodes
-                      << " nps "       << (status.nodes * 1000 / (unix_ms() - start))
-                      << " pv "        << Debug::pv() << std::endl;*/
+                      << " nps "       << status.nodes * 1000 / (std::max(1, int(unix_ms() - start)))
+                      << " pv "        << Debug::pv() << std::endl;
     }
 }
 
