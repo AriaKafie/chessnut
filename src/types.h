@@ -15,11 +15,12 @@
 #define BMI
 
 typedef uint64_t Bitboard;
+typedef uint64_t LMove;
 typedef int      MoveType;
 typedef int      Direction;
 typedef int      File;
 typedef int      Rank;
-typedef uint32_t Move;
+typedef uint16_t Move;
 typedef int8_t   Square;
 typedef uint8_t  Piece;
 typedef uint8_t  PieceType;
@@ -122,6 +123,14 @@ enum
     SOUTH_WEST = SOUTH + WEST,
 };
 
+constexpr void set_score(LMove& lm, int score) {
+    lm += LMove(score) << 32;
+}
+
+constexpr int score_of(LMove lm) {
+    return lm >> 32;
+}
+
 constexpr Direction relative_direction(Color c, Direction d) {
     return c == WHITE ? d : -d;
 }
@@ -130,7 +139,7 @@ constexpr Piece make_piece(Color c, PieceType pt) {
     return pt + (c << 3);
 }
 
-constexpr PieceType type_of(Piece p) {
+constexpr PieceType piece_type_of(Piece p) {
     return p & 7;
 }
 
@@ -159,7 +168,7 @@ constexpr Square to_sq(Move m) {
     return (m >> 6) & 0x3f;
 }
 
-constexpr int from_to(Move m) {
+constexpr Move from_to(Move m) {
     return m & 0xfff;
 }
 
@@ -169,10 +178,6 @@ constexpr MoveType type_of(Move m) {
 
 constexpr PieceType promotion_type_of(Move m) {
     return (m >> 14 & 3) + KNIGHT;
-}
-
-inline uint32_t score_of(Move m) {
-    return m >> 16;
 }
 
 inline File file_of(Square s) {

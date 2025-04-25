@@ -149,9 +149,17 @@ std::string rep_table_to_string()
 
     return ss.str() + s;
 }
-
+#include <bitset>
 static void go()
 {
+    SearchInfo s = {};
+    MoveList<WHITE> moves;
+    moves.sort(0, &s);
+
+    for (Move m : moves)
+        std::cout << move_to_uci(m) << std::endl;
+
+    return;
     extern int reductions[MAX_PLIES];
     for (int i : reductions) std::cout << i << ", ";std::cout << std::endl;return;
 

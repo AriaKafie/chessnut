@@ -51,7 +51,7 @@ inline void MoveGen::init()
 }
 
 template<MoveType Type, Direction D>
-ForceInline Move *make_pawn_moves(Move *list, Bitboard attacks)
+ForceInline LMove *make_pawn_moves(LMove *list, Bitboard attacks)
 {
     for (;attacks; clear_lsb(attacks))
     {
@@ -73,7 +73,7 @@ ForceInline Move *make_pawn_moves(Move *list, Bitboard attacks)
     return list;
 }
 
-ForceInline inline Move *make_moves(Move *list, Square from, Bitboard to)
+ForceInline inline LMove *make_moves(LMove *list, Square from, Bitboard to)
 {
     for (;to; clear_lsb(to))
         *list++ = make_move(from, lsb(to));

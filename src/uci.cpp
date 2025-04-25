@@ -87,7 +87,6 @@ void UCI::loop()
 #endif
         else if (token == "ucinewgame")
         {
-            Search::clear();
             TranspositionTable::clear();
             RepetitionTable::clear();
             RepetitionTable::push();

@@ -38,7 +38,7 @@ inline Piece piece_on(Square sq) {
 }
 
 inline PieceType piece_type_on(Square sq) {
-    return type_of(board[sq]);
+    return piece_type_of(board[sq]);
 }
 
 inline bool is_capture(Move m) {

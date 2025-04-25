@@ -2,6 +2,7 @@
 #ifndef MOVELIST_H
 #define MOVELIST_H
 
+#include "search.h"
 #include "types.h"
 
 const int MAX_MOVES    = 128;
@@ -13,15 +14,13 @@ class MoveList {
 public:
     MoveList();
 
-    Move  *begin()                 { return moves; }
-    Move  *end()                   { return last; }
-    size_t size()            const { return last - moves; }
-    bool   in_check()        const { return ~checkmask; }
-    Move   operator[](int i) const { return moves[i]; }
-
-    void   sort(Move best_move, int ply_from_root);
+    LMove* begin()          { return moves; }
+    LMove* end()            { return last; }
+    size_t size()     const { return last - moves; }
+    bool   in_check() const { return ~checkmask; }
+    void   sort(Move ttmove, SearchInfo *si);
     
-    Move moves[MAX_MOVES], *last = moves;
+    LMove moves[MAX_MOVES], *last = moves;
 
 private:
     Bitboard checkmask;
@@ -37,17 +36,15 @@ class CaptureList {
 public:
     CaptureList();
 
-    Move  *begin()               { return moves; }
-    Move  *end()                 { return last; }
-    size_t size()          const { return last - moves; }
-    Move operator[](int i) const { return moves[i]; }
-
+    LMove* begin()      { return moves; }
+    LMove* end()        { return last; }
+    size_t size() const { return last - moves; }
     void   sort();
 
 private:
     void   insertion_sort();
 
-    Move     moves[MAX_CAPTURES], *last = moves;
+    LMove    moves[MAX_CAPTURES], *last = moves;
     Bitboard seen_by_enemy;
 
 };

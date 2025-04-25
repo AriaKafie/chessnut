@@ -26,7 +26,7 @@ const int RT_SIZE = 1 << 10; // 16 KB
 typedef struct {
     uint64_t  key;
     int       eval;
-    uint16_t  best_move;
+    Move      best_move;
     uint8_t   depth;
     BoundType flag;
 } TTEntry;

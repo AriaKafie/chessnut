@@ -6,39 +6,19 @@
 #include "movelist.h"
 #include "position.h"
 
-struct Killer {
-
-    Move moveA;
-    Move moveB;
-
-    void add(Move m) {
-        if (m != moveA) {
-            moveB = moveA;
-            moveA = m;
-        }
-    }
-
-    bool contains(Move m) const {
-        return m == moveA || m == moveB;
-    }
-};
-
-inline Killer killers[MAX_PLIES];
-
-constexpr uint32_t MAX_SCORE          = 0xffff0000;
-constexpr uint32_t GOOD_CAPTURE_BONUS = 8000;
-constexpr uint32_t BAD_CAPTURE_BONUS  = 2000;
-constexpr uint32_t EVASION_BONUS      = 1000;
-constexpr uint32_t KILLER_BONUS       = 4000;
-constexpr uint32_t SEEN_BY_PAWN_MALUS = 50;
-constexpr uint32_t PROMOTION_BONUS    = 50;
+constexpr int MAX_SCORE          = 0x7fffffff;
+constexpr int GOOD_CAPTURE_BONUS = 8000;
+constexpr int BAD_CAPTURE_BONUS  = 2000;
+constexpr int GOOD_QUIET_BONUS   = 4000;
+constexpr int SEEN_BY_PAWN_MALUS = 50;
+constexpr int PROMOTION_BONUS    = 50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort()
 {
     for (int i = 1; i < size(); i++)
     {
-        Move key = moves[i];
+        LMove key = moves[i];
 
         int j = i - 1;
 
@@ -57,9 +37,9 @@ void CaptureList<Us>::sort()
 {
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
 
-    for (Move& m : *this)
+    for (LMove& m : *this)
     {  
-        uint32_t score = 0x7fff;
+        int score = 0;
 
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -71,7 +51,7 @@ void CaptureList<Us>::sort()
 
         score += piece_weight(captured) - piece_weight(pt) * bool(square_bb(to) & seen_by_enemy);
 
-        m += score << 16;
+        set_score(m, score);
     }
   
     insertion_sort();
@@ -80,7 +60,7 @@ void CaptureList<Us>::sort()
 template<Color Us>
 int MoveList<Us>::partition(int low, int high)
 {
-    uint32_t pivot = score_of(moves[high]);
+    int pivot = score_of(moves[high]);
 
     int i = low - 1;
 
@@ -99,10 +79,8 @@ int MoveList<Us>::partition(int low, int high)
 }
 
 template<Color Us>
-void MoveList<Us>::quicksort(int low, int high)
-{
-    if (low < high)
-    {
+void MoveList<Us>::quicksort(int low, int high) {
+    if (low < high) {
         int pivot_index = partition(low, high);
         quicksort(low, pivot_index - 1);
         quicksort(pivot_index + 1, high);
@@ -110,19 +88,19 @@ void MoveList<Us>::quicksort(int low, int high)
 }
 
 template<Color Us>
-void MoveList<Us>::sort(Move best_move, int ply)
+void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
 {
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
 
-    for (Move& m : *this)
+    for (LMove& m : *this)
     {
-        if (m == best_move)
+        if (m == ttmove)
         {
-            m += MAX_SCORE;
+            set_score(m, MAX_SCORE);
             continue;
         }
         
-        uint32_t score = 0x7fff;
+        int score = 0;
     
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -140,8 +118,9 @@ void MoveList<Us>::sort(Move best_move, int ply)
         }
         else
         {
-            if (killers[ply].contains(m))
-                score += KILLER_BONUS;
+            if (m == si->killers[0]
+             || m == si->killers[1])
+                score += GOOD_QUIET_BONUS;
 
             score += Position::endgame() && pt == KING ? (end_king_squares[to] - end_king_squares[from]) / 2 : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
         }
@@ -152,7 +131,7 @@ void MoveList<Us>::sort(Move best_move, int ply)
         if (square_bb(to) & seen_by_pawn)
             score -= SEEN_BY_PAWN_MALUS;
 
-        m += score << 16;
+        set_score(m, score);
     }
     
     quicksort(0, size() - 1);

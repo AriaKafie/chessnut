@@ -21,7 +21,6 @@ static struct {
     int      root_delta;
     bool     search_cancelled;
     bool     verbose;
-    //std::vector<RootMove> root_moves;
 } status;
 
 void Search::noverbose() { status.verbose = false; }
@@ -109,14 +108,6 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
     if (depth <= 0)
         return qsearch<SideToMove>(alpha, beta);
 
-    /*if (!PVNode)
-    {
-        int lookup = TranspositionTable::lookup(depth, alpha, beta, si->ply);
-
-        if (lookup != NO_EVAL)
-            return lookup;
-    }*/
-
     if (int lookup = TranspositionTable::lookup(depth, alpha, beta, si->ply); !Root && lookup != NO_EVAL)
         return lookup;
 
@@ -148,7 +139,7 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
     if (moves.size() == 0)
         return moves.in_check() ? -MATE + si->ply : 0;
 
-    moves.sort(ttmove, si->ply);
+    moves.sort(ttmove, si);
 
     int extension  = Root ? 0 : moves.in_check();
     int move_count = 0;
@@ -215,30 +206,15 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         if (status.search_cancelled) [[unlikely]]
             return 0;
 
-        /*if (Root)
-        {
-            RootMove& rm =
-                *std::find(status.root_moves.begin(), status.root_moves.end(), m);
-
-            rm.average_score =
-                rm.average_score != -INFINITE ? (eval + rm.average_score) / 2 : eval;
-
-            rm.mean_squared_score = rm.mean_squared_score != -INFINITE * INFINITE
-                ? (eval * std::abs(eval) + rm.mean_squared_score) / 2
-                : eval * std::abs(eval);
-
-            if (move_count == 1 || eval > alpha)
-                rm.score = eval;
-            else
-                rm.score = -INFINITE;
-        }*/
-
         if (eval >= beta)
         {
             TranspositionTable::record(depth, LOWER_BOUND, eval, m, si->ply);
 
-            if (is_quiet(m))
-                killers[si->ply].add(m & 0xffff);
+            if (is_quiet(m) && m != si->killers[0])
+            {
+                si->killers[1] = si->killers[0];
+                si->killers[0] = m;
+            }
 
             return eval;
         }
@@ -266,81 +242,18 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
 {
     status.best_move = NO_MOVE;
     status.nodes     = 0;
-    /*status.root_moves.clear();
-
-    {
-        MoveList<SideToMove> moves;
-        moves.sort(TranspositionTable::lookup_move(), 0);
-
-        for (Move m : moves)
-            status.root_moves.push_back({m, -INFINITE, -INFINITE, -INFINITE, -INFINITE * INFINITE});
-    }*/
 
     SearchInfo search_stack[MAX_PLIES] = {}, *si = search_stack + 7;
 
     for (SearchInfo *s = si + 1; s != search_stack + MAX_PLIES; s++)
         s->ply = (s - 1)->ply + 1;
 
-    uint64_t start     = unix_ms();
-    int      bestValue = -INFINITE;
-    int      window    = 50;
-    int guess, alpha   = -INFINITE, beta = INFINITE;
+    uint64_t start   = unix_ms();
+    int      window  = 50;
+    int guess, alpha = -INFINITE, beta = INFINITE;
 
     for (int depth = 1; depth <= max_depth; depth++)
     {
-        /*for (RootMove& rm : status.root_moves)
-            rm.previous_score = rm.score;
-
-        int delta = 5 + std::abs(status.root_moves[0].mean_squared_score) / 11834;
-        int avg   = status.root_moves[0].average_score;
-        int alpha = std::max(avg - delta, -INFINITE);
-        int beta  = std::min(avg + delta, INFINITE);
-
-        int failedHighCnt = 0;
-
-        for (;;)
-        {
-            int adjustedDepth = std::max(1, depth - failedHighCnt);
-            status.root_delta = beta - alpha;
-
-            bestValue = search<ROOT, SideToMove>(alpha, beta, adjustedDepth, false, si);
-
-            std::stable_sort(status.root_moves.begin(), status.root_moves.end());
-
-            if (status.search_cancelled)
-                break;
-
-            if (bestValue <= alpha)
-            {
-                beta  = (alpha + beta) / 2;
-                alpha = std::max(bestValue - delta, -INFINITE);
-
-                failedHighCnt = 0;
-            }
-            else if (bestValue >= beta)
-            {
-                beta = std::min(bestValue + delta, INFINITE);
-                ++failedHighCnt;
-            }
-            else
-                break;
-
-            delta += delta / 3;
-        }
-
-        std::stable_sort(status.root_moves.begin(), status.root_moves.end());
-
-        if (status.verbose)
-            std::cout << "info depth " << depth
-                      << " score cp "  << bestValue
-                      << " nodes "     << status.nodes
-                      << " nps "       << status.nodes * 1000 / (std::max(1, int(unix_ms() - start)))
-                      << " pv "        << Debug::pv() << std::endl;
-
-        if (status.search_cancelled) break;*/
-
-
-
         fail:
 
         int eval = search<ROOT, SideToMove>(alpha, beta, depth, false, si);
@@ -414,7 +327,6 @@ void Search::count_nodes(int depth)
 
         Position::set(fen);
 
-        clear();
         TranspositionTable::clear();
         RepetitionTable::clear();
 
