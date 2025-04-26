@@ -15,12 +15,13 @@
 #define BMI
 
 typedef uint64_t Bitboard;
-typedef uint64_t LMove;
+typedef uint32_t LMove;
 typedef int      MoveType;
 typedef int      Direction;
 typedef int      File;
 typedef int      Rank;
 typedef uint16_t Move;
+typedef uint16_t Score;
 typedef int8_t   Square;
 typedef uint8_t  Piece;
 typedef uint8_t  PieceType;
@@ -46,10 +47,6 @@ inline bool is_loss(int eval) {
     return eval <= MATED_IN_MAX_PLY;
 }
 
-inline bool is_decisive(int eval) {
-    return is_win(eval) || is_loss(eval);
-}
-
 enum GamePhase : uint8_t { MIDGAME, ENDGAME, MOPUP };
 
 enum
@@ -63,7 +60,6 @@ enum
     H7, G7, F7, E7, D7, C7, B7, A7,
     H8, G8, F8, E8, D8, C8, B8, A8,
     SQUARE_NB = 64,
-    NO_SQ = 0
 };
 
 enum
@@ -124,17 +120,12 @@ enum
     SOUTH_WEST = SOUTH + WEST,
 };
 
-template<Color C>
-int compress(Piece p) {
-    return p - 2*(C+1);
+constexpr void set_score(LMove& lm, Score score) {
+    lm += LMove(score) << 16;
 }
 
-constexpr void set_score(LMove& lm, int score) {
-    lm += LMove(score) << 32;
-}
-
-constexpr int score_of(LMove lm) {
-    return lm >> 32;
+constexpr Score score_of(LMove lm) {
+    return lm >> 16;
 }
 
 constexpr Direction relative_direction(Color c, Direction d) {

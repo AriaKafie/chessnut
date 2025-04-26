@@ -8,22 +8,18 @@
 #include "movelist.h"
 #include "position.h"
 
-constexpr int GOOD_CAPTURE_MAX   = INT_MAX;
-constexpr int GOOD_CAPTURE_MIN   = INT_MAX / 2;
-constexpr int GOOD_QUIET_MAX     = GOOD_CAPTURE_MIN;
-constexpr int GOOD_QUIET_MIN     = 0;
-constexpr int BAD_CAPTURE_MAX    = GOOD_QUIET_MIN;
-constexpr int BAD_CAPTURE_MIN    = INT_MIN / 2;
-constexpr int BAD_QUIET_MAX      = BAD_CAPTURE_MIN;
-constexpr int BAD_QUIET_MIN      = INT_MIN;
+constexpr Score BAD_QUIET_MIN      = (UINT16_MAX / 4) * 0;
+constexpr Score BAD_CAPTURE_MIN    = (UINT16_MAX / 4) * 1;
+constexpr Score GOOD_QUIET_MIN     = (UINT16_MAX / 4) * 2;
+constexpr Score GOOD_CAPTURE_MIN   = (UINT16_MAX / 4) * 3;
 
-constexpr int GOOD_CAPTURE_BASE  = GOOD_CAPTURE_MIN + (GOOD_CAPTURE_MAX - GOOD_CAPTURE_MIN) / 2;
-constexpr int GOOD_QUIET_BASE    = GOOD_QUIET_MIN   + (GOOD_QUIET_MAX   - GOOD_QUIET_MIN)   / 2;
-constexpr int BAD_CAPTURE_BASE   = BAD_CAPTURE_MIN  + (BAD_CAPTURE_MAX  - BAD_CAPTURE_MIN)  / 2;
-constexpr int BAD_QUIET_BASE     = BAD_QUIET_MIN    + (BAD_QUIET_MAX    - BAD_QUIET_MIN)    / 2;
+constexpr Score BAD_QUIET_BASE     = BAD_QUIET_MIN    + (UINT16_MAX / 8);
+constexpr Score BAD_CAPTURE_BASE   = BAD_CAPTURE_MIN  + (UINT16_MAX / 8);
+constexpr Score GOOD_QUIET_BASE    = GOOD_QUIET_MIN   + (UINT16_MAX / 8);
+constexpr Score GOOD_CAPTURE_BASE  = GOOD_CAPTURE_MIN + (UINT16_MAX / 8);
 
-constexpr int MAX_SCORE          = INT_MAX;
-constexpr int SEEN_BY_PAWN_MALUS = 50;
+constexpr Score MAX_SCORE          = UINT16_MAX;
+constexpr Score SEEN_BY_PAWN_MALUS = 50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort()
@@ -51,7 +47,7 @@ void CaptureList<Us>::sort()
 
     for (LMove& m : *this)
     {  
-        int score = 0;
+        Score score = UINT16_MAX / 2;
 
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -72,7 +68,7 @@ void CaptureList<Us>::sort()
 template<Color Us>
 int MoveList<Us>::partition(int low, int high)
 {
-    int pivot = score_of(moves[high]);
+    Score pivot = score_of(moves[high]);
 
     int i = low - 1;
 
@@ -112,7 +108,7 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
             continue;
         }
         
-        int score;
+        Score score;
     
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -135,12 +131,6 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
                 score = GOOD_QUIET_BASE;
             else
                 score = BAD_QUIET_BASE;
-
-            /*score += (*cont_hist[0])[pc][to];
-            score += (*cont_hist[1])[pc][to];
-            score += (*cont_hist[2])[pc][to];
-            score += (*cont_hist[3])[pc][to];
-            score += (*cont_hist[5])[pc][to];*/
 
             score += Position::endgame() && pt == KING 
                 ? (end_king_squares[to] - end_king_squares[from]) / 2

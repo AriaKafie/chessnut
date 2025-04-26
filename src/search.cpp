@@ -13,7 +13,6 @@
 #include "uci.h"
 
 int reductions[MAX_PLIES];
-//PieceToHistory ContinuationHistory[2][2][PIECE_NB][SQUARE_NB];
 
 static struct {
     Move     best_move;
@@ -24,29 +23,6 @@ static struct {
 } status;
 
 void Search::noverbose() { status.verbose = false; }
-
-void Search::clear() {
-    /*for (bool incheck : { false, true })
-        for (bool capture : { false, true})
-            for (Piece p = 0; p < 12; p++)
-                for (Square sq = 0; sq < 64; sq++)
-                    for (auto& h : ContinuationHistory[incheck][capture][p][sq])
-                        for (auto& st : h) st = -468;*/
-}
-
-void update_continuation_histories(SearchInfo* si, Piece pc, Square to, int bonus)
-{
-    /*static constexpr std::array<ConthistBonus, 6> conthist_bonuses = {
-      {{1, 1103}, {2, 659}, {3, 323}, {4, 533}, {6, 474}} };
-
-    for (const auto [i, weight] : conthist_bonuses)
-    {
-        if (si->in_check && i > 2)
-            break;
-        if ((si - i)->current_move)
-            (*(si - i)->continuation_history)[pc][to] << bonus * weight / 1024;
-    }*/
-}
 
 void Search::init()
 {
@@ -132,28 +108,7 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         return qsearch<SideToMove>(alpha, beta);
 
     if (int lookup = TranspositionTable::lookup(depth, alpha, beta, si->ply); !Root && lookup != NO_EVAL)
-    {
-        /*if (lookup >= beta)
-        if (Move ttmove = TranspositionTable::lookup_move(); ttmove)
-        {
-            si->in_check = Position::in_check<SideToMove>();
-
-            Piece  pc = piece_on(from_sq(ttmove));
-            Square to = to_sq(ttmove);
-
-            if (is_quiet(ttmove))
-                update_continuation_histories(si, pc, to,
-                    std::min(120 * depth - 75, 1241) * 1004 / 1024);
-
-            if ((si - 1)->current_move && (si - 1)->move_count <= 3 && !state_ptr->captured)
-            {
-                Square prevsq = to_sq((si - 1)->current_move);
-                update_continuation_histories(si - 1, piece_on(prevsq), prevsq, -2200);
-            }
-        }*/
-
         return lookup;
-    }
 
     si->static_ev = static_eval<SideToMove>();
 
@@ -185,10 +140,6 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
     int       move_count = 0;
     BoundType bound_type = UPPER_BOUND;
 
-    /*PieceToHistory *cont_hist[] = 
-      { (si - 1)->continuation_history, (si - 2)->continuation_history, (si - 3)->continuation_history,
-        (si - 4)->continuation_history, (si - 5)->continuation_history, (si - 6)->continuation_history, };*/
-
     moves.sort(ttmove, si);
 
     for (Move m : moves)
@@ -198,19 +149,13 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         if (Root)
             status.root_delta = beta - alpha;
 
-        /*bool  capture = piece_on(to_sq(m));
-        Piece pc      = piece_on(from_sq(m));
-
-        si->continuation_history =
-            &ContinuationHistory[si->in_check][capture][pc][to_sq(m)];*/
-
         int eval      = -INFINITE;
         int new_depth = depth - 1 + extension;
         int r         = reduction(improving, depth, move_count, beta - alpha);
         int lmr_depth = new_depth - r / 1024;
 
-        if (!Root && is_quiet(m) && move_count >= (3 + depth * depth) / (2 - improving))
-            continue;
+        /*if (!Root && is_quiet(m) && move_count >= (3 + depth * depth) / (2 - improving))
+            continue;*/
 
         if (!Root && lmr_depth < 7 && type_of(m) == NORMAL)
         {
@@ -238,8 +183,6 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 
                 if (new_depth > reduced)
                     eval = -search<NONPV, !SideToMove>(-(alpha + 1), -alpha, new_depth, !null_ok, si + 1);
-
-                //update_continuation_histories(si, pc, to_sq(m), 1600);
             }
             else if (eval > alpha && eval < best_eval + 9)
                 new_depth--;
@@ -267,22 +210,6 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         if (eval >= beta)
         {
             TranspositionTable::record(depth, LOWER_BOUND, eval, m, si->ply);
-
-            /*if ((si - 1)->current_move && !state_ptr->captured)
-            {
-                int bonus =
-                    std::min(78 * depth - 312, 194) + 34 * !allnode + 164 * ((si - 1)->move_count > 8)
-                        + 141 * (!si->in_check && best_eval <= si->static_ev - 100)
-                        + 121 * (!(si - 1)->in_check && best_eval <= -(si - 1)->static_ev - 75);
-
-                bonus = std::max(bonus, 0);
-                bonus = std::min(160 * depth - 99, 1492) * bonus;
-
-                Square prevsq = to_sq((si - 1)->current_move);
-                Piece  prevpc = piece_on(prevsq);
-
-                update_continuation_histories(si - 1, prevpc, prevsq, bonus * 388 / 32768);
-            }*/
 
             if (is_quiet(m) && m != si->killers[0])
             {
@@ -376,8 +303,7 @@ void Search::go(uint64_t thinktime)
     while (!status.search_cancelled)
     {}
 
-    std::cout << "bestmove " << move_to_uci(
-        status.best_move ? status.best_move : TranspositionTable::lookup_move()) << std::endl;
+    std::cout << "bestmove " << move_to_uci(status.best_move) << std::endl;
 }
 
 void Search::count_nodes(int depth)
@@ -401,7 +327,6 @@ void Search::count_nodes(int depth)
 
         Position::set(fen);
 
-        clear();
         TranspositionTable::clear();
         RepetitionTable::clear();
 
