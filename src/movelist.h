@@ -14,10 +14,10 @@ class MoveList {
 public:
     MoveList();
 
-    LMove* begin()          { return moves; }
-    LMove* end()            { return last; }
-    size_t size()     const { return last - moves; }
-    bool   in_check() const { return ~checkmask; }
+    LMove* begin()      { return moves; }
+    LMove* end()        { return last; }
+    size_t size() const { return last - moves; }
+    bool   in_check()   { return ~checkmask; }
     void   sort(Move ttmove, SearchInfo *si);
     
     LMove moves[MAX_MOVES], *last = moves;

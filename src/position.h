@@ -92,36 +92,6 @@ bool in_check()
       | rook_attacks  (ksq, occupied()) & (bb(EnemyQueen) | bb(EnemyRook));
 }
 
-template<Color Us>
-Bitboard non_pawn_material() {
-    return bitboards[Us] ^ (bitboards[make_piece(Us, PAWN)] | bitboards[make_piece(Us, KING)]);
-}
-
-template<Color Us>
-bool gives_check(Move m)
-{
-    constexpr Piece Pawn   = make_piece(Us, PAWN);
-    constexpr Piece Knight = make_piece(Us, KNIGHT);
-    constexpr Piece Bishop = make_piece(Us, BISHOP);
-    constexpr Piece Rook   = make_piece(Us, ROOK);
-    constexpr Piece Queen  = make_piece(Us, QUEEN);
-
-    Bitboard occ  = occupied();
-    Bitboard king = bitboard<make_piece(!Us, KING)>();
-    Piece    pc   = piece_on(from_sq(m));
-    Square   to   = to_sq(m);
-    
-    bool pawn         = pc == Pawn;
-    bool knight       = pc == Knight;
-    bool bishop_queen = pc == Bishop || pc == Queen;
-    bool rook_queen   = pc == Rook || pc == Queen;
-
-    return pawn         && (pawn_attacks<Us>(to)    & king)
-        || knight       && (knight_attacks(to)      & king)
-        || bishop_queen && (bishop_attacks(to, occ) & king)
-        || rook_queen   && (rook_attacks(to, occ)   & king);
-}
-
 } // namespace Position
 
 template<Color JustMoved>

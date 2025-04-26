@@ -149,16 +149,9 @@ std::string rep_table_to_string()
 
     return ss.str() + s;
 }
-#include <bitset>
+
 static void go()
 {
-    SearchInfo s = {};
-    MoveList<WHITE> moves;
-    moves.sort(0, &s);
-
-    for (Move m : moves)
-        std::cout << move_to_uci(m) << std::endl;
-
     return;
     extern int reductions[MAX_PLIES];
     for (int i : reductions) std::cout << i << ", ";std::cout << std::endl;return;
@@ -181,14 +174,16 @@ Move *get_moves(Move *list)
 {
     if (Position::white_to_move())
     {
-        MoveList<WHITE> m;
-        memcpy(list, m.moves, sizeof(Move) * m.size());
-        return list + m.size();
+        MoveList<WHITE> moves;
+        for (Move m : moves)
+            *list++ = m;
+        return list;
     }
     else
     {
-        MoveList<BLACK> m;
-        memcpy(list, m.moves, sizeof(Move) * m.size());
-        return list + m.size();
+        MoveList<BLACK> moves;
+        for (Move m : moves)
+            *list++ = m;
+        return list;
     }
 }

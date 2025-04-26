@@ -2,16 +2,28 @@
 #ifndef MOVEORDERING_H
 #define MOVEORDERING_H
 
+#include <limits.h>
+
 #include "evaluation.h"
 #include "movelist.h"
 #include "position.h"
 
-constexpr int MAX_SCORE          = 0x7fffffff;
-constexpr int GOOD_CAPTURE_BONUS = 8000;
-constexpr int BAD_CAPTURE_BONUS  = 2000;
-constexpr int GOOD_QUIET_BONUS   = 4000;
+constexpr int GOOD_CAPTURE_MAX   = INT_MAX;
+constexpr int GOOD_CAPTURE_MIN   = INT_MAX / 2;
+constexpr int GOOD_QUIET_MAX     = GOOD_CAPTURE_MIN;
+constexpr int GOOD_QUIET_MIN     = 0;
+constexpr int BAD_CAPTURE_MAX    = GOOD_QUIET_MIN;
+constexpr int BAD_CAPTURE_MIN    = INT_MIN / 2;
+constexpr int BAD_QUIET_MAX      = BAD_CAPTURE_MIN;
+constexpr int BAD_QUIET_MIN      = INT_MIN;
+
+constexpr int GOOD_CAPTURE_BASE  = GOOD_CAPTURE_MIN + (GOOD_CAPTURE_MAX - GOOD_CAPTURE_MIN) / 2;
+constexpr int GOOD_QUIET_BASE    = GOOD_QUIET_MIN   + (GOOD_QUIET_MAX   - GOOD_QUIET_MIN)   / 2;
+constexpr int BAD_CAPTURE_BASE   = BAD_CAPTURE_MIN  + (BAD_CAPTURE_MAX  - BAD_CAPTURE_MIN)  / 2;
+constexpr int BAD_QUIET_BASE     = BAD_QUIET_MIN    + (BAD_QUIET_MAX    - BAD_QUIET_MIN)    / 2;
+
+constexpr int MAX_SCORE          = INT_MAX;
 constexpr int SEEN_BY_PAWN_MALUS = 50;
-constexpr int PROMOTION_BONUS    = 50;
 
 template<Color Us>
 void CaptureList<Us>::insertion_sort()
@@ -100,7 +112,7 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
             continue;
         }
         
-        int score = 0;
+        int score;
     
         Square    from     = from_sq(m);
         Square    to       = to_sq(m);
@@ -112,19 +124,29 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
             int material_delta = piece_weight(captured) - piece_weight(pt);
 
             if (square_bb(to) & seen_by_enemy)
-                score += (material_delta >= 0 ? GOOD_CAPTURE_BONUS : BAD_CAPTURE_BONUS) + material_delta;
+                score = (material_delta >= 0 ? GOOD_CAPTURE_BASE : BAD_CAPTURE_BASE) + material_delta;
             else
-                score += GOOD_CAPTURE_BONUS + material_delta;
+                score = GOOD_CAPTURE_BASE + material_delta;
         }
         else
         {
             if (m == si->killers[0]
              || m == si->killers[1])
-                score += GOOD_QUIET_BONUS;
+                score = GOOD_QUIET_BASE;
+            else
+                score = BAD_QUIET_BASE;
 
-            score += Position::endgame() && pt == KING ? (end_king_squares[to] - end_king_squares[from]) / 2 : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
+            /*score += (*cont_hist[0])[pc][to];
+            score += (*cont_hist[1])[pc][to];
+            score += (*cont_hist[2])[pc][to];
+            score += (*cont_hist[3])[pc][to];
+            score += (*cont_hist[5])[pc][to];*/
+
+            score += Position::endgame() && pt == KING 
+                ? (end_king_squares[to] - end_king_squares[from]) / 2
+                : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
         }
-        
+
         if (type_of(m) == PROMOTION)
             score += promotion_type_of(m);
 

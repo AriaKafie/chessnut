@@ -62,12 +62,13 @@ enum
     H6, G6, F6, E6, D6, C6, B6, A6,
     H7, G7, F7, E7, D7, C7, B7, A7,
     H8, G8, F8, E8, D8, C8, B8, A8,
-    SQUARE_NB = 64
+    SQUARE_NB = 64,
+    NO_SQ = 0
 };
 
 enum
 {
-    NO_PIECE, PIECE_TYPE_NB = 6,
+    NO_PIECE, PIECE_TYPE_NB = 6, PIECE_NB = 16,
       PAWN =        2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
     W_PAWN =     PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
     B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
@@ -122,6 +123,11 @@ enum
     NORTH_WEST = NORTH + WEST,
     SOUTH_WEST = SOUTH + WEST,
 };
+
+template<Color C>
+int compress(Piece p) {
+    return p - 2*(C+1);
+}
 
 constexpr void set_score(LMove& lm, int score) {
     lm += LMove(score) << 32;
