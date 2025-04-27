@@ -152,10 +152,22 @@ std::string rep_table_to_string()
 
 static void go()
 {
-    return;
-    extern int reductions[MAX_PLIES];
-    for (int i : reductions) std::cout << i << ", ";std::cout << std::endl;return;
+    /*std::string l, f, t;
+    std::getline(std::cin, l);
+    std::istringstream is(l);
+    is >> f >> t;
+    Square from = uci_to_square(f), to = uci_to_square(t);
+    Move m = make_move(from, to);
 
+    if (Position::white_to_move())
+    {
+        std::cout << see_capture<WHITE>(m) << std::endl;
+    }
+    else
+    {
+        std::cout << see_capture<BLACK>(m) << std::endl;
+    }
+                                          return;*/
     extern TTEntry transposition_table[TT_SIZE];
     TTEntry* tt = transposition_table;
     

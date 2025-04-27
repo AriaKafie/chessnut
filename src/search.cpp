@@ -15,11 +15,11 @@
 int reductions[MAX_PLIES];
 
 static struct {
-    Move     best_move;
-    uint64_t nodes;
-    int      root_delta;
-    bool     search_cancelled;
-    bool     verbose;
+    Move          best_move;
+    uint64_t      nodes;
+    int           root_delta;
+    volatile bool search_cancelled;
+    bool          verbose;
 } status;
 
 void Search::noverbose() { status.verbose = false; }
@@ -153,9 +153,6 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         int new_depth = depth - 1 + extension;
         int r         = reduction(improving, depth, move_count, beta - alpha);
         int lmr_depth = new_depth - r / 1024;
-
-        /*if (!Root && is_quiet(m) && move_count >= (3 + depth * depth) / (2 - improving))
-            continue;*/
 
         if (!Root && lmr_depth < 7 && type_of(m) == NORMAL)
         {

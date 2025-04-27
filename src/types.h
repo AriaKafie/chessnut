@@ -59,7 +59,7 @@ enum
     H6, G6, F6, E6, D6, C6, B6, A6,
     H7, G7, F7, E7, D7, C7, B7, A7,
     H8, G8, F8, E8, D8, C8, B8, A8,
-    SQUARE_NB = 64,
+    SQUARE_NB = 64, NO_SQ = 64
 };
 
 enum

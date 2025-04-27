@@ -104,16 +104,15 @@ void Bitboards::init()
         {
             for (int j = 0; j < 1 << popcount(masks[i]); j++)
             {
-                Bitboard shadows = 0ull;
+                Bitboard spans = 0;
 
                 for (Bitboard enemy_pawn = pdep(masks[i], j); enemy_pawn; clear_lsb(enemy_pawn))
                 {
-                    Square psq = lsb(enemy_pawn);
-
-                    shadows |= (file_bb(psq) | file_bb(psq + EAST) & ~FILE_ABB | file_bb(psq + WEST) & ~FILE_HBB) & mask(psq, relative_direction(c, SOUTH));
+                    Square s = lsb(enemy_pawn);
+                    spans |= (file_bb(s) | file_bb(s + EAST) & ~FILE_ABB | file_bb(s + WEST) & ~FILE_HBB) & mask(s, relative_direction(c, SOUTH));
                 }
 
-                Passers[c][i][j] = ~shadows;
+                Passers[c][i][j] = ~spans;
             }
         }
     }
@@ -286,7 +285,7 @@ void init_magics()
             for (int p = 0; p < permutations; p++)
             {
                 occupied[p] = pdep(mask, p);
-                attacks[p] = attacks_bb(pt, sq, occupied[p]);
+                attacks[p]  = attacks_bb(pt, sq, occupied[p]);
             }
 
             std::mt19937_64 rng(0);
