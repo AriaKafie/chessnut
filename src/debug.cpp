@@ -184,18 +184,9 @@ void Debug::go() {::go();}
 
 Move *get_moves(Move *list)
 {
-    if (Position::white_to_move())
-    {
-        MoveList<WHITE> moves;
-        for (Move m : moves)
-            *list++ = m;
-        return list;
-    }
-    else
-    {
-        MoveList<BLACK> moves;
-        for (Move m : moves)
-            *list++ = m;
-        return list;
-    }
+#define populate(c) \
+    { MoveList<c> moves; for (Move m : moves) *list++ = m; return list; }
+
+    if (Position::white_to_move()) populate(WHITE) else populate(BLACK);
+#undef populate
 }

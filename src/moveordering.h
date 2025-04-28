@@ -216,6 +216,8 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
                 score = (material_delta >= 0 ? GOOD_CAPTURE_BASE : BAD_CAPTURE_BASE) + material_delta;
             else
                 score = GOOD_CAPTURE_BASE + material_delta;
+
+            //score += piece_weight(captured) / 64;
         }
         else
         {
