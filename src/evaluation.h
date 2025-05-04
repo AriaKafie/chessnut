@@ -10,20 +10,12 @@ constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
 
 template<Color Us>
-Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn)
-{
-    static constexpr Bitboard relevancy[4][2] = {
-        { 0x03030303030000ull, 0xc0c0c0c0c000ull },
-        { 0x0c0c0c0c0c0000ull, 0x303030303000ull },
-        { 0x30303030300000ull, 0x0c0c0c0c0c00ull },
-        { 0xc0c0c0c0c00000ull, 0x030303030300ull }
-    };
-
+Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
     return friendly_pawn
-        & Passers[Us][0][pext(opponent_pawn, relevancy[0][Us])]
-        & Passers[Us][1][pext(opponent_pawn, relevancy[1][Us])]
-        & Passers[Us][2][pext(opponent_pawn, relevancy[2][Us])]
-        & Passers[Us][3][pext(opponent_pawn, relevancy[3][Us])];
+        & Passers[Us][0][pext(opponent_pawn, Us == WHITE ? 0x03030303030000ull : 0xc0c0c0c0c000ull)]
+        & Passers[Us][1][pext(opponent_pawn, Us == WHITE ? 0x0c0c0c0c0c0000ull : 0x303030303000ull)]
+        & Passers[Us][2][pext(opponent_pawn, Us == WHITE ? 0x30303030300000ull : 0x0c0c0c0c0c00ull)]
+        & Passers[Us][3][pext(opponent_pawn, Us == WHITE ? 0xc0c0c0c0c00000ull : 0x030303030300ull)];
 }
 
 constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] = 
