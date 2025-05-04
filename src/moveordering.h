@@ -182,16 +182,19 @@ void MoveList<Us>::quicksort(int low, int high) {
         quicksort(pivot_index + 1, high);
     }
 }
-
+//#include <iostream>
+//std::string move_to_uci(Move m);
 template<Color Us>
 void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
 {
+    //bool found_tt = false;
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
 
     for (LMove& m : *this)
     {
         if (m == ttmove)
         {
+            //found_tt = true;
             set_score(m, MAX_SCORE);
             continue;
         }
@@ -227,7 +230,7 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
             else
                 score = BAD_QUIET_BASE;
 
-            score += Position::endgame() && pt == KING 
+            score += Position::endgame() && pt == KING
                 ? (end_king_squares[to] - end_king_squares[from]) / 2
                 : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
         }
@@ -240,6 +243,9 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
 
         set_score(m, score);
     }
+
+    /*if (ttmove && !found_tt)
+        printf("collision: %s %x\n", move_to_uci(ttmove).c_str(), type_of(ttmove));*/
     
     quicksort(0, size() - 1);
 }

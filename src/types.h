@@ -16,10 +16,11 @@
 
 typedef uint64_t Bitboard;
 typedef uint32_t LMove;
-typedef int      MoveType;
+//typedef int      MoveType;
 typedef int      Direction;
 typedef int      File;
 typedef int      Rank;
+typedef uint16_t MoveType;
 typedef uint16_t Move;
 typedef uint16_t Score;
 typedef int8_t   Square;
@@ -72,7 +73,7 @@ enum
 
 enum { WHITE, BLACK, COLOR_NB = 2 };
 
-enum
+enum : uint16_t
 {
     NORMAL           = 0 << 12,
     PROMOTION        = 1 << 12,
@@ -144,12 +145,12 @@ constexpr Color color_of(Piece p) {
     return p >> 3;
 }
 
-ForceInline constexpr Move make_move(Square from, Square to) {
+constexpr Move make_move(Square from, Square to) {
     return from + (to << 6);
 }
 
 template<MoveType T>
-ForceInline constexpr Move make_move(Square from, Square to) {
+constexpr Move make_move(Square from, Square to) {
     return T + from + (to << 6);
 }
 
@@ -174,7 +175,7 @@ constexpr MoveType type_of(Move m) {
 }
 
 constexpr PieceType promotion_type_of(Move m) {
-    return (m >> 14 & 3) + KNIGHT;
+    return (m >> 14) + KNIGHT;
 }
 
 inline File file_of(Square s) {

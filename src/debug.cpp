@@ -152,22 +152,17 @@ std::string rep_table_to_string()
 
 static void go()
 {
-    /*std::string l, f, t;
-    std::getline(std::cin, l);
-    std::istringstream is(l);
-    is >> f >> t;
-    Square from = uci_to_square(f), to = uci_to_square(t);
-    Move m = make_move(from, to);
+    Bitboard pawn = bb(B_PAWN);
 
-    if (Position::white_to_move())
-    {
-        std::cout << see_capture<WHITE>(m) << std::endl;
-    }
-    else
-    {
-        std::cout << see_capture<BLACK>(m) << std::endl;
-    }
-                                          return;*/
+    std::string s = to_string(
+        Passers[WHITE][0][pext(pawn, 0x03030303030000ull)] &
+        Passers[WHITE][1][pext(pawn, 0x0c0c0c0c0c0000ull)] &
+        Passers[WHITE][2][pext(pawn, 0x30303030300000ull)] &
+        Passers[WHITE][3][pext(pawn, 0xc0c0c0c0c00000ull)]
+    );
+
+    std::cout << s << std::endl;
+                                          return;
     extern TTEntry transposition_table[TT_SIZE];
     TTEntry* tt = transposition_table;
     
