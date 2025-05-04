@@ -50,18 +50,12 @@ And to detect passed pawns in constant time:
 // evaluation.h
 
 template<Color Us>
-Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn)
-{
-    constexpr Bitboard m1 = Us == WHITE ? 0x03030303030000ull : 0xc0c0c0c0c000ull;
-    constexpr Bitboard m2 = Us == WHITE ? 0x0c0c0c0c0c0000ull : 0x303030303000ull;
-    constexpr Bitboard m3 = Us == WHITE ? 0x30303030300000ull : 0x0c0c0c0c0c00ull;
-    constexpr Bitboard m4 = Us == WHITE ? 0xc0c0c0c0c00000ull : 0x030303030300ull;
-
+Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
     return friendly_pawn
-        & Passers[Us][0][pext(opponent_pawn, m1)]
-        & Passers[Us][1][pext(opponent_pawn, m2)]
-        & Passers[Us][2][pext(opponent_pawn, m3)]
-        & Passers[Us][3][pext(opponent_pawn, m4)];
+        & Passers[Us][0][pext(opponent_pawn, Us == WHITE ? 0x03030303030000ull : 0xc0c0c0c0c000ull)]
+        & Passers[Us][1][pext(opponent_pawn, Us == WHITE ? 0x0c0c0c0c0c0000ull : 0x303030303000ull)]
+        & Passers[Us][2][pext(opponent_pawn, Us == WHITE ? 0x30303030300000ull : 0x0c0c0c0c0c00ull)]
+        & Passers[Us][3][pext(opponent_pawn, Us == WHITE ? 0xc0c0c0c0c00000ull : 0x030303030300ull)];
 }
 ```
 
