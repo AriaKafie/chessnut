@@ -18,7 +18,7 @@ Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
         & Passers[Us][3][pext(opponent_pawn, Us == WHITE ? 0xc0c0c0c0c00000ull : 0x030303030300ull)];
 }
 
-constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] = 
+constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] =
 {
 // scored from black's pov (promotion = 0-7) with a maximizer perspective
     { // pawn

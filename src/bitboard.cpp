@@ -142,8 +142,8 @@ void Bitboards::init()
         if ((b_occ & square_bb(A1)) != 0) b_mask &= clearQ;
         if ((b_occ & square_bb(H1)) != 0) b_mask &= clearK;
 #ifdef BMI
-        CastleMasks[WHITE][pext(w_occ, square_bb(A1, E1, H1, A8, H8))] = w_mask;
-        CastleMasks[BLACK][pext(b_occ, square_bb(A8, E8, H8, A1, H1))] = b_mask;
+        CastleMasks[WHITE][i] = w_mask;
+        CastleMasks[BLACK][i] = b_mask;
 #else
         CastleMasks[WHITE][w_occ * 0x4860104020003061ull >> 59] = w_mask;
         CastleMasks[BLACK][b_occ * 0x1080000400400c21ull >> 59] = b_mask;

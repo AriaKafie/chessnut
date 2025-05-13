@@ -152,17 +152,6 @@ std::string rep_table_to_string()
 
 static void go()
 {
-    Bitboard pawn = bb(B_PAWN);
-
-    std::string s = to_string(
-        Passers[WHITE][0][pext(pawn, 0x03030303030000ull)] &
-        Passers[WHITE][1][pext(pawn, 0x0c0c0c0c0c0000ull)] &
-        Passers[WHITE][2][pext(pawn, 0x30303030300000ull)] &
-        Passers[WHITE][3][pext(pawn, 0xc0c0c0c0c00000ull)]
-    );
-
-    std::cout << s << std::endl;
-                                          return;
     extern TTEntry transposition_table[TT_SIZE];
     TTEntry* tt = transposition_table;
     
