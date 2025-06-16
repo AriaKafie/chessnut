@@ -289,7 +289,6 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
 void Search::go(uint64_t thinktime)
 {
     status.search_cancelled = false;
-    status.nodes = 0;
 
     std::thread t(handle_search_stop, thinktime);
     t.detach();
