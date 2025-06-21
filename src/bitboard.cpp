@@ -246,41 +246,35 @@ void Bitboards::init()
 
 void init_magics()
 {
-#ifdef BMI
-    Bitboard *pext = pext_table, *xray = xray_table;
-
-    for (PieceType pt : { BISHOP, ROOK })
-    {
-        int      *base = pt == BISHOP ? bishop_base  : rook_base;
-        Bitboard *mask = pt == BISHOP ? bishop_masks : rook_masks;
-
-        for (Square sq = H1; sq <= A8; sq++)
-        {
-            base[sq] = pext - pext_table;
-            mask[sq] = attacks_bb(pt, sq, 0) & ~((FILE_ABB | FILE_HBB) & ~file_bb(sq) | (RANK_1BB | RANK_8BB) & ~rank_bb(sq));
-
-            for (Bitboard occupied = 0, i = 0; i < 1 << popcount(mask[sq]); occupied = pdep(mask[sq], ++i))
-            {
-                *pext++ = attacks_bb(pt, sq, occupied);
-                *xray++ = attacks_bb(pt, sq, occupied ^ attacks_bb(pt, sq, occupied) & occupied);
-            }
-        }
-    }
-#else
+#ifndef BMI
     Bitboard magic, occupied[4096], attacks[4096], *base = pext_table;
-
+#else
+    Bitboard *base = pext_table, *xray = xray_table;
+#endif
     for (PieceType pt : { BISHOP, ROOK })
         for (Square sq = H1; sq <= A8; sq++)
         {
-            Bitboard mask = attacks_bb(pt, sq, 0) & ~((FILE_ABB | FILE_HBB) & ~file_bb(sq) | (RANK_1BB | RANK_8BB) & ~rank_bb(sq));
+            Bitboard mask = attacks_bb(pt, sq, 0) &~
+                ((FILE_ABB | FILE_HBB) & ~file_bb(sq) | (RANK_1BB | RANK_8BB) & ~rank_bb(sq));
 
             Magic& m            = magics[sq][pt - BISHOP];
             int    permutations = 1 << popcount(mask);
-            bool   failed       = false;
 
+            m.ptr  = base;
+            m.mask = mask;
+#ifdef BMI
+            m.xray = xray;
+
+            for (int i = 0; i < permutations; i++)
+            {
+                Bitboard occupied = pdep(mask, i);
+
+                *base++ = attacks_bb(pt, sq, occupied);
+                *xray++ = attacks_bb(pt, sq, occupied ^ attacks_bb(pt, sq, occupied) & occupied);
+            }
+#else
+            bool failed = false;
             m.shift = 64 - popcount(mask);
-            m.ptr   = base;
-            m.mask  = mask;
 
             for (int p = 0; p < permutations; p++)
             {
@@ -306,9 +300,10 @@ void init_magics()
             } while (failed);
 
             m.magic = magic;
+
             base += permutations;
-        }
 #endif
+        }
 }
 
 std::string to_string(Bitboard b)

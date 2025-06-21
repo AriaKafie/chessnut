@@ -158,7 +158,7 @@ static void go()
     uint64_t entries = 0;
     for (int i = 0; i < TT_SIZE; i++)
         if (tt[i].key) entries++;
-    printf("tt size: %dMB at %f%% capacity\n", sizeof(TTEntry) * TT_SIZE / (1024 * 1024), double(entries) / TT_SIZE);
+    printf("%dMB tt at %f%% capacity\n", sizeof(TTEntry) * TT_SIZE / (1024 * 1024), double(entries) / TT_SIZE);
 
     std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
               << rep_table_to_string()                       << std::endl;

@@ -41,31 +41,28 @@ inline int popcount(Bitboard b) {
 }
 
 inline Bitboard KingShieldMagics[COLOR_NB][SQUARE_NB];
+#endif
 
 typedef struct {
     Bitboard *ptr;
     Bitboard  mask;
+#ifdef BMI
+    Bitboard *xray;
+#else
     Bitboard  magic;
     int       shift;
+#endif
 } Magic;
 
 inline Magic magics[SQUARE_NB][2];
-#endif
 
 std::string to_string(Bitboard b);
 
 namespace Bitboards { void init(); }
 
 inline Bitboard pext_table[0x1a480];
-
 #ifdef BMI
     inline Bitboard xray_table[0x1a480];
-
-    inline Bitboard bishop_masks[SQUARE_NB];
-    inline Bitboard rook_masks[SQUARE_NB];
-
-    inline int bishop_base[SQUARE_NB];
-    inline int rook_base[SQUARE_NB];
 #endif
 
 inline Bitboard DoubleCheck[SQUARE_NB];
@@ -241,7 +238,7 @@ inline Bitboard knight_attacks(Square sq) {
 
 inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return pext_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
+    return magics[sq][0].ptr[pext(occupied, magics[sq][0].mask)];
 #else
     occupied &=  magics[sq][0].mask;
     occupied *=  magics[sq][0].magic;
@@ -252,7 +249,7 @@ inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
 
 inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return xray_table[bishop_base[sq] + pext(occupied, bishop_masks[sq])];
+    return magics[sq][0].xray[pext(occupied, magics[sq][0].mask)];
 #else
     return bishop_attacks(sq, occupied ^ bishop_attacks(sq, occupied) & occupied);
 #endif
@@ -260,7 +257,7 @@ inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
 
 inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return pext_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
+    return magics[sq][1].ptr[pext(occupied, magics[sq][1].mask)];
 #else
     occupied &=  magics[sq][1].mask;
     occupied *=  magics[sq][1].magic;
@@ -271,7 +268,7 @@ inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
 
 inline Bitboard rook_xray(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return xray_table[rook_base[sq] + pext(occupied, rook_masks[sq])];
+    return magics[sq][1].xray[pext(occupied, magics[sq][1].mask)];
 #else
     return rook_attacks(sq, occupied ^ rook_attacks(sq, occupied) & occupied);
 #endif
