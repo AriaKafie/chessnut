@@ -14,7 +14,6 @@
     #define popcount(b) _mm_popcnt_u64(b)
     #define lsb(b) _tzcnt_u64(b)
 #else
-
 inline const int bitscan[64] {
     63, 0, 58, 1, 59, 19, 36, 2,
     60, 43, 31, 20, 54, 37, 3, 46,
@@ -30,7 +29,7 @@ inline int lsb(Bitboard b) {
     return bitscan[(b & -b) * 0x756e2f651a4fcc2ull >> 58];
 }
 
-inline uint8_t popcnt16[1 << 16];
+inline unsigned char popcnt16[1 << 16];
 
 inline int popcount(Bitboard b) {
     union {
@@ -39,8 +38,6 @@ inline int popcount(Bitboard b) {
     } u = {b};
     return popcnt16[u.v[0]] + popcnt16[u.v[1]] + popcnt16[u.v[2]] + popcnt16[u.v[3]];
 }
-
-inline Bitboard KingShieldMagics[COLOR_NB][SQUARE_NB];
 #endif
 
 typedef struct {
@@ -54,7 +51,18 @@ typedef struct {
 #endif
 } Magic;
 
-inline Magic magics[SQUARE_NB][2];
+typedef struct {
+    int      *ptr;
+    Bitboard  mask;
+#ifndef BMI
+    Bitboard magic;
+#endif
+} KSMagic;
+
+inline int KingShieldScores[COLOR_NB][SQUARE_NB][1 << 6];
+
+inline KSMagic KingShieldMagics[COLOR_NB][SQUARE_NB];
+inline Magic Magics[SQUARE_NB][2];
 
 std::string to_string(Bitboard b);
 
@@ -77,9 +85,7 @@ inline Bitboard FileBB[SQUARE_NB];
 inline uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
 inline uint8_t CenterDistance[SQUARE_NB];
 inline uint8_t CastleMasks[COLOR_NB][1 << 5];
-inline Bitboard KingShield[COLOR_NB][SQUARE_NB];
 inline Bitboard Passers[COLOR_NB][4][1 << 10];
-inline int KingShieldScores[COLOR_NB][SQUARE_NB][1 << 6];
 
 constexpr Bitboard FILE_ABB = 0x8080808080808080ull;
 constexpr Bitboard FILE_BBB = FILE_ABB >> 1;
@@ -238,18 +244,18 @@ inline Bitboard knight_attacks(Square sq) {
 
 inline Bitboard bishop_attacks(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return magics[sq][0].ptr[pext(occupied, magics[sq][0].mask)];
+    return Magics[sq][0].ptr[pext(occupied, Magics[sq][0].mask)];
 #else
-    occupied &=  magics[sq][0].mask;
-    occupied *=  magics[sq][0].magic;
-    occupied >>= magics[sq][0].shift;
-    return       magics[sq][0].ptr[occupied];
+    occupied &=  Magics[sq][0].mask;
+    occupied *=  Magics[sq][0].magic;
+    occupied >>= Magics[sq][0].shift;
+    return       Magics[sq][0].ptr[occupied];
 #endif
 }
 
 inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return magics[sq][0].xray[pext(occupied, magics[sq][0].mask)];
+    return Magics[sq][0].xray[pext(occupied, Magics[sq][0].mask)];
 #else
     return bishop_attacks(sq, occupied ^ bishop_attacks(sq, occupied) & occupied);
 #endif
@@ -257,18 +263,18 @@ inline Bitboard bishop_xray(Square sq, Bitboard occupied) {
 
 inline Bitboard rook_attacks(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return magics[sq][1].ptr[pext(occupied, magics[sq][1].mask)];
+    return Magics[sq][1].ptr[pext(occupied, Magics[sq][1].mask)];
 #else
-    occupied &=  magics[sq][1].mask;
-    occupied *=  magics[sq][1].magic;
-    occupied >>= magics[sq][1].shift;
-    return       magics[sq][1].ptr[occupied];
+    occupied &=  Magics[sq][1].mask;
+    occupied *=  Magics[sq][1].magic;
+    occupied >>= Magics[sq][1].shift;
+    return       Magics[sq][1].ptr[occupied];
 #endif
 }
 
 inline Bitboard rook_xray(Square sq, Bitboard occupied) {
 #ifdef BMI
-    return magics[sq][1].xray[pext(occupied, magics[sq][1].mask)];
+    return Magics[sq][1].xray[pext(occupied, Magics[sq][1].mask)];
 #else
     return rook_attacks(sq, occupied ^ rook_attacks(sq, occupied) & occupied);
 #endif
@@ -299,12 +305,12 @@ inline void toggle_square(Bitboard& b, Square s) {
 template<Color C>
 int king_safety(Square ksq, Bitboard occ) {
 #ifdef BMI
-    return KingShieldScores[C][ksq][pext(occ, KingShield[C][ksq])];
+    return KingShieldMagics[C][ksq].ptr[pext(occ, KingShieldMagics[C][ksq].mask)];
 #else
-    occ &=  KingShield[C][ksq];
-    occ *=  KingShieldMagics[C][ksq];
+    occ &=  KingShieldMagics[C][ksq].mask;
+    occ *=  KingShieldMagics[C][ksq].magic;
     occ >>= 58;
-    return KingShieldScores[C][ksq][occ];
+    return KingShieldMagics[C][ksq].ptr[occ];
 #endif
 }
 

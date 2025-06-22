@@ -3,11 +3,9 @@
 
 #include <algorithm>
 #ifndef BMI
-    #include <cstring>
+    #include <string.h>
     #include <random>
 #endif
-
-void init_magics();
 
 Bitboard pdep(Bitboard mask, int src)
 {
@@ -51,7 +49,64 @@ void Bitboards::init()
             SquareDistance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
     }
 
-    init_magics();
+#ifndef BMI
+    Bitboard magic, occupied[4096], attacks[4096], *base = pext_table;
+#else
+    Bitboard *base = pext_table, *xray = xray_table;
+#endif
+    for (PieceType pt : { BISHOP, ROOK })
+        for (Square sq = H1; sq <= A8; sq++)
+        {
+            Bitboard mask = attacks_bb(pt, sq, 0) &~
+                ((FILE_ABB | FILE_HBB) & ~file_bb(sq) | (RANK_1BB | RANK_8BB) & ~rank_bb(sq));
+
+            Magic& m            = Magics[sq][pt - BISHOP];
+            int    permutations = 1 << popcount(mask);
+
+            m.ptr  = base;
+            m.mask = mask;
+#ifdef BMI
+            m.xray = xray;
+
+            for (int i = 0; i < permutations; i++)
+            {
+                Bitboard occupied = pdep(mask, i);
+
+                *base++ = attacks_bb(pt, sq, occupied);
+                *xray++ = attacks_bb(pt, sq, occupied ^ attacks_bb(pt, sq, occupied) & occupied);
+            }
+#else
+            bool failed = false;
+            m.shift = 64 - popcount(mask);
+
+            for (int p = 0; p < permutations; p++)
+            {
+                occupied[p] = pdep(mask, p);
+                attacks[p]  = attacks_bb(pt, sq, occupied[p]);
+            }
+
+            std::mt19937_64 rng(0);
+
+            do
+            {
+                magic = rng() & rng() & rng();
+                memset(base, 0, sizeof(Bitboard) * permutations);
+
+                for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> m.shift)
+                {
+                    if (failed = base[key] && base[key] != attacks[p])
+                        break;
+
+                    base[key] = attacks[p];
+                }
+
+            } while (failed);
+
+            m.magic = magic;
+
+            base += permutations;
+#endif
+        }
 
     for (Square s1 = H1; s1 <= A8; s1++)
     {
@@ -79,10 +134,10 @@ void Bitboards::init()
 
         Square sq = make_square(rank_of(s1), FILE_G);
 
-        KingShield[WHITE][s1] =
+        KingShieldMagics[WHITE][s1].mask =
             ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH + NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, NORTH);
 
-        KingShield[BLACK][s1] =
+        KingShieldMagics[BLACK][s1].mask =
             ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH + SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, SOUTH);
 
         DoubleCheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
@@ -153,8 +208,9 @@ void Bitboards::init()
     for (Color c : { WHITE, BLACK })
         for (Square ksq = H1; ksq <= A8; ksq++)
         {
+            KingShieldMagics[c][ksq].ptr = KingShieldScores[c][ksq];
 #ifndef BMI
-            Bitboard mask = KingShield[c][ksq], occupied[64], magic;
+            Bitboard mask = KingShieldMagics[c][ksq].mask, occupied[64], magic;
             bool visited[64] = {}, failed;
             
             int permutations = 1 << popcount(mask);
@@ -180,27 +236,28 @@ void Bitboards::init()
 
             } while (failed);
 
-            KingShieldMagics[c][ksq] = magic;
+            KingShieldMagics[c][ksq].magic = magic;
 #endif
-            for (int i = 0; i < 1 << popcount(KingShield[c][ksq]); i++)
+            for (int i = 0; i < 1 << popcount(KingShieldMagics[c][ksq].mask); i++)
             {
-                Bitboard king_shield = pdep(KingShield[c][ksq], i);
+                Bitboard king_shield = pdep(KingShieldMagics[c][ksq].mask, i);
 #ifdef BMI
-                int hash = i;
+                int &score = KingShieldMagics[c][ksq].ptr[i];
 #else
-                int hash = king_shield * KingShieldMagics[c][ksq] >> 58;
+                int &score = KingShieldMagics[c][ksq].ptr[king_shield * KingShieldMagics[c][ksq].magic >> 58];
 #endif
+                score = 0;
                 const int MIN_SCORE = -45, MAX_SCORE = 45;
 
                 if (!(square_bb(ksq) & (c == WHITE ? RANK_1BB : RANK_8BB)) || (popcount(king_shield) < 2))
                 {
-                    KingShieldScores[c][ksq][hash] = MIN_SCORE;
+                    score = MIN_SCORE;
                     continue;
                 }
 
                 if (square_bb(ksq) & (FILE_EBB | FILE_DBB))
                 {
-                    KingShieldScores[c][ksq][hash] = 10;
+                    score = 10;
                     continue;
                 }
 
@@ -220,11 +277,10 @@ void Bitboards::init()
                     { 45, 50, 40 }, {45, 50, 40 }
                 };
 
-                Bitboard shield_mask  = KingShield[c][ksq];
+                Bitboard shield_mask  = KingShieldMagics[c][ksq].mask;
                 Bitboard file_right   = file_bb(lsb(shield_mask));
                 Bitboard file_mid     = file_right << 1;
                 Bitboard file_left    = file_right << 2;
-                int      score        = 0;
                 int      king_file    = ksq & 7;
 
                 if ((king_shield & file_right) == 0) score -= file_weights[king_file][0];
@@ -239,70 +295,8 @@ void Bitboards::init()
                         score += pawn_weights[king_file][index];
                 }
 
-                KingShieldScores[c][ksq][hash] = std::clamp(score, MIN_SCORE, MAX_SCORE);
+                score = std::clamp(score, MIN_SCORE, MAX_SCORE);
             }
-        }
-}
-
-void init_magics()
-{
-#ifndef BMI
-    Bitboard magic, occupied[4096], attacks[4096], *base = pext_table;
-#else
-    Bitboard *base = pext_table, *xray = xray_table;
-#endif
-    for (PieceType pt : { BISHOP, ROOK })
-        for (Square sq = H1; sq <= A8; sq++)
-        {
-            Bitboard mask = attacks_bb(pt, sq, 0) &~
-                ((FILE_ABB | FILE_HBB) & ~file_bb(sq) | (RANK_1BB | RANK_8BB) & ~rank_bb(sq));
-
-            Magic& m            = magics[sq][pt - BISHOP];
-            int    permutations = 1 << popcount(mask);
-
-            m.ptr  = base;
-            m.mask = mask;
-#ifdef BMI
-            m.xray = xray;
-
-            for (int i = 0; i < permutations; i++)
-            {
-                Bitboard occupied = pdep(mask, i);
-
-                *base++ = attacks_bb(pt, sq, occupied);
-                *xray++ = attacks_bb(pt, sq, occupied ^ attacks_bb(pt, sq, occupied) & occupied);
-            }
-#else
-            bool failed = false;
-            m.shift = 64 - popcount(mask);
-
-            for (int p = 0; p < permutations; p++)
-            {
-                occupied[p] = pdep(mask, p);
-                attacks[p]  = attacks_bb(pt, sq, occupied[p]);
-            }
-
-            std::mt19937_64 rng(0);
-
-            do
-            {
-                magic = rng() & rng() & rng();
-                memset(base, 0, sizeof(Bitboard) * permutations);
-
-                for (int p = 0, key = 0; p < permutations; key = occupied[++p] * magic >> m.shift)
-                {
-                    if (failed = base[key] && base[key] != attacks[p])
-                        break;
-
-                    base[key] = attacks[p];
-                }
-
-            } while (failed);
-
-            m.magic = magic;
-
-            base += permutations;
-#endif
         }
 }
 

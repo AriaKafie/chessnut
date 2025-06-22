@@ -16,7 +16,6 @@
 
 typedef uint64_t Bitboard;
 typedef uint32_t LMove;
-//typedef int      MoveType;
 typedef int      Direction;
 typedef int      File;
 typedef int      Rank;
