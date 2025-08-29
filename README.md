@@ -1,5 +1,5 @@
 ## Overview
-Chessnut is a UCI-compatible chess engine written from scratch in c++.
+Chessnut is a UCI-compatible chess engine written from scratch in C++.
 
 ## Compiling Chessnut
 ```
@@ -95,3 +95,4 @@ Call Debug::go() (implemented in src/debug.cpp)
 ```
 debug
 ```
+
