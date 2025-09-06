@@ -13,7 +13,7 @@ On hardware that doesn't support BMI or BMI2 (for instructions like BLSR, PEXT, 
 ```
 
 ## Interesting features
-Chessnut has some interesting optimizations. For example, to update castling branchlessly, it uses a pext scheme (or magic bitboards if BMI isn't supported) to map every occupancy pattern on the relevant bitboard to a unique key that can be used to index a table of precomputed masks (to remove or preserve castling rights):
+Chessnut has some interesting optimizations. For example, to update castling rights branchlessly, it uses a pext scheme (or magic bitboards if BMI isn't supported) to map every occupancy pattern on the relevant bitboard to a unique key that can be used to index a table of precomputed masks (to remove or preserve castling rights):
 ```
 // position.h
 
@@ -95,5 +95,6 @@ Call Debug::go() (implemented in src/debug.cpp)
 ```
 debug
 ```
+
 
 
