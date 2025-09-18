@@ -11,11 +11,19 @@ inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
 
 template<Color Us>
 Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
+#ifdef BMI
     return friendly_pawn
         & Passers[Us][0][pext(opponent_pawn, Us == WHITE ? 0x03030303030000ull : 0xc0c0c0c0c000ull)]
         & Passers[Us][1][pext(opponent_pawn, Us == WHITE ? 0x0c0c0c0c0c0000ull : 0x303030303000ull)]
         & Passers[Us][2][pext(opponent_pawn, Us == WHITE ? 0x30303030300000ull : 0x0c0c0c0c0c00ull)]
         & Passers[Us][3][pext(opponent_pawn, Us == WHITE ? 0xc0c0c0c0c00000ull : 0x030303030300ull)];
+#else
+    return friendly_pawn
+        & Passers[Us][0][(Us == WHITE ? opponent_pawn >> 16 : opponent_pawn >> 8 ) & 0x3ff]
+        & Passers[Us][1][(Us == WHITE ? opponent_pawn >> 26 : opponent_pawn >> 18) & 0x3ff]
+        & Passers[Us][2][(Us == WHITE ? opponent_pawn >> 36 : opponent_pawn >> 28) & 0x3ff]
+        & Passers[Us][3][(Us == WHITE ? opponent_pawn >> 46 : opponent_pawn >> 38) & 0x3ff];
+#endif
 }
 
 constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] =

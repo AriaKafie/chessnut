@@ -14,6 +14,7 @@
     #define popcount(b) _mm_popcnt_u64(b)
     #define lsb(b) _tzcnt_u64(b)
 #else
+
 inline const int bitscan[64] {
     63, 0, 58, 1, 59, 19, 36, 2,
     60, 43, 31, 20, 54, 37, 3, 46,
@@ -55,13 +56,13 @@ typedef struct {
     int      *ptr;
     Bitboard  mask;
 #ifndef BMI
-    Bitboard magic;
+    Bitboard  magic;
 #endif
-} KSMagic;
+} KMagic;
 
 inline int KingShieldScores[COLOR_NB][SQUARE_NB][1 << 6];
 
-inline KSMagic KingShieldMagics[COLOR_NB][SQUARE_NB];
+inline KMagic KMagics[COLOR_NB][SQUARE_NB];
 inline Magic Magics[SQUARE_NB][2];
 
 std::string to_string(Bitboard b);
@@ -305,12 +306,12 @@ inline void toggle_square(Bitboard& b, Square s) {
 template<Color C>
 int king_safety(Square ksq, Bitboard occ) {
 #ifdef BMI
-    return KingShieldMagics[C][ksq].ptr[pext(occ, KingShieldMagics[C][ksq].mask)];
+    return KMagics[C][ksq].ptr[pext(occ, KMagics[C][ksq].mask)];
 #else
-    occ &=  KingShieldMagics[C][ksq].mask;
-    occ *=  KingShieldMagics[C][ksq].magic;
+    occ &=  KMagics[C][ksq].mask;
+    occ *=  KMagics[C][ksq].magic;
     occ >>= 58;
-    return KingShieldMagics[C][ksq].ptr[occ];
+    return KMagics[C][ksq].ptr[occ];
 #endif
 }
 

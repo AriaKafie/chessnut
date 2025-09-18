@@ -9,12 +9,12 @@
 
 Bitboard pdep(Bitboard mask, int src)
 {
-    Bitboard dst = 0;
+    Bitboard dest = 0;
 
     for (;src; clear_lsb(mask), src >>= 1)
-        if (src & 1) dst |= mask & -mask;
+        if (src & 1) dest |= mask & -mask;
 
-    return dst;
+    return dest;
 }
 
 Bitboard attacks_bb(PieceType pt, Square sq, Bitboard occupied)
@@ -48,7 +48,6 @@ void Bitboards::init()
         for (Square s2 = H1; s2 <= A8; s2++)
             SquareDistance[s1][s2] = std::max(file_distance(s1, s2), rank_distance(s1, s2));
     }
-
 #ifndef BMI
     Bitboard magic, occupied[4096], attacks[4096], *base = pext_table;
 #else
@@ -134,10 +133,10 @@ void Bitboards::init()
 
         Square sq = make_square(rank_of(s1), FILE_G);
 
-        KingShieldMagics[WHITE][s1].mask =
+        KMagics[WHITE][s1].mask =
             ((rank_bb(sq + NORTH) | rank_bb(sq + NORTH + NORTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, NORTH);
 
-        KingShieldMagics[BLACK][s1].mask =
+        KMagics[BLACK][s1].mask =
             ((rank_bb(sq + SOUTH) | rank_bb(sq + SOUTH + SOUTH)) & ~(mask(sq + WEST, WEST))) << std::clamp(s1 % 8 - 1, 0, 5) & mask(s1, SOUTH);
 
         DoubleCheck[s1] = KingAttacks[s1] | KnightAttacks[s1];
@@ -149,12 +148,21 @@ void Bitboards::init()
     for (Color c : { WHITE, BLACK })
     {
         Bitboard relevancy = relative_rank(c, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7);
-
+#ifdef BMI
         Bitboard masks[4] = { relevancy & relative_file(c, FILE_G, FILE_H),
                               relevancy & relative_file(c, FILE_E, FILE_F),
                               relevancy & relative_file(c, FILE_C, FILE_D),
                               relevancy & relative_file(c, FILE_A, FILE_B), };
+#else
+        Bitboard masks[4] = {};
 
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 10; j++) {
+                masks[i] |= relevancy & -relevancy;
+                clear_lsb(relevancy);
+            }
+        }
+#endif
         for (int i = 0; i < 4; i++)
         {
             for (int j = 0; j < 1 << popcount(masks[i]); j++)
@@ -208,9 +216,9 @@ void Bitboards::init()
     for (Color c : { WHITE, BLACK })
         for (Square ksq = H1; ksq <= A8; ksq++)
         {
-            KingShieldMagics[c][ksq].ptr = KingShieldScores[c][ksq];
+            KMagics[c][ksq].ptr = KingShieldScores[c][ksq];
 #ifndef BMI
-            Bitboard mask = KingShieldMagics[c][ksq].mask, occupied[64], magic;
+            Bitboard mask = KMagics[c][ksq].mask, occupied[64], magic;
             bool visited[64] = {}, failed;
             
             int permutations = 1 << popcount(mask);
@@ -236,15 +244,15 @@ void Bitboards::init()
 
             } while (failed);
 
-            KingShieldMagics[c][ksq].magic = magic;
+            KMagics[c][ksq].magic = magic;
 #endif
-            for (int i = 0; i < 1 << popcount(KingShieldMagics[c][ksq].mask); i++)
+            for (int i = 0; i < 1 << popcount(KMagics[c][ksq].mask); i++)
             {
-                Bitboard king_shield = pdep(KingShieldMagics[c][ksq].mask, i);
+                Bitboard king_shield = pdep(KMagics[c][ksq].mask, i);
 #ifdef BMI
-                int &score = KingShieldMagics[c][ksq].ptr[i];
+                int &score = KMagics[c][ksq].ptr[i];
 #else
-                int &score = KingShieldMagics[c][ksq].ptr[king_shield * KingShieldMagics[c][ksq].magic >> 58];
+                int &score = KMagics[c][ksq].ptr[king_shield * KMagics[c][ksq].magic >> 58];
 #endif
                 score = 0;
                 const int MIN_SCORE = -45, MAX_SCORE = 45;
@@ -277,7 +285,7 @@ void Bitboards::init()
                     { 45, 50, 40 }, {45, 50, 40 }
                 };
 
-                Bitboard shield_mask  = KingShieldMagics[c][ksq].mask;
+                Bitboard shield_mask  = KMagics[c][ksq].mask;
                 Bitboard file_right   = file_bb(lsb(shield_mask));
                 Bitboard file_mid     = file_right << 1;
                 Bitboard file_left    = file_right << 2;
