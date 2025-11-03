@@ -6,13 +6,7 @@
 #include "movelist.h"
 #include "position.h"
 
-inline constexpr Move data_[COLOR_NB][5] =
-{
-    { make_move<CASTLING>(E1, G1), make_move<CASTLING>(E1, C1), NULLMOVE, make_move<CASTLING>(E1, G1), NULLMOVE },
-    { make_move<CASTLING>(E8, G8), make_move<CASTLING>(E8, C8), NULLMOVE, make_move<CASTLING>(E8, G8), NULLMOVE }
-};
-
-inline const Move *table_[COLOR_NB][1 << 4][1 << 6];
+inline uint64_t castle_lut[COLOR_NB][1 << 4][1 << 6];
 
 namespace MoveGen { void init(); };
 /*
@@ -25,29 +19,29 @@ namespace MoveGen { void init(); };
 inline void MoveGen::init()
 {
     for (Color c : { WHITE, BLACK })
+    {
+        LMove k_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? G1 : G8);
+        LMove q_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? C1 : C8);
+
         for (int rights = 0; rights <= 0xf; rights++)
-            for (Bitboard hash = 0; hash <= 0b111111; hash++)
+        {
+            bool k_rights = rights & (c == WHITE ? 8 : 2);
+            bool q_rights = rights & (c == WHITE ? 4 : 1);
+
+            for (int hash = 0; hash <= 0x3f; hash++)
             {
-                const Move *kcastle   = &data_[c][3];
-                const Move *qcastle   = &data_[c][1];
-                const Move *both      = &data_[c][0];
-                const Move *no_castle = &data_[c][2];
-                
-                const Move *src = no_castle;
+                LMove res[2] = {}, *p = res;
 
-                bool rights_k = rights & (c == WHITE ? 8 : 2);
-                bool rights_q = rights & (c == WHITE ? 4 : 1);
-                bool rights_kq = rights_k && rights_q;
+                if (k_rights && (hash & 0b000111) == 0)
+                    *p++ = k_castle;
 
-                if (rights_k || rights_q)
-                {
-                    if      (hash == 0)              src = rights_kq ? both : rights_k ? kcastle : qcastle;
-                    else if ((hash & 0b000111) == 0) src = rights_k ? kcastle : no_castle;
-                    else if ((hash & 0b111100) == 0) src = rights_q ? qcastle : no_castle;
-                }
+                if (q_rights && (hash & 0b111100) == 0)
+                    *p++ = q_castle;
 
-                table_[c][rights][hash] = src;
+                memcpy(&castle_lut[c][rights][hash], res, 8);
             }
+        }
+    }
 }
 
 template<MoveType Type, Direction D>
@@ -201,11 +195,12 @@ MoveList<Us>::MoveList()
     last = make_moves(last, ksq, king_attacks(ksq) & ~(seen_by_enemy | bb(Us)));
 
     constexpr int Shift = Us == WHITE ? 1 : 57;
-
     constexpr Bitboard NoAtk = Us == WHITE ? square_bb(C1, D1, E1, F1, G1) : square_bb(C8, D8, E8, F8, G8);
     constexpr Bitboard NoOcc = Us == WHITE ? square_bb(B1, C1, D1, F1, G1) : square_bb(B8, C8, D8, F8, G8);
 
-    for (const Move *src = table_[Us][state_ptr->castling_rights][(NoAtk & seen_by_enemy | NoOcc & occupied) >> Shift]; *src; *last++ = *src++);
+    uint64_t *u = (uint64_t*)last;
+    *u = castle_lut[Us][state_ptr->castling_rights][(NoAtk & seen_by_enemy | NoOcc & occupied) >> Shift];
+    last += bool(*u & 0xffffffff) + bool(*u >> 32);
 }
 
 template<Color Us>
