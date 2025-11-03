@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "debug.h"
+#include "evaluation.h"
 #include "movegen.h"
 #include "position.h"
 #include "search.h"
@@ -76,6 +77,12 @@ void UCI::loop()
         if      (token == "uci")     std::cout << "id name chessnut\n"
                                                << "id author Aria Kafie\n"
                                                << "uciok"               << std::endl;
+
+        else if (token == "aat")
+            aa = true;
+        else if (token == "aaf")
+            aa = false;
+
         else if (token == "isready") std::cout << "readyok"             << std::endl;
         else if (token == "d")       std::cout << Position::to_string() << std::endl;
         else if (token == "fen")     std::cout << Position::fen()       << std::endl;

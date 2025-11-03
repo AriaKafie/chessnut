@@ -2,6 +2,8 @@
 #ifndef MOVEGEN_H
 #define MOVEGEN_H
 
+#include <immintrin.h>
+
 #include "bitboard.h"
 #include "movelist.h"
 #include "position.h"
@@ -20,8 +22,8 @@ inline void MoveGen::init()
 {
     for (Color c : { WHITE, BLACK })
     {
-        LMove k_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? G1 : G8);
-        LMove q_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? C1 : C8);
+        EMove k_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? G1 : G8);
+        EMove q_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? C1 : C8);
 
         for (int rights = 0; rights <= 0xf; rights++)
         {
@@ -30,7 +32,7 @@ inline void MoveGen::init()
 
             for (int hash = 0; hash <= 0x3f; hash++)
             {
-                LMove res[2] = {}, *p = res;
+                EMove res[2] = {}, *p = res;
 
                 if (k_rights && (hash & 0b000111) == 0)
                     *p++ = k_castle;
@@ -45,7 +47,7 @@ inline void MoveGen::init()
 }
 
 template<MoveType Type, Direction D>
-ForceInline LMove *make_pawn_moves(LMove *list, Bitboard attacks)
+ForceInline EMove* make_pawn_moves(EMove *list, Bitboard attacks)
 {
     for (;attacks; clear_lsb(attacks))
     {
@@ -67,7 +69,7 @@ ForceInline LMove *make_pawn_moves(LMove *list, Bitboard attacks)
     return list;
 }
 
-ForceInline inline LMove *make_moves(LMove *list, Square from, Bitboard to)
+ForceInline inline EMove* make_moves(EMove *list, Square from, Bitboard to)
 {
     for (;to; clear_lsb(to))
         *list++ = make_move(from, lsb(to));

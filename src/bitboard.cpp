@@ -169,8 +169,7 @@ void Bitboards::init()
             {
                 Bitboard spans = 0;
 
-                for (Bitboard enemy_pawn = pdep(masks[i], j); enemy_pawn; clear_lsb(enemy_pawn))
-                {
+                for (Bitboard enemy_pawn = pdep(masks[i], j); enemy_pawn; clear_lsb(enemy_pawn)) {
                     Square s = lsb(enemy_pawn);
                     spans |= (file_bb(s) | file_bb(s + EAST) & ~FILE_ABB | file_bb(s + WEST) & ~FILE_HBB) & mask(s, relative_direction(c, SOUTH));
                 }

@@ -15,7 +15,7 @@
 #define BMI
 
 typedef uint64_t Bitboard;
-typedef uint32_t LMove;
+typedef uint32_t EMove;
 typedef int      Direction;
 typedef int      File;
 typedef int      Rank;
@@ -120,12 +120,12 @@ enum
     SOUTH_WEST = SOUTH + WEST,
 };
 
-constexpr void set_score(LMove& lm, Score score) {
-    lm += LMove(score) << 16;
+constexpr void set_score(EMove& em, Score score) {
+    em += EMove(score) << 16;
 }
 
-constexpr Score score_of(LMove lm) {
-    return lm >> 16;
+constexpr Score score_of(EMove em) {
+    return em >> 16;
 }
 
 constexpr Direction relative_direction(Color c, Direction d) {

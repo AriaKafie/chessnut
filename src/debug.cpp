@@ -13,6 +13,9 @@
 #include <random>
 #include <thread>
 
+#include <intrin.h>
+#include <immintrin.h>
+
 #include "movegen.h"
 #include "moveordering.h"
 #include "position.h"
@@ -150,18 +153,44 @@ std::string rep_table_to_string()
     return ss.str() + s;
 }
 
-static void go()
-{
-    extern TTEntry transposition_table[TT_SIZE];
-    TTEntry* tt = transposition_table;
+static void go() {
     
-    uint64_t entries = 0;
-    for (int i = 0; i < TT_SIZE; i++)
-        if (tt[i].key) entries++;
-    printf("%dMB tt at %f%% capacity\n", sizeof(TTEntry) * TT_SIZE / (1024 * 1024), double(entries) / TT_SIZE);
+    /*for (int material = 73; material >= 0; material--)
+    {
+        std::cout << material << ": " << (material*material*material/4096) << std::endl;
+    }
 
-    std::cout << (RT_SIZE * sizeof(RTEntry) / 1024) << " KB" << std::endl
-              << rep_table_to_string()                       << std::endl;
+    int total_material;
+
+    Bitboard pawns  = bb(W_PAWN)   | bb(B_PAWN);
+    Bitboard minors = bb(W_KNIGHT) | bb(B_KNIGHT) | bb(W_BISHOP) | bb(B_BISHOP);
+    Bitboard rooks  = bb(W_ROOK)   | bb(B_ROOK);
+    Bitboard queens = bb(W_QUEEN)  | bb(B_QUEEN);
+
+    int num_pawns  = popcount(pawns);
+    int num_minors = popcount(minors);
+    int num_rooks  = popcount(rooks);
+    int num_queens = popcount(queens);
+
+    total_material = num_pawns + 3*num_minors + 5*num_rooks + 9*num_queens;
+
+    std::cout << "total_material: " << total_material << std::endl;
+    std::cout << static_eval<WHITE>() << std::endl;
+    std::cout << static_eval<BLACK>() << std::endl;*/
+
+    uint32_t u1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    uint32_t u2[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    uint32_t u3[8];
+
+    __m256i *a = (__m256i*)u1;
+    __m256i *b = (__m256i*)u2;
+
+    __m256i c = _mm256_add_epi32(*a, *b);
+
+    _mm256_storeu_si256((__m256i*)(u3), c);
+
+    for (int i = 0; i < 8; i++)
+        std::cout << u3[i] << std::endl;
 }
 
 void Debug::go() {::go();}

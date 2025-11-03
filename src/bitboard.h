@@ -199,8 +199,7 @@ inline Bitboard rank_bb(Square s) {
     return RANK_1BB << 8 * (s / 8);
 }
 
-inline Bitboard safe_step(Square s, int step)
-{
+inline Bitboard safe_step(Square s, int step) {
     Square to = s + step;
     return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
 }

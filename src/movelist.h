@@ -14,13 +14,13 @@ class MoveList {
 public:
     MoveList();
 
-    LMove* begin()      { return moves; }
-    LMove* end()        { return last; }
+    EMove* begin()      { return moves; }
+    EMove* end()        { return last; }
     size_t size() const { return last - moves; }
     bool   in_check()   { return ~checkmask; }
     void   sort(Move ttmove, SearchInfo *si);
     
-    LMove moves[MAX_MOVES], *last = moves;
+    EMove moves[MAX_MOVES], *last = moves;
 
 private:
     Bitboard checkmask;
@@ -36,15 +36,15 @@ class CaptureList {
 public:
     CaptureList();
 
-    LMove* begin()      { return moves; }
-    LMove* end()        { return last; }
+    EMove* begin()      { return moves; }
+    EMove* end()        { return last; }
     size_t size() const { return last - moves; }
     void   sort();
 
 private:
     void   insertion_sort();
 
-    LMove    moves[MAX_CAPTURES], *last = moves;
+    EMove    moves[MAX_CAPTURES], *last = moves;
     Bitboard seen_by_enemy;
 
 };

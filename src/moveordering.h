@@ -26,7 +26,7 @@ void CaptureList<Us>::insertion_sort()
 {
     for (int i = 1; i < size(); i++)
     {
-        LMove key = moves[i];
+        EMove key = moves[i];
 
         int j = i - 1;
 
@@ -45,7 +45,7 @@ void CaptureList<Us>::sort()
 {
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
 
-    for (LMove& m : *this)
+    for (EMove& m : *this)
     {  
         Score score = UINT16_MAX / 2;
 
@@ -94,19 +94,16 @@ void MoveList<Us>::quicksort(int low, int high) {
         quicksort(pivot_index + 1, high);
     }
 }
-//#include <iostream>
-//std::string move_to_uci(Move m);
+
 template<Color Us>
 void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
 {
-    //bool found_tt = false;
     Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
 
-    for (LMove& m : *this)
+    for (EMove& m : *this)
     {
         if (m == ttmove)
         {
-            //found_tt = true;
             set_score(m, MAX_SCORE);
             continue;
         }
@@ -120,19 +117,12 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
 
         if (captured)
         {
-            /*int see_score = see_capture<Us>(m);
-
-            score = see_score >= 0 ? GOOD_CAPTURE_BASE : BAD_CAPTURE_BASE;
-            score += see_score;*/
-
             int material_delta = piece_weight(captured) - piece_weight(pt);
 
             if (square_bb(to) & seen_by_enemy)
                 score = (material_delta >= 0 ? GOOD_CAPTURE_BASE : BAD_CAPTURE_BASE) + material_delta;
             else
                 score = GOOD_CAPTURE_BASE + material_delta;
-
-            //score += piece_weight(captured) / 64;
         }
         else
         {
@@ -156,9 +146,6 @@ void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
         set_score(m, score);
     }
 
-    /*if (ttmove && !found_tt)
-        printf("collision: %s %x\n", move_to_uci(ttmove).c_str(), type_of(ttmove));*/
-    
     quicksort(0, size() - 1);
 }
 
