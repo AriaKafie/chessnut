@@ -202,7 +202,7 @@ MoveList<Us>::MoveList()
 
     uint64_t *u = (uint64_t*)last;
     *u = castle_lut[Us][state_ptr->castling_rights][(NoAtk & seen_by_enemy | NoOcc & occupied) >> Shift];
-    last += bool(*u & 0xffffffff) + bool(*u >> 32);
+    last += popcount(*u & 0x100000001000);
 }
 
 template<Color Us>

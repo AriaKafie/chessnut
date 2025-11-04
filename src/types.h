@@ -49,8 +49,7 @@ inline bool is_loss(int eval) {
 
 enum GamePhase : uint8_t { MIDGAME, ENDGAME, MOPUP };
 
-enum
-{
+enum {
     H1, G1, F1, E1, D1, C1, B1, A1,
     H2, G2, F2, E2, D2, C2, B2, A2,
     H3, G3, F3, E3, D3, C3, B3, A3,
@@ -62,8 +61,7 @@ enum
     SQUARE_NB = 64, NO_SQ = 64
 };
 
-enum
-{
+enum {
     NO_PIECE, PIECE_TYPE_NB = 6, PIECE_NB = 16,
       PAWN =        2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
     W_PAWN =     PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
@@ -72,8 +70,7 @@ enum
 
 enum { WHITE, BLACK, COLOR_NB = 2 };
 
-enum : uint16_t
-{
+enum : uint16_t {
     NORMAL           = 0 << 12,
     PROMOTION        = 1 << 12,
     ENPASSANT        = 2 << 12,
@@ -84,8 +81,7 @@ enum : uint16_t
     QUEEN_PROMOTION  = PROMOTION + ((QUEEN  - KNIGHT) << 14)
 };
 
-enum
-{
+enum {
     FILE_H,
     FILE_G,
     FILE_F,
@@ -96,8 +92,7 @@ enum
     FILE_A
 };
 
-enum
-{
+enum {
     RANK_1,
     RANK_2,
     RANK_3,
@@ -108,8 +103,7 @@ enum
     RANK_8
 };
 
-enum
-{
+enum {
     NORTH      =  8,
     EAST       = -1,
     SOUTH      = -8,
