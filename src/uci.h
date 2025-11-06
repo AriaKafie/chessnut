@@ -6,22 +6,27 @@
 
 #include "types.h"
 
+constexpr std::string_view f2c = "hgfedcba";
+constexpr std::string_view r2c = "12345678";
+
 Move uci_to_move(const std::string& uci);
 
 namespace UCI { void loop(); }
 
 inline std::string square_to_uci(Square sq) {
-    return std::string(1, "hgfedcba"[sq % 8]) + std::string(1, "12345678"[sq / 8]);
+    return std::string() + f2c[file_of(sq)] + r2c[rank_of(sq)];
 }
 
-inline std::string move_to_uci(Move m)
-{
-    return type_of(m) == PROMOTION ? square_to_uci(from_sq(m)) + square_to_uci(to_sq(m)) + "   nbrq"[promotion_type_of(m)]
-                                   : square_to_uci(from_sq(m)) + square_to_uci(to_sq(m));
+inline std::string move_to_uci(Move m) {
+    std::string uci = square_to_uci(from_sq(m))
+                    + square_to_uci(to_sq(m));
+    if (type_of(m) == PROMOTION)
+        uci += "   nbrq"[promotion_type_of(m)];
+    return uci;
 }
 
 inline Square uci_to_square(const std::string& uci) {
-    return 8 * (uci[1] - '1') + 'h' - uci[0];
+    return make_square(r2c.find(uci[1]), f2c.find(uci[0]));
 }
 
 #endif

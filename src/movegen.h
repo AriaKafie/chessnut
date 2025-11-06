@@ -2,8 +2,6 @@
 #ifndef MOVEGEN_H
 #define MOVEGEN_H
 
-#include <immintrin.h>
-
 #include "bitboard.h"
 #include "movelist.h"
 #include "position.h"

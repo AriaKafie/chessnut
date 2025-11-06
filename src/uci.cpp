@@ -80,6 +80,7 @@ void UCI::loop()
 
         else if (token == "aat")
             aa = true;
+
         else if (token == "aaf")
             aa = false;
 

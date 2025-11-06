@@ -148,7 +148,7 @@ int midgame()
     for (PieceType pt : { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING })
     {
         for (Bitboard b = bitboards[make_piece(Us, pt)]; b; clear_lsb(b))
-            score += square_score<Us>(pt, lsb(b));
+            score += square_score<Us>(pt, lsb(b)); // unroll this loop? _m256, pdep
 
         for (Bitboard b = bitboards[make_piece(Them, pt)]; b; clear_lsb(b))
             score -= square_score<Them>(pt, lsb(b));
@@ -160,25 +160,7 @@ int midgame()
     score += 8  * (popcount(friendly_passers & Rank234) - popcount(opponent_passers & Rank567));
     score += 16 * (popcount(friendly_passers & Rank567) - popcount(opponent_passers & Rank234));
 
-    /*if (false)
-    {
-        constexpr color an = WHITE;
-        constexpr color ar = BLACK;
-
-        int total_material;
-        int complexity;
-
-        if (Us == an)
-        {
-            score -= complexity;
-        }
-        else
-        {
-            score += complexity;
-        }
-    }*/
-
-    /*if (aa && std::abs(material_score) >= 300)
+    if (aa && std::abs(material_score) >= 300)
     {
         int total_material;
 
@@ -204,7 +186,7 @@ int midgame()
         {
             score += complexity;
         }
-    }*/
+    }
         
     return score;
 }

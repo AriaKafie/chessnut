@@ -13,9 +13,7 @@
 #include <random>
 #include <thread>
 
-#include <intrin.h>
-#include <immintrin.h>
-
+#include "evaluation.h"
 #include "movegen.h"
 #include "moveordering.h"
 #include "position.h"
@@ -155,6 +153,13 @@ std::string rep_table_to_string()
 
 static void go() {
     
+    std::cout << "aa = " << (aa ? "true" : "false") << std::endl;
+    std::cout << rep_table_to_string() << std::endl;
+    return;
+
+
+
+
     /*for (int material = 73; material >= 0; material--)
     {
         std::cout << material << ": " << (material*material*material/4096) << std::endl;
@@ -176,7 +181,7 @@ static void go() {
 
     std::cout << "total_material: " << total_material << std::endl;
     std::cout << static_eval<WHITE>() << std::endl;
-    std::cout << static_eval<BLACK>() << std::endl;*/
+    std::cout << static_eval<BLACK>() << std::endl;
 
     uint32_t u1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     uint32_t u2[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -190,7 +195,21 @@ static void go() {
     _mm256_storeu_si256((__m256i*)(u3), c);
 
     for (int i = 0; i < 8; i++)
-        std::cout << u3[i] << std::endl;
+        std::cout << u3[i] << std::endl;*/
+
+
+    //int8_t i[32];
+    //memset(i, -1, sizeof(i));
+    //__m256i v = *(__m256i*)i;
+    //__m256i zero = _mm256_setzero_si256();
+    //__m256i sum8 = _mm256_sad_epu8(v, zero);  // 4x 64-bit partial sums
+    //// Now horizontally add the four 64-bit elements:
+    //__m128i hi = _mm256_extracti128_si256(sum8, 1);
+    //__m128i lo = _mm256_castsi256_si128(sum8);
+    //__m128i total = _mm_add_epi64(lo, hi);
+    //uint64_t sum = _mm_cvtsi128_si64(total) + (uint64_t)_mm_extract_epi64(total, 1);
+    //std::cout << (int)sum << std::endl;
+    
 }
 
 void Debug::go() {::go();}
