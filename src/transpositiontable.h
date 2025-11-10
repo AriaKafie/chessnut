@@ -36,16 +36,14 @@ typedef struct {
     uint8_t  occurrences;
 } RTEntry;
 
-namespace TranspositionTable
-{
+namespace TranspositionTable {
     int lookup(int depth, int alpha, int beta, int ply_from_root);
     void record(uint8_t depth, BoundType flag, int eval, Move best_move, int ply_from_root);
     Move lookup_move();
     void clear();
 }
 
-namespace RepetitionTable
-{
+namespace RepetitionTable {
     bool draw();
     void push();
     void pop();

@@ -21,29 +21,24 @@ constexpr Score GOOD_CAPTURE_BASE  = GOOD_CAPTURE_MIN + (UINT16_MAX / 8);
 constexpr Score MAX_SCORE          = UINT16_MAX;
 constexpr Score SEEN_BY_PAWN_MALUS = 50;
 
-template<Color Us>
-void CaptureList<Us>::insertion_sort()
+template<Color Us, Color Them>
+void CaptureList<Us, Them>::insertion_sort()
 {
-    for (int i = 1; i < size(); i++)
+    for (EMove *p = moves + 1; p < last; p++)
     {
-        EMove key = moves[i];
+        EMove tmp = *p, *q;
 
-        int j = i - 1;
+        for (q = p - 1; q >= moves && score_of(*q) < score_of(tmp); q--)
+            *(q + 1) = *q;
 
-        while (j >= 0 && score_of(moves[j]) < score_of(key))
-        {
-            moves[j + 1] = moves[j];
-            j--;
-        }
-
-        moves[j + 1] = key;
+        *(q + 1) = tmp;
     }
 }
 
-template<Color Us>
-void CaptureList<Us>::sort()
+template<Color Us, Color Them>
+void CaptureList<Us, Them>::sort()
 {
-    Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
+    Bitboard seen_by_pawn = pawn_attacks<Them>(bitboard<make_piece(Them, PAWN)>());
 
     for (EMove& m : *this)
     {  
@@ -65,8 +60,8 @@ void CaptureList<Us>::sort()
     insertion_sort();
 }
 
-template<Color Us>
-int MoveList<Us>::partition(int low, int high)
+template<Color Us, Color Them>
+int MoveList<Us, Them>::partition(int low, int high)
 {
     Score pivot = score_of(moves[high]);
 
@@ -86,8 +81,8 @@ int MoveList<Us>::partition(int low, int high)
     return i + 1;
 }
 
-template<Color Us>
-void MoveList<Us>::quicksort(int low, int high) {
+template<Color Us, Color Them>
+void MoveList<Us, Them>::quicksort(int low, int high) {
     if (low < high) {
         int pivot_index = partition(low, high);
         quicksort(low, pivot_index - 1);
@@ -95,10 +90,10 @@ void MoveList<Us>::quicksort(int low, int high) {
     }
 }
 
-template<Color Us>
-void MoveList<Us>::sort(Move ttmove, SearchInfo *si)
+template<Color Us, Color Them>
+void MoveList<Us, Them>::sort(Move ttmove, SearchInfo *si)
 {
-    Bitboard seen_by_pawn = pawn_attacks<!Us>(bitboard<make_piece(!Us, PAWN)>());
+    Bitboard seen_by_pawn = pawn_attacks<Them>(bitboard<make_piece(Them, PAWN)>());
 
     for (EMove& m : *this)
     {

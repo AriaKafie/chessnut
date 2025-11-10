@@ -135,35 +135,28 @@ std::string rep_table_to_string()
 {
     extern RTEntry repetition_table[];
 
-    std::stringstream ss;
+    std::ostringstream os;
     std::string s = "+------------------+------+----+\n";
 
-    ss << s << "| key              | loc  |  # |\n" << s;
+    os << s << "| key              | loc  |  # |\n" << s;
 
-    for (int i = 0; i < RT_SIZE; i++)
-        if (RTEntry& ri = repetition_table[i]; ri.occurrences)
-        {
-            ss << "| " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << ri.key;
-            ss << " | " << std::setw(4) << std::setfill('0') << std::hex << std::uppercase << i;
-            ss << " | " << std::setw(2) << std::setfill(' ') << std::dec << (int(ri.occurrences)) << " |\n";
+    for (int i = 0; i < RT_SIZE; i++) {
+        if (RTEntry& ri = repetition_table[i]; ri.occurrences) {
+            os << "| " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << ri.key;
+            os << " | " << std::setw(4) << std::setfill('0') << std::hex << std::uppercase << i;
+            os << " | " << std::setw(2) << std::setfill(' ') << std::dec << (int(ri.occurrences)) << " |\n";
         }
+    }
 
-    return ss.str() + s;
+    return os.str() + s;
 }
 
 static void go() {
-    
+
     std::cout << "aa = " << (aa ? "true" : "false") << std::endl;
     std::cout << rep_table_to_string() << std::endl;
     return;
 
-
-
-
-    /*for (int material = 73; material >= 0; material--)
-    {
-        std::cout << material << ": " << (material*material*material/4096) << std::endl;
-    }
 
     int total_material;
 
@@ -179,11 +172,14 @@ static void go() {
 
     total_material = num_pawns + 3*num_minors + 5*num_rooks + 9*num_queens;
 
-    std::cout << "total_material: " << total_material << std::endl;
-    std::cout << static_eval<WHITE>() << std::endl;
-    std::cout << static_eval<BLACK>() << std::endl;
+    for (int mat = total_material - 5; mat >= 0; mat--)
+    {
+        std::cout << mat << ": " << (mat*mat*mat/4096) << std::endl;
+    }
 
-    uint32_t u1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    
+
+    /*uint32_t u1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     uint32_t u2[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     uint32_t u3[8];
 

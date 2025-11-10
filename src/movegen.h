@@ -75,10 +75,22 @@ ForceInline inline EMove* make_moves(EMove *list, Square from, Bitboard to)
     return list;
 }
 
-template<Color Us>
-MoveList<Us>::MoveList()
+template<Color Us, Color Them>
+MoveList<Us, Them>::MoveList()
 {
-    constexpr Color Them           = !Us;
+    /*const Bitboard FriendlyPawn   = bitboard<make_piece(Us, PAWN)>();
+    const Bitboard FriendlyKnight = bitboard<make_piece(Us, KNIGHT)>();
+    const Bitboard FriendlyBishop = bitboard<make_piece(Us, BISHOP)>();
+    const Bitboard FriendlyRook   = bitboard<make_piece(Us, ROOK)>();
+    const Bitboard FriendlyQueen  = bitboard<make_piece(Us, QUEEN)>();
+    const Bitboard FriendlyKing   = bitboard<make_piece(Us, KING)>();
+    const Bitboard OpponentPawn   = bitboard<make_piece(Them, PAWN)>();
+    const Bitboard OpponentKnight = bitboard<make_piece(Them, KNIGHT)>();
+    const Bitboard OpponentBishop = bitboard<make_piece(Them, BISHOP)>();
+    const Bitboard OpponentRook   = bitboard<make_piece(Them, ROOK)>();
+    const Bitboard OpponentQueen  = bitboard<make_piece(Them, QUEEN)>();
+    const Bitboard OpponentKing   = bitboard<make_piece(Them, KING)>();*/
+
     constexpr Piece FriendlyPawn   = make_piece(Us, PAWN);
     constexpr Piece FriendlyKnight = make_piece(Us, KNIGHT);
     constexpr Piece FriendlyBishop = make_piece(Us, BISHOP);
@@ -94,16 +106,15 @@ MoveList<Us>::MoveList()
 
     Bitboard opponent_rook_queen   = bb(OpponentQueen) | bb(OpponentRook);
     Bitboard opponent_bishop_queen = bb(OpponentQueen) | bb(OpponentBishop);
-    Square   ksq                   = lsb(bb(FriendlyKing));
-    Bitboard occupied              = Position::occupied() ^ square_bb(ksq);
+    Bitboard occupied              = Position::occupied();
 
     seen_by_enemy = pawn_attacks<Them>(bb(OpponentPawn)) | king_attacks(lsb(bb(OpponentKing)));
 
     for (Bitboard b = bb(OpponentKnight);    b; clear_lsb(b)) seen_by_enemy |= knight_attacks(lsb(b));
-    for (Bitboard b = opponent_bishop_queen; b; clear_lsb(b)) seen_by_enemy |= bishop_attacks(lsb(b), occupied);
-    for (Bitboard b = opponent_rook_queen;   b; clear_lsb(b)) seen_by_enemy |= rook_attacks  (lsb(b), occupied);
+    for (Bitboard b = opponent_bishop_queen; b; clear_lsb(b)) seen_by_enemy |= bishop_attacks(lsb(b), occupied ^ bb(FriendlyKing));
+    for (Bitboard b = opponent_rook_queen;   b; clear_lsb(b)) seen_by_enemy |= rook_attacks  (lsb(b), occupied ^ bb(FriendlyKing));
 
-    toggle_square(occupied, ksq);
+    Square ksq = lsb(bb(FriendlyKing));
 
     checkmask = knight_attacks(ksq) & bb(OpponentKnight) | pawn_attacks<Us>(ksq) & bb(OpponentPawn);
 
@@ -203,10 +214,9 @@ MoveList<Us>::MoveList()
     last += popcount(*u & 0x100000001000);
 }
 
-template<Color Us>
-CaptureList<Us>::CaptureList()
+template<Color Us, Color Them>
+CaptureList<Us, Them>::CaptureList()
 {
-    constexpr Color Them           = !Us;
     constexpr Piece FriendlyPawn   = make_piece(Us, PAWN);
     constexpr Piece FriendlyKnight = make_piece(Us, KNIGHT);
     constexpr Piece FriendlyBishop = make_piece(Us, BISHOP);

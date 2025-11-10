@@ -172,8 +172,8 @@ constexpr Bitboard square_bb(Square sq) {
     return 1ull << sq;
 }
 
-template<typename... squares>
-inline constexpr Bitboard square_bb(Square sq, squares... sqs) {
+template<typename... Squares>
+inline constexpr Bitboard square_bb(Square sq, Squares... sqs) {
     return square_bb(sq) | square_bb(sqs...);
 }
 

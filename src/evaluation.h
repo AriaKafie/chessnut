@@ -95,8 +95,8 @@ constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] =
 
 template<Color Perspective>
 constexpr int square_score(PieceType pt, Square sq) {
-    if constexpr (Perspective == WHITE) return square_scores[pt - 2][sq ^ 63];
-    else                                return square_scores[pt - 2][sq];
+    if constexpr (Perspective == WHITE) return square_scores[pt - PAWN][sq ^ 63];
+    else                                return square_scores[pt - PAWN][sq];
 }
 
 /*constexpr int pawn_end_squares[] = {
@@ -138,17 +138,18 @@ int midgame()
     constexpr Piece OpponentPawn = make_piece(Them, PAWN);
     constexpr Piece OpponentKing = make_piece(Them, KING);
 
-    score += king_safety<Us>(lsb(bb(FriendlyKing)), bb(FriendlyPawn)) - king_safety<Them>(lsb(bb(OpponentKing)), bb(OpponentPawn));
+    score += king_safety<Us  >(lsb(bb(FriendlyKing)), bb(FriendlyPawn))
+           - king_safety<Them>(lsb(bb(OpponentKing)), bb(OpponentPawn));
 
     constexpr Bitboard Rank567 = relative_rank(Us, RANK_5, RANK_6, RANK_7);
     constexpr Bitboard Rank234 = relative_rank(Us, RANK_2, RANK_3, RANK_4);
 
-    score += 4 * (popcount(bb(FriendlyPawn) & Rank567) -  popcount(bb(OpponentPawn) & Rank234));
+    score += 4 * (popcount(bb(FriendlyPawn) & Rank567) - popcount(bb(OpponentPawn) & Rank234));
 
     for (PieceType pt : { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING })
     {
         for (Bitboard b = bitboards[make_piece(Us, pt)]; b; clear_lsb(b))
-            score += square_score<Us>(pt, lsb(b)); // unroll this loop? _m256, pdep
+            score += square_score<Us>(pt, lsb(b));
 
         for (Bitboard b = bitboards[make_piece(Them, pt)]; b; clear_lsb(b))
             score -= square_score<Them>(pt, lsb(b));
@@ -160,7 +161,7 @@ int midgame()
     score += 8  * (popcount(friendly_passers & Rank234) - popcount(opponent_passers & Rank567));
     score += 16 * (popcount(friendly_passers & Rank567) - popcount(opponent_passers & Rank234));
 
-    if (aa && std::abs(material_score) >= 300)
+    /*if (aa && std::abs(material_score) >= 300)
     {
         int total_material;
 
@@ -186,7 +187,7 @@ int midgame()
         {
             score += complexity;
         }
-    }
+    }*/
         
     return score;
 }

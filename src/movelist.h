@@ -8,7 +8,7 @@
 const int MAX_MOVES    = 128;
 const int MAX_CAPTURES = 32;
 
-template<Color Us>
+template<Color Us, Color Them = !Us>
 class MoveList {
 
 public:
@@ -30,7 +30,7 @@ private:
     int  partition(int low, int high);
 };
 
-template<Color Us>
+template<Color Us, Color Them = !Us>
 class CaptureList {
 
 public:

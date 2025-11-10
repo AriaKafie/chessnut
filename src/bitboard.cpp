@@ -117,12 +117,12 @@ void Bitboards::init()
                                         rank_distance(s1, D4) + file_distance(s1, D4),
                                         rank_distance(s1, D5) + file_distance(s1, D5) });
 
-        for (Square s2 = H1; s2 <= A8; s2++)
-            if (PieceType pt; attacks_bb(pt=BISHOP, s1, 0) & square_bb(s2) || attacks_bb(pt=ROOK, s1, 0) & square_bb(s2))
-            {
+        for (Square s2 = H1; s2 <= A8; s2++) {
+            if (PieceType pt; attacks_bb(pt=BISHOP, s1, 0) & square_bb(s2) || attacks_bb(pt=ROOK, s1, 0) & square_bb(s2)) {
                 CheckRay [s1][s2] = attacks_bb(pt, s1, square_bb(s2)) & attacks_bb(pt, s2, square_bb(s1)) | square_bb(s2);
                 AlignMask[s1][s2] = attacks_bb(pt, s1, 0)             & attacks_bb(pt, s2, 0)             | square_bb(s1, s2);
             }
+        }
 
         for (Direction d : { NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST })
             KingAttacks[s1] |= safe_step(s1, d);
@@ -149,10 +149,12 @@ void Bitboards::init()
     {
         Bitboard relevancy = relative_rank(c, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7);
 #ifdef BMI
-        Bitboard masks[4] = { relevancy & relative_file(c, FILE_G, FILE_H),
-                              relevancy & relative_file(c, FILE_E, FILE_F),
-                              relevancy & relative_file(c, FILE_C, FILE_D),
-                              relevancy & relative_file(c, FILE_A, FILE_B), };
+        Bitboard masks[4] = {
+            relevancy & relative_file(c, FILE_G, FILE_H),
+            relevancy & relative_file(c, FILE_E, FILE_F),
+            relevancy & relative_file(c, FILE_C, FILE_D),
+            relevancy & relative_file(c, FILE_A, FILE_B)
+        };
 #else
         Bitboard masks[4] = {};
 
@@ -249,9 +251,9 @@ void Bitboards::init()
             {
                 Bitboard king_shield = pdep(KMagics[c][ksq].mask, i);
 #ifdef BMI
-                int &score = KMagics[c][ksq].ptr[i];
+                int& score = KMagics[c][ksq].ptr[i];
 #else
-                int &score = KMagics[c][ksq].ptr[king_shield * KMagics[c][ksq].magic >> 58];
+                int& score = KMagics[c][ksq].ptr[king_shield * KMagics[c][ksq].magic >> 58];
 #endif
                 score = 0;
                 const int MIN_SCORE = -45, MAX_SCORE = 45;
