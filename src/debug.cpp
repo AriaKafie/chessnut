@@ -93,8 +93,16 @@ void Debug::perft(std::istringstream& is)
                                                     : PerfT<true, BLACK>(depth);
         auto end   = std::chrono::steady_clock::now();
 
-        std::cout << "\nnodes searched: " << result << "\nin "
-                  << (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000) << " ms\n" << std::endl;
+        double elapsed = std::chrono::duration<double>(end - start).count();
+
+        printf(R"(
+Nodes searched: %llu
+
+===========================
+Total time (s) : %.3f
+Nodes searched : %llu
+Nodes/second   : %llu)""\n\n",
+        result, elapsed, result, uint64_t(result / elapsed));
     }
     else
     {
@@ -155,8 +163,6 @@ static void go() {
 
     std::cout << "aa = " << (aa ? "true" : "false") << std::endl;
     std::cout << rep_table_to_string() << std::endl;
-    return;
-
 
     int total_material;
 
@@ -170,11 +176,15 @@ static void go() {
     int num_rooks  = popcount(rooks);
     int num_queens = popcount(queens);
 
-    total_material = num_pawns + 3*num_minors + 5*num_rooks + 9*num_queens;
+    total_material = num_pawns + 3*num_minors + 5*(num_rooks-1) + 9*num_queens;
 
-    for (int mat = total_material - 5; mat >= 0; mat--)
+    auto complexity = [](int i) -> int {
+        return i*i*i/2048;
+    };
+
+    for (int mat = 0; mat <= total_material; mat++)
     {
-        std::cout << mat << ": " << (mat*mat*mat/4096) << std::endl;
+        std::cout << "material=" << mat << ": " << complexity(mat) << std::endl;
     }
 
     

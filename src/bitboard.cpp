@@ -6,6 +6,7 @@
     #include <string.h>
     #include <random>
 #endif
+#include <sstream>
 
 Bitboard pdep(Bitboard mask, int src)
 {
@@ -309,17 +310,20 @@ void Bitboards::init()
         }
 }
 
-std::string to_string(Bitboard b)
+std::string to_string(Bitboard bb)
 {
-    std::string l = "+---+---+---+---+---+---+---+---+\n", s = l;
+    std::ostringstream os;
+    std::string l = "+---+---+---+---+---+---+---+---+";
 
-    for (Bitboard bit = square_bb(A8); bit; bit >>= 1)
+    for (Rank r = RANK_8; r >= RANK_1; r--)
     {
-        s += bit & b ? "| @ " : "|   ";
+        os << l << "\n";
 
-        if (bit & FILE_HBB)
-            s += "|\n" + l;
+        for (File f = FILE_A; f >= FILE_H; f--)
+            os << "| " << (bb & square_bb(make_square(r, f)) ? "@" : " ") << " ";
+
+        os << "|\n";
     }
 
-    return s + "\n";
+    return os.str() + l;
 }

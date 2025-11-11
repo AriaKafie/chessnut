@@ -5,8 +5,7 @@
 TTEntry transposition_table[TT_SIZE];
 RTEntry repetition_table[RT_SIZE];
 
-bool RepetitionTable::draw()
-{
+bool RepetitionTable::draw() {
     RTEntry *r = &repetition_table[Position::key() & (RT_SIZE - 1)];
     return r->key == Position::key() && r->occurrences >= 3;
 }
@@ -26,10 +25,8 @@ void RepetitionTable::push()
     }
 }
 
-void RepetitionTable::pop()
-{
+void RepetitionTable::pop() {
     RTEntry *r = &repetition_table[Position::key() & (RT_SIZE - 1)];
-
     if (r->key == Position::key())
         r->occurrences--;
 }
@@ -79,8 +76,7 @@ void TranspositionTable::record(uint8_t depth, BoundType flag, int eval, Move be
     e->best_move = best_move;
 }
 
-Move TranspositionTable::lookup_move()
-{
+Move TranspositionTable::lookup_move() {
     TTEntry *e = &transposition_table[Position::key() & (TT_SIZE - 1)];
     return e->key == Position::key() ? e->best_move : NO_MOVE;
 }

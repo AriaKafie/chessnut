@@ -115,7 +115,7 @@ enum {
 };
 
 constexpr void set_score(EMove& em, Score score) {
-    em += EMove(score) << 16;
+    em += score << 16;
 }
 
 constexpr Score score_of(EMove em) {
