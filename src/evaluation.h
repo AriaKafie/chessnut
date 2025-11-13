@@ -5,6 +5,86 @@
 #include "position.h"
 #include "types.h"
 
+inline int psq[COLOR_NB][KING + 1][SQUARE_NB];
+
+inline void eval_init() {
+    int psq_base[KING + 1][SQUARE_NB] = {
+        /*endgame king*/ {
+            -50,-40,-30,-20,-20,-30,-40,-50,
+            -30,-20,-10,  0,  0,-10,-20,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-30,  0,  0,  0,  0,-30,-30,
+            -50,-30,-30,-30,-30,-30,-30,-50
+        }, {}, /*pawn*/ {
+            50, 50, 50, 50, 50, 50, 50, 50,
+            50, 50, 50, 50, 50, 50, 50, 50,
+            10, 10, 20, 30, 30, 20, 10, 10,
+            5,   5, 10, 25, 25, 10,  5,  5,
+            0,   0,  0, 20, 20,  0,  0,  0,
+            5,  -5,-10,  0,  0,-10, -5,  5,
+            5,  10, 10,-20,-20, 10, 10,  5,
+            0,   0,  0,  0,  0,  0,  0,  0
+        }, /*knight*/ {
+            -50,-40,-30,-30,-30,-30,-40,-50,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -30,  0, 10, 15, 15, 10,  0,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  0, 15, 20, 20, 15,  0,-30,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -40,-20,  0,  5,  5,  0,-20,-40,
+            -50,-40,-30,-30,-30,-30,-40,-50,
+        }, /*bishop*/ {
+            -20,-10,-10,-10,-10,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0,  5, 10, 10,  5,  0,-10,
+            -10,  5,  5, 10, 10,  5,  5,-10,
+            -10,  0, 10, 10, 10, 10,  0,-10,
+            -10, 10, 10, 10, 10, 10, 10,-10,
+            -10,  5,  0,  0,  0,  0,  5,-10,
+            -20,-10,-10,-10,-10,-10,-10,-20,
+        }, /*rook*/ {
+             0,  0,  0,  0,  0,  0,  0,  0,
+             5, 10, 10, 10, 10, 10, 10,  5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  5,  5,  0,  0, -5
+        }, /*queen*/ {
+            -20,-10,-10, -5, -5,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+             -5,  0,  5,  5,  5,  5,  0, -5,
+              0,  0,  5,  5,  5,  5,  0, -5,
+            -10,  5,  5,  5,  5,  5,  0,-10,
+            -10,  0,  5,  0,  0,  0,  0,-10,
+            -20,-10,-10, -5, -5,-10,-10,-20
+        }, /*king*/ {
+            -30,-40,-40,-50,-50,-40,-40,-30,
+            -30,-40,-40,-50,-50,-40,-40,-30,
+            -30,-40,-40,-50,-50,-40,-40,-30,
+            -30,-40,-40,-50,-50,-40,-40,-30,
+            -20,-30,-30,-40,-40,-30,-30,-20,
+            -10,-20,-20,-20,-20,-20,-20,-10,
+             20, 20,  0,  0,  0,  0, 20, 20,
+             20, 30, 10,  0,  0, 10, 30, 20
+        }
+    };
+
+    for (Color c : { WHITE, BLACK })
+        for (PieceType pt : { 0, int(PAWN), int(KNIGHT), int(BISHOP), int(ROOK), int(QUEEN), int(KING) })
+        {
+            Square sq = A8;
+
+            for (int i : psq_base[pt])
+                psq[c][pt][relative_square(sq--, c)] = i;
+        }
+}
+
 constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 
 inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
@@ -28,96 +108,13 @@ Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
 #endif
 }
 
-constexpr int square_scores[PIECE_TYPE_NB][SQUARE_NB] =
-{
-// scored from black's pov (promotion = 0-7) with a maximizer perspective
-    { // pawn
-        50, 50, 50, 50, 50, 50, 50, 50,
-        50, 50, 50, 50, 50, 50, 50, 50,
-        10, 10, 20, 30, 30, 20, 10, 10,
-        5,  5, 10, 25, 25, 10,  5,  5,
-        0,  0,  0, 20, 20,  0,  0,  0,
-        5, -5,-10,  0,  0,-10, -5,  5,
-        5, 10, 10,-20,-20, 10, 10,  5,
-        0,  0,  0,  0,  0,  0,  0,  0
-    },
-    { // knight
-        -50,-40,-30,-30,-30,-30,-40,-50,
-        -40,-20,  0,  0,  0,  0,-20,-40,
-        -30,  0, 10, 15, 15, 10,  0,-30,
-        -30,  5, 15, 20, 20, 15,  5,-30,
-        -30,  0, 15, 20, 20, 15,  0,-30,
-        -30,  5, 10, 15, 15, 10,  5,-30,
-        -40,-20,  0,  5,  5,  0,-20,-40,
-        -50,-40,-30,-30,-30,-30,-40,-50,
-    },
-    { // bishop
-        -20,-10,-10,-10,-10,-10,-10,-20,
-        -10,  0,  0,  0,  0,  0,  0,-10,
-        -10,  0,  5, 10, 10,  5,  0,-10,
-        -10,  5,  5, 10, 10,  5,  5,-10,
-        -10,  0, 10, 10, 10, 10,  0,-10,
-        -10, 10, 10, 10, 10, 10, 10,-10,
-        -10,  5,  0,  0,  0,  0,  5,-10,
-        -20,-10,-10,-10,-10,-10,-10,-20,
-    },
-    { // rook
-        0,  0,  0,  0,  0,  0,  0,  0,
-        5, 10, 10, 10, 10, 10, 10,  5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  5,  5,  0,  0, -5
-    },
-    { // queen
-        -20,-10,-10, -5, -5,-10,-10,-20,
-        -10,  0,  0,  0,  0,  0,  0,-10,
-        -10,  0,  5,  5,  5,  5,  0,-10,
-        -5,  0,  5,  5,  5,  5,  0, -5,
-        0,  0,  5,  5,  5,  5,  0, -5,
-        -10,  5,  5,  5,  5,  5,  0,-10,
-        -10,  0,  5,  0,  0,  0,  0,-10,
-        -20,-10,-10, -5, -5,-10,-10,-20
-    },
-    { // king
-        -6,-8,-8,-10,-10,-8,-8,-6,
-        -6,-8,-8,-10,-10,-8,-8,-6,
-        -6,-8,-8,-10,-10,-8,-8,-6,
-        -6,-8,-8,-10,-10,-8,-8,-6,
-        -4,-6,-6,-8, -8, -6,-6,-4,
-        -2,-4,-4,-4, -4, -4,-4,-2,
-        -2,-2,-1,-1, -1, -1,-2,-2,
-        0, 0, 0, 0,  0,  0, 0, 0,
-    }
-};
-
 template<Color Perspective>
-constexpr int square_score(PieceType pt, Square sq) {
-    if constexpr (Perspective == WHITE) return square_scores[pt - PAWN][sq ^ 63];
-    else                                return square_scores[pt - PAWN][sq];
+constexpr int psq_score(PieceType pt, Square sq) {
+    return psq[Perspective][pt][sq];
 }
 
-/*constexpr int pawn_end_squares[] = {
-
-};*/
-
-constexpr int end_king_squares[] =
-{
-    -10,-8,-6,-4,-4,-6,-8,-10,
-    -6, -4,-2, 0, 0,-2,-4,-6,
-    -6, -2, 4, 6, 6, 4,-2,-6,
-    -6, -2, 6, 8, 8, 6,-2,-6,
-    -6, -2, 6, 8, 8, 6,-2,-6,
-    -6, -2, 4, 6, 6, 4,-2,-6,
-    -6, -6, 0, 0, 0, 0,-6,-6,
-    -10,-6,-6,-6,-6,-6,-6,-10,
-};
-
 template<Color Us>
-int material_count()
-{
+int material_count() {
     return
         100 * (popcount(bitboard<make_piece(Us, PAWN  )>()) - popcount(bitboard<make_piece(!Us, PAWN  )>())) +
         300 * (popcount(bitboard<make_piece(Us, KNIGHT)>()) - popcount(bitboard<make_piece(!Us, KNIGHT)>())) +
@@ -126,37 +123,36 @@ int material_count()
         900 * (popcount(bitboard<make_piece(Us, QUEEN )>()) - popcount(bitboard<make_piece(!Us, QUEEN )>()));
 }
 
-template<Color Us>
+template<Color Us, Color Them = !Us>
 int midgame()
 {
     int material_score = material_count<Us>();
     int score = material_score;
 
-    constexpr Color Them         = !Us;
-    constexpr Piece FriendlyPawn = make_piece(Us, PAWN);
-    constexpr Piece FriendlyKing = make_piece(Us, KING);
-    constexpr Piece OpponentPawn = make_piece(Them, PAWN);
-    constexpr Piece OpponentKing = make_piece(Them, KING);
+    Bitboard FriendlyPawn = bitboard<make_piece(Us,   PAWN)>();
+    Bitboard OpponentPawn = bitboard<make_piece(Them, PAWN)>();
+    Bitboard FriendlyKing = bitboard<make_piece(Us,   KING)>();
+    Bitboard OpponentKing = bitboard<make_piece(Them, KING)>();
 
-    score += king_safety<Us  >(lsb(bb(FriendlyKing)), bb(FriendlyPawn))
-           - king_safety<Them>(lsb(bb(OpponentKing)), bb(OpponentPawn));
+    score += king_safety<Us  >(bsf(FriendlyKing), FriendlyPawn)
+           - king_safety<Them>(bsf(OpponentKing), OpponentPawn);
 
     constexpr Bitboard Rank567 = relative_rank(Us, RANK_5, RANK_6, RANK_7);
     constexpr Bitboard Rank234 = relative_rank(Us, RANK_2, RANK_3, RANK_4);
 
-    score += 4 * (popcount(bb(FriendlyPawn) & Rank567) - popcount(bb(OpponentPawn) & Rank234));
+    score += 4 * (popcount(FriendlyPawn & Rank567) - popcount(OpponentPawn & Rank234));
 
     for (PieceType pt : { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING })
     {
         for (Bitboard b = bitboards[make_piece(Us, pt)]; b; clear_lsb(b))
-            score += square_score<Us>(pt, lsb(b));
+            score += psq_score<Us>(pt, bsf(b));
 
         for (Bitboard b = bitboards[make_piece(Them, pt)]; b; clear_lsb(b))
-            score -= square_score<Them>(pt, lsb(b));
+            score -= psq_score<Them>(pt, bsf(b));
     }
 
-    Bitboard friendly_passers = passers<Us  >(bb(FriendlyPawn), bb(OpponentPawn));
-    Bitboard opponent_passers = passers<Them>(bb(OpponentPawn), bb(FriendlyPawn));
+    Bitboard friendly_passers = passers<Us  >(FriendlyPawn, OpponentPawn);
+    Bitboard opponent_passers = passers<Them>(OpponentPawn, FriendlyPawn);
 
     score += 8  * (popcount(friendly_passers & Rank234) - popcount(opponent_passers & Rank567));
     score += 16 * (popcount(friendly_passers & Rank567) - popcount(opponent_passers & Rank234));
@@ -192,17 +188,16 @@ int midgame()
     return score;
 }
 
-template<Color Us>
+template<Color Us, Color Them = !Us>
 int endgame()
 {
     int score = material_count<Us>();
 
-    constexpr Color Them         = !Us;
-    constexpr Piece FriendlyKing = make_piece(Us,   KING);
-    constexpr Piece OpponentKing = make_piece(Them, KING);
+    Square friendly_ksq = bsf(bitboard<make_piece(Us,   KING)>());
+    Square opponent_ksq = bsf(bitboard<make_piece(Them, KING)>());
 
-    score += end_king_squares[lsb(bb(FriendlyKing))];
-    score -= end_king_squares[lsb(bb(OpponentKing))];
+    score += psq_score<Us  >(0, friendly_ksq);
+    score -= psq_score<Them>(0, opponent_ksq);
 
     constexpr Bitboard Rank2 = relative_rank(Us, RANK_2);
     constexpr Bitboard Rank3 = relative_rank(Us, RANK_3);
@@ -236,21 +231,23 @@ int endgame()
     return score;
 }
 
-template<Color Us>
+template<Color Us, Color Them = !Us>
 int mopup()
 {
     int score = material_count<Us>();
 
-    constexpr Piece FriendlyKing = make_piece( Us, KING);
-    constexpr Piece OpponentKing = make_piece(!Us, KING);
+    Square friendly_ksq = bsf(bitboard<make_piece(Us,   KING)>());
+    Square opponent_ksq = bsf(bitboard<make_piece(Them, KING)>());
 
-    return score > 0 ? score + 10 * distance_from_center(lsb(bb(OpponentKing))) + 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(OpponentKing))))
-                     : score - 10 * distance_from_center(lsb(bb(FriendlyKing))) - 4 * (14 - square_distance(lsb(bb(FriendlyKing)), lsb(bb(OpponentKing))));
+    return score > 0
+        ? score + 10 * distance_from_center(opponent_ksq) + 4 * (14 - square_distance(friendly_ksq, opponent_ksq))
+        : score - 10 * distance_from_center(friendly_ksq) - 4 * (14 - square_distance(friendly_ksq, opponent_ksq));
 }
 
 template<Color Perspective>
 int static_eval() {
-    return Position::midgame() ? midgame<Perspective>() : Position::endgame() ? endgame<Perspective>() : mopup<Perspective>();
+    return Position::midgame() ? midgame<Perspective>()
+         : Position::endgame() ? endgame<Perspective>() : mopup<Perspective>();
 }
 
 #endif

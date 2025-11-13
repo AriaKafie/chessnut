@@ -163,6 +163,7 @@ static void go() {
 
     std::cout << "aa = " << (aa ? "true" : "false") << std::endl;
     std::cout << rep_table_to_string() << std::endl;
+    return;
 
     int total_material;
 

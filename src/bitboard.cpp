@@ -173,7 +173,7 @@ void Bitboards::init()
                 Bitboard spans = 0;
 
                 for (Bitboard enemy_pawn = pdep(masks[i], j); enemy_pawn; clear_lsb(enemy_pawn)) {
-                    Square s = lsb(enemy_pawn);
+                    Square s = bsf(enemy_pawn);
                     spans |= (file_bb(s) | file_bb(s + EAST) & ~FILE_ABB | file_bb(s + WEST) & ~FILE_HBB) & mask(s, relative_direction(c, SOUTH));
                 }
 
@@ -288,7 +288,7 @@ void Bitboards::init()
                 };
 
                 Bitboard shield_mask  = KMagics[c][ksq].mask;
-                Bitboard file_right   = file_bb(lsb(shield_mask));
+                Bitboard file_right   = file_bb(bsf(shield_mask));
                 Bitboard file_mid     = file_right << 1;
                 Bitboard file_left    = file_right << 2;
                 int      king_file    = ksq & 7;
@@ -301,7 +301,7 @@ void Bitboards::init()
                 {
                     int index = (c == WHITE) ? i : ((i < 3) ? (i + 3) : (i - 3));
 
-                    if (king_shield & square_bb(lsb(shield_mask)))
+                    if (king_shield & square_bb(bsf(shield_mask)))
                         score += pawn_weights[king_file][index];
                 }
 

@@ -128,8 +128,8 @@ void MoveList<Us, Them>::sort(Move ttmove, SearchInfo *si)
                 score = BAD_QUIET_BASE;
 
             score += Position::endgame() && pt == KING
-                ? (end_king_squares[to] - end_king_squares[from]) / 2
-                : (square_score<Us>(pt, to) - square_score<Us>(pt, from)) / 2;
+                ? (psq_score<Us>(0,  to) - psq_score<Us>(0,  from)) / 2 //(end_king_squares[to] - end_king_squares[from]) / 2
+                : (psq_score<Us>(pt, to) - psq_score<Us>(pt, from)) / 2;
         }
 
         if (type_of(m) == PROMOTION)

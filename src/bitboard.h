@@ -12,7 +12,7 @@
 
     #define pext(b, m) _pext_u64(b, m)
     #define popcount(b) _mm_popcnt_u64(b)
-    #define lsb(b) _tzcnt_u64(b)
+    #define bsf(b) _tzcnt_u64(b)
 #else
 
 inline const int bitscan[64] {
@@ -26,8 +26,8 @@ inline const int bitscan[64] {
     16, 51, 5, 25, 50, 24, 49, 48,
 };
 
-inline int lsb(Bitboard b) {
-    return bitscan[(b & -b) * 0x756e2f651a4fcc2ull >> 58];
+inline int bsf(Bitboard bb) {
+    return bitscan[(bb & -bb) * 0x756e2f651a4fcc2ull >> 58];
 }
 
 inline unsigned char popcnt16[1 << 16];

@@ -61,7 +61,7 @@ enum {
     SQUARE_NB = 64, NO_SQ = 64
 };
 
-enum {
+enum : uint8_t {
     NO_PIECE, PIECE_TYPE_NB = 6, PIECE_NB = 16,
       PAWN =        2,   KNIGHT,   BISHOP,   ROOK,   QUEEN,   KING,
     W_PAWN =     PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
@@ -124,6 +124,10 @@ constexpr Score score_of(EMove em) {
 
 constexpr Direction relative_direction(Color c, Direction d) {
     return c == WHITE ? d : -d;
+}
+
+constexpr Square relative_square(Square sq, Color c) {
+    return c == WHITE ? sq : sq ^ 63;
 }
 
 constexpr Piece make_piece(Color c, PieceType pt) {

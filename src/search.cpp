@@ -30,6 +30,8 @@ void Search::init()
 
     for (int i = 0; i < MAX_PLIES; i++)
         reductions[i] = int(2954 / 128.0 * std::log(i));
+
+    eval_init();
 }
 
 void handle_search_stop(uint64_t thinktime)

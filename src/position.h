@@ -83,7 +83,7 @@ bool in_check()
     constexpr Piece EnemyRook   = make_piece(Them, ROOK);
     constexpr Piece EnemyQueen  = make_piece(Them, QUEEN);
 
-    Square ksq = lsb(bitboard<make_piece(SideToMove, KING)>());
+    Square ksq = bsf(bitboard<make_piece(SideToMove, KING)>());
 
     return
         pawn_attacks<SideToMove>(ksq)   &  bb(EnemyPawn)
