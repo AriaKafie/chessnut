@@ -161,7 +161,6 @@ std::string rep_table_to_string()
 
 static void go() {
 
-    std::cout << "aa = " << (aa ? "true" : "false") << std::endl;
     std::cout << rep_table_to_string() << std::endl;
     return;
 
@@ -180,7 +179,7 @@ static void go() {
     total_material = num_pawns + 3*num_minors + 5*(num_rooks-1) + 9*num_queens;
 
     auto complexity = [](int i) -> int {
-        return i*i*i/2048;
+        return i*i*i/512;
     };
 
     for (int mat = 0; mat <= total_material; mat++)

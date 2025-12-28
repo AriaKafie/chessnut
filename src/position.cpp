@@ -6,6 +6,7 @@
 #include <random>
 #include <sstream>
 
+#include "evaluation.h"
 #include "transpositiontable.h"
 #include "uci.h"
 

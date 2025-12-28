@@ -89,8 +89,6 @@ constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
 
 inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
 
-inline bool aa;
-
 template<Color Us>
 Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
 #ifdef BMI
@@ -109,7 +107,7 @@ Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
 }
 
 template<Color Perspective>
-constexpr int psq_score(PieceType pt, Square sq) {
+int psq_score(PieceType pt, Square sq) {
     return psq[Perspective][pt][sq];
 }
 
@@ -126,21 +124,20 @@ int material_count() {
 template<Color Us, Color Them = !Us>
 int midgame()
 {
-    int material_score = material_count<Us>();
-    int score = material_score;
+    int score = material_count<Us>();
 
-    Bitboard FriendlyPawn = bitboard<make_piece(Us,   PAWN)>();
-    Bitboard OpponentPawn = bitboard<make_piece(Them, PAWN)>();
-    Bitboard FriendlyKing = bitboard<make_piece(Us,   KING)>();
-    Bitboard OpponentKing = bitboard<make_piece(Them, KING)>();
+    Bitboard friendly_pawn = bitboard<make_piece(Us,   PAWN)>();
+    Bitboard opponent_pawn = bitboard<make_piece(Them, PAWN)>();
+    Bitboard friendly_king = bitboard<make_piece(Us,   KING)>();
+    Bitboard opponent_king = bitboard<make_piece(Them, KING)>();
 
-    score += king_safety<Us  >(bsf(FriendlyKing), FriendlyPawn)
-           - king_safety<Them>(bsf(OpponentKing), OpponentPawn);
+    score += king_safety<Us  >(bsf(friendly_king), friendly_pawn)
+           - king_safety<Them>(bsf(opponent_king), opponent_pawn);
 
     constexpr Bitboard Rank567 = relative_rank(Us, RANK_5, RANK_6, RANK_7);
     constexpr Bitboard Rank234 = relative_rank(Us, RANK_2, RANK_3, RANK_4);
 
-    score += 4 * (popcount(FriendlyPawn & Rank567) - popcount(OpponentPawn & Rank234));
+    score += 4 * (popcount(friendly_pawn & Rank567) - popcount(opponent_pawn & Rank234));
 
     for (PieceType pt : { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING })
     {
@@ -151,40 +148,12 @@ int midgame()
             score -= psq_score<Them>(pt, bsf(b));
     }
 
-    Bitboard friendly_passers = passers<Us  >(FriendlyPawn, OpponentPawn);
-    Bitboard opponent_passers = passers<Them>(OpponentPawn, FriendlyPawn);
+    Bitboard friendly_passers = passers<Us  >(friendly_pawn, opponent_pawn);
+    Bitboard opponent_passers = passers<Them>(opponent_pawn, friendly_pawn);
 
     score += 8  * (popcount(friendly_passers & Rank234) - popcount(opponent_passers & Rank567));
     score += 16 * (popcount(friendly_passers & Rank567) - popcount(opponent_passers & Rank234));
 
-    /*if (aa && std::abs(material_score) >= 300)
-    {
-        int total_material;
-
-        Bitboard pawns  = bb(W_PAWN)   | bb(B_PAWN);
-        Bitboard minors = bb(W_KNIGHT) | bb(B_KNIGHT) | bb(W_BISHOP) | bb(B_BISHOP);
-        Bitboard rooks  = bb(W_ROOK)   | bb(B_ROOK);
-        Bitboard queens = bb(W_QUEEN)  | bb(B_QUEEN);
-
-        int num_pawns  = popcount(pawns);
-        int num_minors = popcount(minors);
-        int num_rooks  = popcount(rooks);
-        int num_queens = popcount(queens);
-
-        total_material = num_pawns + 3*num_minors + 5*num_rooks + 9*num_queens;
-
-        int complexity = total_material*total_material/64;
-
-        if (material_score >= 300)
-        {
-            score -= complexity;
-        }
-        else
-        {
-            score += complexity;
-        }
-    }*/
-        
     return score;
 }
 

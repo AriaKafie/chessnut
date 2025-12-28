@@ -196,12 +196,15 @@ void do_move(Move m)
 
     constexpr Direction Up = Us == WHITE ? NORTH : SOUTH;
 
-    Square from = from_sq(m), to = to_sq(m);
+    Square from    = from_sq(m);
+    Square to      = to_sq(m);
+    Piece  pc      = piece_on(from);
+    Piece  capture = piece_on(to);
 
     memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
     state_ptr++;
-    state_ptr->captured = piece_on(to);
-    state_ptr->ep_sq = (from + Up) * !(from ^ to ^ 16 | piece_on(from) ^ Pawn);
+    state_ptr->captured = capture;
+    state_ptr->ep_sq = (from + Up) * !(from ^ to ^ 16 | pc ^ Pawn);
 
     Bitboard zero_to = ~square_bb(to);
     Bitboard from_to =  square_bb(from, to);
@@ -209,9 +212,9 @@ void do_move(Move m)
     switch (type_of(m))
     {
     case NORMAL:
-        state_ptr->key ^= Zobrist::hash[board[from]][from]
-                       ^  Zobrist::hash[board[from]][to]
-                       ^  Zobrist::hash[board[to]][to]
+        state_ptr->key ^= Zobrist::hash[pc][from]
+                       ^  Zobrist::hash[pc][to]
+                       ^  Zobrist::hash[capture][to]
                        ^  Zobrist::Side;
 
         bitboards[board[to]]   &= zero_to;
@@ -219,7 +222,7 @@ void do_move(Move m)
         bitboards[board[from]] ^= from_to;
         bitboards[Us]          ^= from_to;
 
-        board[to]   = board[from];
+        board[to]   = pc;
         board[from] = NO_PIECE;
 
         update_castling_rights<Us>();
@@ -233,7 +236,7 @@ void do_move(Move m)
 
         state_ptr->key ^= Zobrist::hash[Pawn][from]
                        ^  Zobrist::hash[promotion][to]
-                       ^  Zobrist::hash[board[to]][to]
+                       ^  Zobrist::hash[capture][to]
                        ^  Zobrist::Side;
 
         bitboards[board[to]] &= zero_to;

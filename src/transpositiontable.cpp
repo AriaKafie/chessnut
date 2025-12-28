@@ -7,7 +7,7 @@ RTEntry repetition_table[RT_SIZE];
 
 bool RepetitionTable::draw() {
     RTEntry *r = &repetition_table[Position::key() & (RT_SIZE - 1)];
-    return r->key == Position::key() && r->occurrences >= 3;
+    return r->key == Position::key() && r->occurrences > 1;
 }
 
 void RepetitionTable::push()
@@ -37,18 +37,18 @@ void RepetitionTable::clear() {
 
 int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root)
 {
-    if (RTEntry *r = &repetition_table[Position::key() & (RT_SIZE - 1)]; r->key == Position::key() && r->occurrences > 1)
-        return NO_EVAL;
-
     TTEntry *entry = &transposition_table[Position::key() & (TT_SIZE - 1)];
-
-    int eval = entry->eval;
-
-    eval -= ply_from_root * is_win(eval);
-    eval += ply_from_root * is_loss(eval);
 
     if (entry->key == Position::key() && entry->depth >= depth)
     {
+        int eval = entry->eval;
+
+        if (is_win(eval)) {
+            eval -= ply_from_root;
+        } else if (is_loss(eval)) {
+            eval += ply_from_root;
+        }
+
         if (entry->flag == EXACT)
             return eval;
 
@@ -64,8 +64,11 @@ int TranspositionTable::lookup(int depth, int alpha, int beta, int ply_from_root
 
 void TranspositionTable::record(uint8_t depth, BoundType flag, int eval, Move best_move, int ply_from_root)
 {
-    eval += ply_from_root * is_win(eval);
-    eval -= ply_from_root * is_loss(eval);
+    if (is_win(eval)) {
+        eval += ply_from_root;
+    } else if (is_loss(eval)) {
+        eval -= ply_from_root;
+    }
 
     TTEntry *e = &transposition_table[Position::key() & (TT_SIZE - 1)];
 
