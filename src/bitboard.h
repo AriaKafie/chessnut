@@ -8,38 +8,43 @@
 #include "types.h"
 
 #ifdef BMI
-    #include <immintrin.h>
-
-    #define pext(b, m) _pext_u64(b, m)
-    #define popcount(b) _mm_popcnt_u64(b)
-    #define bsf(b) _tzcnt_u64(b)
+#include <immintrin.h>
+inline uint64_t pext(uint64_t bits, uint64_t mask) {
+    return _pext_u64(bits, mask);
+}
 #else
+inline unsigned char popcnt16[1 << 16];
+#endif
 
-inline const int bitscan[64] {
-    63, 0, 58, 1, 59, 19, 36, 2,
-    60, 43, 31, 20, 54, 37, 3, 46,
-    61, 34, 41, 44, 32, 8, 10, 21,
-    55, 28, 38, 12, 15, 4, 23, 47,
-    62, 57, 18, 35, 42, 30, 53, 45,
-    33, 40, 7, 9, 27, 11, 14, 22,
-    56, 17, 29, 52, 39, 6, 26, 13,
-    16, 51, 5, 25, 50, 24, 49, 48,
-};
-
-inline int bsf(Bitboard bb) {
+inline Square bsf(Bitboard bb) {
+#ifdef BMI
+    return _tzcnt_u64(bb);
+#else
+    static constexpr int bitscan[64] = {
+        63, 0, 58, 1, 59, 19, 36, 2,
+        60, 43, 31, 20, 54, 37, 3, 46,
+        61, 34, 41, 44, 32, 8, 10, 21,
+        55, 28, 38, 12, 15, 4, 23, 47,
+        62, 57, 18, 35, 42, 30, 53, 45,
+        33, 40, 7, 9, 27, 11, 14, 22,
+        56, 17, 29, 52, 39, 6, 26, 13,
+        16, 51, 5, 25, 50, 24, 49, 48,
+    };
     return bitscan[(bb & -bb) * 0x756e2f651a4fcc2ull >> 58];
+#endif
 }
 
-inline unsigned char popcnt16[1 << 16];
-
 inline int popcount(Bitboard b) {
+#ifdef BMI
+    return _mm_popcnt_u64(b);
+#else
     union {
         Bitboard bb;
         uint16_t v[4];
     } u = {b};
     return popcnt16[u.v[0]] + popcnt16[u.v[1]] + popcnt16[u.v[2]] + popcnt16[u.v[3]];
-}
 #endif
+}
 
 typedef struct {
     Bitboard *ptr;

@@ -159,63 +159,76 @@ std::string rep_table_to_string()
     return os.str() + s;
 }
 
-static void go() {
+Bitboard negative_spans(Color c, Bitboard pawns)
+{
+    Bitboard spans = 0;
 
-    std::cout << rep_table_to_string() << std::endl;
-    return;
-
-    int total_material;
-
-    Bitboard pawns  = bb(W_PAWN)   | bb(B_PAWN);
-    Bitboard minors = bb(W_KNIGHT) | bb(B_KNIGHT) | bb(W_BISHOP) | bb(B_BISHOP);
-    Bitboard rooks  = bb(W_ROOK)   | bb(B_ROOK);
-    Bitboard queens = bb(W_QUEEN)  | bb(B_QUEEN);
-
-    int num_pawns  = popcount(pawns);
-    int num_minors = popcount(minors);
-    int num_rooks  = popcount(rooks);
-    int num_queens = popcount(queens);
-
-    total_material = num_pawns + 3*num_minors + 5*(num_rooks-1) + 9*num_queens;
-
-    auto complexity = [](int i) -> int {
-        return i*i*i/512;
-    };
-
-    for (int mat = 0; mat <= total_material; mat++)
+    for (;pawns; clear_lsb(pawns))
     {
-        std::cout << "material=" << mat << ": " << complexity(mat) << std::endl;
+        Square s = bsf(pawns);
+        spans |= (file_bb(s) | file_bb(s + EAST) & ~FILE_ABB | file_bb(s + WEST) & ~FILE_HBB) & mask(s, relative_direction(c, SOUTH));
     }
 
+    return ~spans;
+}
+
+static void go() {
+
+    Bitboard pdep(Bitboard b, int i);
+
+    Bitboard pawns[1024];
+    Bitboard neg_spans[1024];
+
+    Color c = WHITE;
+    Bitboard relevancy = relative_rank(c, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7);
+    Bitboard masks[4] = {
+        relevancy & relative_file(c, FILE_G, FILE_H),
+        relevancy & relative_file(c, FILE_E, FILE_F),
+        relevancy & relative_file(c, FILE_C, FILE_D),
+        relevancy & relative_file(c, FILE_A, FILE_B)
+    };
     
+    for (int i = 0; i < 1024; i++)
+    {
+        pawns[i]     = pdep(masks[0], i);           // i'th configuration of pawns, i : [0, 1024)
+        neg_spans[i] = negative_spans(c, pawns[i]); // corresponding ~spans
+    }
 
-    /*uint32_t u1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-    uint32_t u2[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-    uint32_t u3[8];
+    bool visited[1024], failed;
+    int shift = 64 - 9;
 
-    __m256i *a = (__m256i*)u1;
-    __m256i *b = (__m256i*)u2;
+    std::mt19937_64 rng(0);
 
-    __m256i c = _mm256_add_epi32(*a, *b);
+    Bitboard ref[1024], magic;
+    int max_i = 0;
+    do
+    {
+        failed = false;
+        magic = rng() & rng();
+        memset(visited, false, 1024);
 
-    _mm256_storeu_si256((__m256i*)(u3), c);
+        for (int i = 0; i < 1024; i++)
+        {
+            uint64_t key = pawns[i] * magic >> shift;
 
-    for (int i = 0; i < 8; i++)
-        std::cout << u3[i] << std::endl;*/
+            if (visited[key] && ref[key] != neg_spans[i])
+            {
+                if (i > max_i)
+                {
+                    max_i = i;
+                    std::cout << i << "/1024" << std::endl;
+                }
+                failed = true;
+                break;
+            }
 
+            visited[key] = true;
+            ref[key] = neg_spans[i];
+        }
 
-    //int8_t i[32];
-    //memset(i, -1, sizeof(i));
-    //__m256i v = *(__m256i*)i;
-    //__m256i zero = _mm256_setzero_si256();
-    //__m256i sum8 = _mm256_sad_epu8(v, zero);  // 4x 64-bit partial sums
-    //// Now horizontally add the four 64-bit elements:
-    //__m128i hi = _mm256_extracti128_si256(sum8, 1);
-    //__m128i lo = _mm256_castsi256_si128(sum8);
-    //__m128i total = _mm_add_epi64(lo, hi);
-    //uint64_t sum = _mm_cvtsi128_si64(total) + (uint64_t)_mm_extract_epi64(total, 1);
-    //std::cout << (int)sum << std::endl;
-    
+    } while (failed);
+
+    std::cout << std::hex << magic << std::endl;
 }
 
 void Debug::go() {::go();}
