@@ -29,12 +29,6 @@ typedef struct {
     Move      best_move;
     uint8_t   depth;
     BoundType flag;
-
-    /*uint16_t  key16;
-    int16_t   eval16;
-    Move      best_move;
-    uint8_t   depth;
-    BoundType flag;*/
 } TTEntry;
 
 typedef struct {

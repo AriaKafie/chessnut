@@ -76,7 +76,7 @@ inline void eval_init() {
     };
 
     for (Color c : { WHITE, BLACK })
-        for (PieceType pt : { 0, int(PAWN), int(KNIGHT), int(BISHOP), int(ROOK), int(QUEEN), int(KING) })
+        for (PieceType pt : { NO_PIECE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING })
         {
             Square sq = A8;
 
@@ -85,9 +85,12 @@ inline void eval_init() {
         }
 }
 
-constexpr int piece_weights[KING + 1] = { 0, 0, 100, 300, 300, 500, 900, 1500 };
-
-inline int piece_weight(PieceType pt) { return piece_weights[pt]; }
+inline int piece_weight(PieceType pt) {
+    static constexpr int piece_weights[KING + 1] = {
+        0, 0, 100, 300, 300, 500, 900, 1500
+    };
+    return piece_weights[pt];
+}
 
 template<Color Us>
 Bitboard passers(Bitboard friendly_pawn, Bitboard opponent_pawn) {
