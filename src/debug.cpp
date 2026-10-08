@@ -41,8 +41,7 @@ static std::string pv()
 
     if (!legal) return "";
 
-    else
-    {
+    else {
         do_move<STM>(best);
         line = move_to_uci(best) + " " + pv<!STM>();
         undo_move<STM>(best);
@@ -159,7 +158,7 @@ std::string rep_table_to_string()
     return os.str() + s;
 }
 
-Bitboard negative_spans(Color c, Bitboard pawns)
+/*Bitboard negative_spans(Color c, Bitboard pawns)
 {
     Bitboard spans = 0;
 
@@ -170,65 +169,10 @@ Bitboard negative_spans(Color c, Bitboard pawns)
     }
 
     return ~spans;
-}
+}*/
 
 static void go() {
-
-    Bitboard pdep(Bitboard b, int i);
-
-    Bitboard pawns[1024];
-    Bitboard neg_spans[1024];
-
-    Color c = WHITE;
-    Bitboard relevancy = relative_rank(c, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7);
-    Bitboard masks[4] = {
-        relevancy & relative_file(c, FILE_G, FILE_H),
-        relevancy & relative_file(c, FILE_E, FILE_F),
-        relevancy & relative_file(c, FILE_C, FILE_D),
-        relevancy & relative_file(c, FILE_A, FILE_B)
-    };
-    
-    for (int i = 0; i < 1024; i++)
-    {
-        pawns[i]     = pdep(masks[0], i);           // i'th configuration of pawns, i : [0, 1024)
-        neg_spans[i] = negative_spans(c, pawns[i]); // corresponding ~spans
-    }
-
-    bool visited[1024], failed;
-    int shift = 64 - 9;
-
-    std::mt19937_64 rng(0);
-
-    Bitboard ref[1024], magic;
-    int max_i = 0;
-    do
-    {
-        failed = false;
-        magic = rng() & rng();
-        memset(visited, false, 1024);
-
-        for (int i = 0; i < 1024; i++)
-        {
-            uint64_t key = pawns[i] * magic >> shift;
-
-            if (visited[key] && ref[key] != neg_spans[i])
-            {
-                if (i > max_i)
-                {
-                    max_i = i;
-                    std::cout << i << "/1024" << std::endl;
-                }
-                failed = true;
-                break;
-            }
-
-            visited[key] = true;
-            ref[key] = neg_spans[i];
-        }
-
-    } while (failed);
-
-    std::cout << std::hex << magic << std::endl;
+    std::cout << "no checkmask" << std::endl;
 }
 
 void Debug::go() {::go();}

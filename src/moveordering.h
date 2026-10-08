@@ -61,16 +61,14 @@ void CaptureList<Us, Them>::sort()
 }
 
 template<Color Us, Color Them>
-int MoveList<Us, Them>::partition(int low, int high)
-{
+int MoveList<Us, Them>::partition(int low, int high) {
+
     Score pivot = score_of(moves[high]);
 
     int i = low - 1;
 
-    for (int j = low; j < high; j++)
-    {
-        if (score_of(moves[j]) >= pivot)
-        {
+    for (int j = low; j < high; j++) {
+        if (score_of(moves[j]) >= pivot) {
             i++;
             std::swap(moves[i], moves[j]);
         }
@@ -91,14 +89,13 @@ void MoveList<Us, Them>::quicksort(int low, int high) {
 }
 
 template<Color Us, Color Them>
-void MoveList<Us, Them>::sort(Move ttmove, SearchInfo *si)
-{
+void MoveList<Us, Them>::sort() {
+
     Bitboard seen_by_pawn = pawn_attacks<Them>(bitboard<make_piece(Them, PAWN)>());
 
-    for (EMove& m : *this)
-    {
-        if (m == ttmove)
-        {
+    for (EMove& m : *this) {
+
+        if (m == ttmove) {
             set_score(m, MAX_SCORE);
             continue;
         }
@@ -121,8 +118,8 @@ void MoveList<Us, Them>::sort(Move ttmove, SearchInfo *si)
         }
         else
         {
-            if (m == si->killers[0]
-             || m == si->killers[1])
+            if (m == search_info->killers[0]
+             || m == search_info->killers[1])
                 score = GOOD_QUIET_BASE;
             else
                 score = BAD_QUIET_BASE;

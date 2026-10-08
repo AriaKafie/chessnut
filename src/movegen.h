@@ -16,47 +16,45 @@ namespace MoveGen { void init(); };
 |   |   |qo |qoa|qoa|qka|koa|koa|
 +---+---+---+---+---+---+---+---+
 */
-inline void MoveGen::init()
-{
-    for (Color c : { WHITE, BLACK })
-    {
+inline void MoveGen::init() {
+
+    for (Color c : { WHITE, BLACK }) {
+
         EMove k_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? G1 : G8);
         EMove q_castle = make_move<CASTLING>(c == WHITE ? E1 : E8, c == WHITE ? C1 : C8);
 
-        for (int rights = 0; rights <= 0xf; rights++)
-        {
+        for (int rights = 0; rights <= 0xf; rights++) {
+
             bool k_rights = rights & (c == WHITE ? 8 : 2);
             bool q_rights = rights & (c == WHITE ? 4 : 1);
 
-            for (int hash = 0; hash <= 0x3f; hash++)
-            {
+            for (int violations = 0; violations <= 0x3f; violations++) {
+
                 EMove res[2] = {}, *p = res;
 
-                if (k_rights && (hash & 0b000111) == 0)
+                if (k_rights && (violations & 0b000111) == 0)
                     *p++ = k_castle;
 
-                if (q_rights && (hash & 0b111100) == 0)
+                if (q_rights && (violations & 0b111100) == 0)
                     *p++ = q_castle;
 
-                memcpy(&castle_lut[c][rights][hash], res, 8);
+                memcpy(&castle_lut[c][rights][violations], res, 8);
             }
         }
     }
 }
 
 template<MoveType Type, Direction D>
-ForceInline EMove* make_pawn_moves(EMove *list, Bitboard attacks)
-{
-    for (;attacks; clear_lsb(attacks))
-    {
+ForceInline EMove* make_pawn_moves(EMove *list, Bitboard attacks) {
+
+    for (;attacks; clear_lsb(attacks)) {
+
         Square to = bsf(attacks);
 
         if constexpr (Type == NORMAL)
-        {
             *list++ = make_move(to - D, to);
-        }
-        else if constexpr (Type == PROMOTION)
-        {
+
+        else if constexpr (Type == PROMOTION) {
             *list++ = make_move<KNIGHT_PROMOTION>(to - D, to);
             *list++ = make_move<BISHOP_PROMOTION>(to - D, to);
             *list++ = make_move<ROOK_PROMOTION  >(to - D, to);
@@ -67,8 +65,8 @@ ForceInline EMove* make_pawn_moves(EMove *list, Bitboard attacks)
     return list;
 }
 
-ForceInline inline EMove* make_moves(EMove *list, Square from, Bitboard to)
-{
+ForceInline inline EMove* make_moves(EMove *list, Square from, Bitboard to) {
+
     for (;to; clear_lsb(to))
         *list++ = make_move(from, bsf(to));
 
@@ -76,7 +74,7 @@ ForceInline inline EMove* make_moves(EMove *list, Square from, Bitboard to)
 }
 
 template<Color Us, Color Them>
-MoveList<Us, Them>::MoveList()
+void MoveList<Us, Them>::generate()
 {
     constexpr Piece FriendlyPawn   = make_piece(Us, PAWN);
     constexpr Piece FriendlyKnight = make_piece(Us, KNIGHT);
@@ -103,13 +101,12 @@ MoveList<Us, Them>::MoveList()
 
     Square ksq = bsf(bb(FriendlyKing));
 
-    checkmask = knight_attacks(ksq) & bb(OpponentKnight) | pawn_attacks<Us>(ksq) & bb(OpponentPawn);
+    Bitboard checkmask = knight_attacks(ksq) & bb(OpponentKnight) | pawn_attacks<Us>(ksq) & bb(OpponentPawn);
 
     for (Bitboard checkers = bishop_attacks(ksq, occupied) & opponent_bishop_queen | rook_attacks(ksq, occupied) & opponent_rook_queen; checkers; clear_lsb(checkers))
         checkmask |= check_ray(ksq, bsf(checkers));
 
-    if (more_than_one(checkmask & double_check(ksq)))
-    {
+    if (more_than_one(checkmask & double_check(ksq))) {
         last = make_moves(last, ksq, king_attacks(ksq) & ~(seen_by_enemy | bb(Us)));
         return;
     }
@@ -138,21 +135,19 @@ MoveList<Us, Them>::MoveList()
     last = make_pawn_moves<NORMAL, Up     >(last, shift<Up     >(pawns & (~pinned | file_bb  (ksq))) & empty    & checkmask);
     last = make_pawn_moves<NORMAL, Up*2   >(last, shift<Up*2   >(pawns & (~pinned | file_bb  (ksq))) & e        & checkmask);
 
-    if (Bitboard promotable = bb(FriendlyPawn) & Rank7)
-    {
+    if (Bitboard promotable = bb(FriendlyPawn) & Rank7) {
         last = make_pawn_moves<PROMOTION, UpRight>(last, shift<UpRight>(promotable & (~pinned | anti_diag(ksq))) & bb(Them) & checkmask);
         last = make_pawn_moves<PROMOTION, UpLeft >(last, shift<UpLeft >(promotable & (~pinned | main_diag(ksq))) & bb(Them) & checkmask);
         last = make_pawn_moves<PROMOTION, Up     >(last, shift<Up     >(promotable &  ~pinned                  ) & empty    & checkmask);
     }
 
-    if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & Rank6)
-    {
+    if (Bitboard b = shift<UpRight>(bb(FriendlyPawn)) & Position::ep_bb() & Rank6) {
         *last = make_move<ENPASSANT>(state_ptr->ep_sq - UpRight, state_ptr->ep_sq);
         Bitboard after_ep = occupied ^ (b | shift_unsafe<-UpRight>(b) | shift_unsafe<-Up>(b));
         last += !(bishop_attacks(ksq, after_ep) & opponent_bishop_queen | rook_attacks(ksq, after_ep) & opponent_rook_queen);
     }
-    if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & Rank6)
-    {
+
+    if (Bitboard b = shift<UpLeft >(bb(FriendlyPawn)) & Position::ep_bb() & Rank6) {
         *last = make_move<ENPASSANT>(state_ptr->ep_sq - UpLeft, state_ptr->ep_sq);
         Bitboard after_ep = occupied ^ (b | shift_unsafe<-UpLeft>(b) | shift_unsafe<-Up>(b));
         last += !(bishop_attacks(ksq, after_ep) & opponent_bishop_queen | rook_attacks(ksq, after_ep) & opponent_rook_queen);
@@ -235,8 +230,7 @@ CaptureList<Us, Them>::CaptureList()
     for (Bitboard checkers = bishop_attacks(ksq, occupied) & opponent_bishop_queen | rook_attacks(ksq, occupied) & opponent_rook_queen; checkers; clear_lsb(checkers))
         checkmask |= check_ray(ksq, bsf(checkers));
 
-    if (more_than_one(checkmask & double_check(ksq)))
-    {
+    if (more_than_one(checkmask & double_check(ksq))) {
         last = make_moves(last, ksq, king_attacks(ksq) & bb(Them) & ~seen_by_enemy);
         return;
     }

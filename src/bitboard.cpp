@@ -8,12 +8,12 @@
 #endif
 #include <sstream>
 
-Bitboard pdep(Bitboard mask, int src)
+Bitboard pdep(Bitboard mask, int pattern)
 {
     Bitboard dest = 0;
 
-    for (;src; clear_lsb(mask), src >>= 1)
-        if (src & 1) dest |= mask & -mask;
+    for (;pattern; clear_lsb(mask), pattern >>= 1)
+        if (pattern & 1) dest |= mask & -mask;
 
     return dest;
 }

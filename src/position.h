@@ -26,7 +26,12 @@ extern Piece board[SQUARE_NB];
 
 extern StateInfo state_stack[MAX_PLIES], *state_ptr;
 
-namespace Zobrist { constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull; inline uint64_t hash[B_KING + 1][SQUARE_NB]; }
+namespace Zobrist {
+    constexpr uint64_t Side = 0xeeb3b2fe864d41e5ull;
+    inline uint64_t hash[B_KING + 1][SQUARE_NB];
+    inline uint64_t enpassant[SQUARE_NB];
+    inline uint64_t castling[1 << 4];
+}
 
 template<Piece P>
 Bitboard bitboard() {
@@ -92,11 +97,20 @@ bool in_check()
       | rook_attacks  (ksq, occupied()) & (bb(EnemyQueen) | bb(EnemyRook));
 }
 
+inline void do_null() {
+    state_ptr->key ^= Zobrist::Side;
+}
+
+inline void undo_null() {
+    state_ptr->key ^= Zobrist::Side;
+}
+
 } // namespace Position
 
 template<Color JustMoved>
 ForceInline void update_castling_rights()
 {
+    state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
     constexpr Bitboard Mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
 #ifdef BMI
     state_ptr->castling_rights &= CastleMasks[JustMoved][pext(bitboards[JustMoved], Mask)];
@@ -104,6 +118,7 @@ ForceInline void update_castling_rights()
     constexpr Bitboard Magic = JustMoved == WHITE ? 0x4860104020003061ull : 0x1080000400400c21ull;
     state_ptr->castling_rights &= CastleMasks[JustMoved][(bitboards[JustMoved] & Mask) * Magic >> 59];
 #endif
+    state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
 }
 
 template<Color Us>
@@ -194,7 +209,7 @@ void do_move(Move m)
     constexpr Piece Queen = make_piece(Us, QUEEN);
     constexpr Piece King  = make_piece(Us, KING);
 
-    constexpr Direction Up = Us == WHITE ? NORTH : SOUTH;
+    constexpr Direction Up = relative_direction(Us, NORTH);
 
     Square from    = from_sq(m);
     Square to      = to_sq(m);
@@ -204,7 +219,19 @@ void do_move(Move m)
     memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
     state_ptr++;
     state_ptr->captured = capture;
-    state_ptr->ep_sq = (from + Up) * !(from ^ to ^ 16 | pc ^ Pawn);
+
+    state_ptr->ep_sq = 0;
+
+    if (Square ep_candidate = from + Up;
+        pc == Pawn          &&
+        (to - from) == Up*2 &&
+        (pawn_attacks<Us>(ep_candidate) & bb(make_piece(Them, PAWN)))) {
+        
+        state_ptr->ep_sq = ep_candidate;
+    }
+
+    state_ptr->key ^= Zobrist::enpassant[(state_ptr - 1)->ep_sq];
+    state_ptr->key ^= Zobrist::enpassant[state_ptr->ep_sq];
 
     Bitboard zero_to = ~square_bb(to);
     Bitboard from_to =  square_bb(from, to);
@@ -217,10 +244,10 @@ void do_move(Move m)
                        ^  Zobrist::hash[capture][to]
                        ^  Zobrist::Side;
 
-        bitboards[board[to]]   &= zero_to;
-        bitboards[Them]        &= zero_to;
-        bitboards[board[from]] ^= from_to;
-        bitboards[Us]          ^= from_to;
+        bitboards[capture] &= zero_to;
+        bitboards[Them]    &= zero_to;
+        bitboards[pc]      ^= from_to;
+        bitboards[Us]      ^= from_to;
 
         board[to]   = pc;
         board[from] = NO_PIECE;
@@ -239,7 +266,7 @@ void do_move(Move m)
                        ^  Zobrist::hash[capture][to]
                        ^  Zobrist::Side;
 
-        bitboards[board[to]] &= zero_to;
+        bitboards[capture]   &= zero_to;
         bitboards[Them]      &= zero_to;
         bitboards[Pawn]      ^= square_bb(from);
         bitboards[promotion] ^= ~zero_to;
@@ -256,10 +283,13 @@ void do_move(Move m)
     }
     case CASTLING:
     {
-        Move rook_move = Us == WHITE ? to == G1 ? make_move(H1, F1)
-                                                : make_move(A1, D1)
-                                     : to == G8 ? make_move(H8, F8)
-                                                : make_move(A8, D8);
+        Move rook_move = Us == WHITE
+            ? to == G1
+                ? make_move(H1, F1)
+                : make_move(A1, D1)
+            : to == G8
+                ? make_move(H8, F8)
+                : make_move(A8, D8);
 
         Square   rfrom    = from_sq(rook_move);
         Square   rto      = to_sq(rook_move);
@@ -280,8 +310,7 @@ void do_move(Move m)
         board[to]    = King;
         board[rto]   = Rook;
 
-        constexpr uint8_t mask = Us == WHITE ? 0b0011 : 0b1100;
-        state_ptr->castling_rights &= mask;
+        update_castling_rights<Us>();
 
         RepetitionTable::push();
 
@@ -357,10 +386,13 @@ void undo_move(Move m)
         return;
     case CASTLING:
     {
-        Move rook_move = Us == WHITE ? to == G1 ? make_move(H1, F1)
-                                                : make_move(A1, D1)
-                                     : to == G8 ? make_move(H8, F8)
-                                                : make_move(A8, D8);
+        Move rook_move = Us == WHITE
+            ? to == G1
+                ? make_move(H1, F1)
+                : make_move(A1, D1)
+            : to == G8
+                ? make_move(H8, F8)
+                : make_move(A8, D8);
 
         Square   rfrom    = from_sq(rook_move), rto = to_sq(rook_move);
         Bitboard rfrom_to = square_bb(rfrom, rto);

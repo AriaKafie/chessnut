@@ -113,14 +113,15 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         return lookup;
 
     si->static_ev = static_eval<SideToMove>();
+    bool in_check = Position::in_check<SideToMove>();
 
-    if (null_ok && Position::midgame() && depth >= 3 && !Position::in_check<SideToMove>())
+    if (null_ok && Position::midgame() && depth >= 3 && !in_check)
     {
         int R = std::max(1, std::min(int(si->static_ev - beta) / 232, 6) + depth / 3 + 5);
 
-        state_ptr->key ^= Zobrist::Side;
+        Position::do_null();
         int eval = -search<NONPV, !SideToMove>(-beta, -beta + 1, depth - R, false, si + 1);
-        state_ptr->key ^= Zobrist::Side;
+        Position::undo_null();
 
         if (status.search_cancelled) [[unlikely]]
             return 0;
@@ -129,22 +130,22 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
             return eval;
     }
 
-    MoveList<SideToMove> moves;
+    Move ttmove = TranspositionTable::lookup_move();
 
-    if (moves.size() == 0)
-        return moves.in_check() ? -MATE + si->ply : 0;
+    MoveList<SideToMove> moves(ttmove, si);
+
+    if (moves.size() == 0) {
+        return in_check ? -MATE + si->ply : 0;
+    }
 
     int       best_eval  = -INFINITE;
     Move      best_move  = NO_MOVE;
-    Move      ttmove     = TranspositionTable::lookup_move();
     bool      improving  = si->static_ev > (si - 2)->static_ev;
-    int       extension  = Root ? 0 : moves.in_check();
+    int       extension  = Root ? 0 : in_check;
     int       move_count = 0;
     BoundType bound_type = UPPER_BOUND;
 
-    moves.sort(ttmove, si);
-
-    for (Move m : moves)
+    for (Move m; m = moves.next_move();)
     {
         move_count++;
 
@@ -210,8 +211,7 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         {
             TranspositionTable::record(depth, LOWER_BOUND, eval, m, si->ply);
 
-            if (is_quiet(m) && m != si->killers[0])
-            {
+            if (is_quiet(m) && m != si->killers[0]) {
                 si->killers[1] = si->killers[0];
                 si->killers[0] = m;
             }

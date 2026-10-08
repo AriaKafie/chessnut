@@ -112,8 +112,7 @@ constexpr Bitboard RANK_7BB = RANK_1BB << 48;
 constexpr Bitboard RANK_8BB = RANK_1BB << 56;
 
 template<Direction D>
-constexpr Bitboard shift(Bitboard bb)
-{
+constexpr Bitboard shift(Bitboard bb) {
     if constexpr (D == NORTH)       return  bb << 8;
     if constexpr (D == NORTH_EAST)  return (bb & ~FILE_HBB) << 7;
     if constexpr (D == EAST)        return  bb >> 1;
@@ -127,8 +126,7 @@ constexpr Bitboard shift(Bitboard bb)
 }
 
 template<Direction D>
-constexpr Bitboard shift_unsafe(Bitboard bb)
-{
+constexpr Bitboard shift_unsafe(Bitboard bb) {
     if constexpr (D == NORTH)       return  bb << 8;
     if constexpr (D == NORTH_EAST)  return  bb << 7;
     if constexpr (D == EAST)        return  bb >> 1;
@@ -209,10 +207,9 @@ inline Bitboard safe_step(Square s, int step) {
     return (is_ok(to) && square_distance(s, to) <= 2) ? square_bb(to) : 0;
 }
 
-inline Bitboard mask(Square s, Direction d)
-{
-    switch (d) 
-    {
+inline Bitboard mask(Square s, Direction d) {
+
+    switch (d) {
         case NORTH_EAST: return mask(s, NORTH) & mask(s, EAST);
         case SOUTH_EAST: return mask(s, SOUTH) & mask(s, EAST);
         case SOUTH_WEST: return mask(s, SOUTH) & mask(s, WEST);

@@ -3,6 +3,7 @@
 #define TYPES_H
 
 #pragma warning(disable: 4146)
+#pragma warning(disable: 26495)
 
 #include <cstdint>
 
@@ -68,7 +69,7 @@ enum : uint8_t {
     B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
 };
 
-enum { WHITE, BLACK, COLOR_NB = 2 };
+enum { WHITE, BLACK, COLOR_NB };
 
 enum : uint16_t {
     NORMAL           = 0 << 12,
@@ -89,7 +90,8 @@ enum {
     FILE_D,
     FILE_C,
     FILE_B,
-    FILE_A
+    FILE_A,
+    FILE_NB
 };
 
 enum {
@@ -100,7 +102,8 @@ enum {
     RANK_5,
     RANK_6,
     RANK_7,
-    RANK_8
+    RANK_8,
+    RANK_NB
 };
 
 enum {

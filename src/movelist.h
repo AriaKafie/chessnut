@@ -5,6 +5,11 @@
 #include "search.h"
 #include "types.h"
 
+typedef int Stage;
+enum Stages {
+    TT, GENERATE, GENERATED
+};
+
 const int MAX_MOVES    = 128;
 const int MAX_CAPTURES = 32;
 
@@ -12,19 +17,59 @@ template<Color Us, Color Them = !Us>
 class MoveList {
 
 public:
-    MoveList();
+
+    MoveList() {
+        generate();
+    }
+
+    MoveList(Move tt, SearchInfo *si) : ttmove(tt), search_info(si) {
+        if (ttmove) {
+            *last++ = ttmove;
+            stage = TT;
+        } else {
+            generate();
+            *last = NULLMOVE;
+            sort();
+            stage = GENERATED;
+        }
+    }
+
+    Move next_move() {
+        
+        switch (stage) {
+            
+        case TT:
+            stage++;
+            return *cur++;
+
+        case GENERATE:
+            stage++;
+            last = moves;
+            generate();
+            *last = NULLMOVE;
+            sort();
+            return *cur++;
+
+        case GENERATED:
+        default:
+            return *cur++;
+        }
+    }
+
+    void generate();
 
     EMove* begin()      { return moves; }
     EMove* end()        { return last; }
     size_t size() const { return last - moves; }
-    bool   in_check()   { return ~checkmask; }
-    void   sort(Move ttmove, SearchInfo *si);
+    void   sort();
     
-    EMove moves[MAX_MOVES], *last = moves;
-
-private:
-    Bitboard checkmask;
+    EMove moves[MAX_MOVES], *last = moves, *cur = moves;
+    SearchInfo *search_info;
     Bitboard seen_by_enemy;
+
+    Stage stage;
+
+    Move ttmove;
 
     void quicksort(int low, int high);
     int  partition(int low, int high);
@@ -50,4 +95,3 @@ private:
 };
 
 #endif
-

@@ -33,7 +33,7 @@ typedef struct {
 
 typedef struct {
     uint64_t key;
-    uint8_t  occurrences;
+    int      occurrences;
 } RTEntry;
 
 namespace TranspositionTable {

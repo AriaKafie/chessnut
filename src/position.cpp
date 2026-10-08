@@ -17,15 +17,23 @@ Piece board[SQUARE_NB];
 
 StateInfo state_stack[MAX_PLIES], *state_ptr = state_stack;
 
-void Position::init()
-{
+void Position::init() {
+
     std::mt19937_64 rng(221564671644);
 
     for (Piece pc : { W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
-                      B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING })
-    {
-        for (Square sq = H1; sq <= A8; sq++)
+                      B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING }) {
+        for (Square sq = H1; sq <= A8; sq++) {
             Zobrist::hash[pc][sq] = rng();
+        }
+    }
+
+    for (Square sq = H1; sq <= A8; sq++) {
+        Zobrist::enpassant[sq] = sq ? rng() : 0;
+    }
+
+    for (uint8_t castling_rights = 0; castling_rights <= 0xf; castling_rights++) {
+        Zobrist::castling[castling_rights] = rng();
     }
 }
 
@@ -42,14 +50,10 @@ void Position::set(const std::string& fen)
 
     is >> pieces >> color >> castling >> enpassant;
 
-    for (char token : pieces)
-    {
-        if (std::isdigit(token))
-        {
+    for (char token : pieces) {
+        if (std::isdigit(token)) {
             sq -= token - '0';
-        }
-        else if (size_t piece = piece_to_char.find(token); piece != std::string::npos)
-        {
+        } else if (size_t piece = piece_to_char.find(token); piece != std::string::npos) {
             board[sq] = piece;
             bitboards[piece] |= square_bb(sq);
             bitboards[color_of(piece)] |= square_bb(sq);
@@ -72,6 +76,9 @@ void Position::set(const std::string& fen)
 
     for (Square sq = H1; sq <= A8; sq++)
         state_ptr->key ^= Zobrist::hash[piece_on(sq)][sq];
+
+    state_ptr->key ^= Zobrist::enpassant[state_ptr->ep_sq];
+    state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
 
     RepetitionTable::clear();
     RepetitionTable::push();
