@@ -24,8 +24,8 @@ static struct {
 
 void Search::noverbose() { status.verbose = false; }
 
-void Search::init()
-{
+void Search::init() {
+
     status.verbose = true;
 
     for (int i = 0; i < MAX_PLIES; i++)
@@ -34,10 +34,9 @@ void Search::init()
     eval_init();
 }
 
-void handle_search_stop(uint64_t thinktime)
-{
-    if (thinktime)
-    {
+void handle_search_stop(uint64_t thinktime) {
+
+    if (thinktime) {
         std::this_thread::sleep_for(std::chrono::milliseconds(thinktime));
         status.search_cancelled = true;
         return;
@@ -134,9 +133,8 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 
     MoveList<SideToMove> moves(ttmove, si);
 
-    if (moves.size() == 0) {
+    if (moves.size() == 0)
         return in_check ? -MATE + si->ply : 0;
-    }
 
     int       best_eval  = -INFINITE;
     Move      best_move  = NO_MOVE;
@@ -207,8 +205,8 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
         if (status.search_cancelled) [[unlikely]]
             return 0;
 
-        if (eval >= beta)
-        {
+        if (eval >= beta) {
+
             TranspositionTable::record(depth, LOWER_BOUND, eval, m, si->ply);
 
             if (is_quiet(m) && m != si->killers[0]) {
@@ -219,8 +217,8 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
             return eval;
         }
 
-        if (eval > alpha)
-        {
+        if (eval > alpha) {
+
             best_move = m;
             alpha = eval;
             bound_type = EXACT;
@@ -238,8 +236,8 @@ int search(int alpha, int beta, int depth, bool null_ok, SearchInfo *si)
 }
 
 template<Color SideToMove>
-void iterative_deepening(int max_depth = MAX_DEPTH)
-{
+void iterative_deepening(int max_depth = MAX_DEPTH) {
+
     status.best_move = NO_MOVE;
     status.nodes     = 0;
 
@@ -252,8 +250,8 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
     int      window  = 50;
     int guess, alpha = -INFINITE, beta = INFINITE;
 
-    for (int depth = 1; depth <= max_depth; depth++)
-    {
+    for (int depth = 1; depth <= max_depth; depth++) {
+
         fail:
 
         int eval = search<ROOT, SideToMove>(alpha, beta, depth, false, si);
@@ -261,14 +259,13 @@ void iterative_deepening(int max_depth = MAX_DEPTH)
         if (status.search_cancelled)
             break;
 
-        if (eval <= alpha)
-        {
+        if (eval <= alpha) {
             int margin = guess - alpha;
             alpha = guess - margin * 2;
             goto fail;
         }
-        if (eval >= beta)
-        {
+
+        if (eval >= beta) {
             int margin = beta - guess;
             beta = guess + margin * 2;
             goto fail;

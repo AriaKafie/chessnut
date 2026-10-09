@@ -17,7 +17,6 @@ template<Color Us, Color Them = !Us>
 class MoveList {
 
 public:
-
     MoveList() {
         generate();
     }
@@ -56,23 +55,23 @@ public:
         }
     }
 
-    void generate();
-
     EMove* begin()      { return moves; }
     EMove* end()        { return last; }
     size_t size() const { return last - moves; }
-    void   sort();
-    
-    EMove moves[MAX_MOVES], *last = moves, *cur = moves;
-    SearchInfo *search_info;
-    Bitboard seen_by_enemy;
 
-    Stage stage;
-
-    Move ttmove;
-
+private:
+    void generate();
+    void sort();
     void quicksort(int low, int high);
     int  partition(int low, int high);
+    
+    EMove       moves[MAX_MOVES];
+    EMove*      last = moves;
+    EMove*      cur = moves;
+    SearchInfo* search_info;
+    Bitboard    seen_by_enemy;
+    Stage       stage;
+    Move        ttmove;
 };
 
 template<Color Us, Color Them = !Us>

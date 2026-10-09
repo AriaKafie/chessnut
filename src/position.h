@@ -98,18 +98,26 @@ bool in_check()
 }
 
 inline void do_null() {
+
+    memcpy(state_ptr + 1, state_ptr, sizeof(StateInfo));
+    state_ptr++;
+
+    state_ptr->captured = NO_PIECE;
+
     state_ptr->key ^= Zobrist::Side;
+
+    state_ptr->key ^= Zobrist::enpassant[(state_ptr - 1)->ep_sq];
+    state_ptr->ep_sq = 0;
 }
 
 inline void undo_null() {
-    state_ptr->key ^= Zobrist::Side;
+    state_ptr--;
 }
 
 } // namespace Position
 
 template<Color JustMoved>
-ForceInline void update_castling_rights()
-{
+ForceInline void update_castling_rights() {
     state_ptr->key ^= Zobrist::castling[state_ptr->castling_rights];
     constexpr Bitboard Mask = JustMoved == WHITE ? square_bb(A1, E1, H1, A8, H8) : square_bb(A8, E8, H8, A1, H1);
 #ifdef BMI
@@ -319,7 +327,7 @@ void do_move(Move m)
     case ENPASSANT:
         constexpr Piece EnemyPawn = make_piece(Them, PAWN);
 
-        Square capsq = to + (Us == WHITE ? SOUTH : NORTH);
+        Square capsq = to - Up;
 
         state_ptr->key ^= Zobrist::hash[Pawn][from]
                        ^  Zobrist::hash[Pawn][to]

@@ -138,8 +138,8 @@ Nodes/second   : %llu)""\n\n",
     }
 }
 
-std::string rep_table_to_string()
-{
+std::string rep_table_to_string() {
+
     extern RTEntry repetition_table[];
 
     std::ostringstream os;
@@ -172,7 +172,7 @@ std::string rep_table_to_string()
 }*/
 
 static void go() {
-    std::cout << "no checkmask" << std::endl;
+    std::cout << "do_nullv2" << std::endl;
 }
 
 void Debug::go() {::go();}

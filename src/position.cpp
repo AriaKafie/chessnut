@@ -28,13 +28,11 @@ void Position::init() {
         }
     }
 
-    for (Square sq = H1; sq <= A8; sq++) {
+    for (Square sq = H1; sq <= A8; sq++)
         Zobrist::enpassant[sq] = sq ? rng() : 0;
-    }
 
-    for (uint8_t castling_rights = 0; castling_rights <= 0xf; castling_rights++) {
+    for (uint8_t castling_rights = 0; castling_rights <= 0xf; castling_rights++)
         Zobrist::castling[castling_rights] = rng();
-    }
 }
 
 void Position::set(const std::string& fen)
@@ -86,39 +84,39 @@ void Position::set(const std::string& fen)
     set_gamephase();
 }
 
-std::string Position::to_string()
-{
+std::string Position::to_string() {
+
     std::stringstream ss;
 
-    ss << "\n+---+---+---+---+---+---+---+---+\n";
+    for (Rank r = RANK_8; r >= RANK_1; r--) {
 
-    for (Square sq = A8; sq >= H1; sq--)
-    {
-        ss << "| " << "  PNBRQK  pnbrqk"[board[sq]] << " ";
+        ss << "\n+---+---+---+---+---+---+---+---+\n";
 
-        if (sq % 8 == 0)
-            ss << "| " << (sq / 8 + 1) << "\n+---+---+---+---+---+---+---+---+\n";
+        for (File f = FILE_A; f >= FILE_H; f--)
+            ss << "| " << "  PNBRQK  pnbrqk"[board[make_square(r, f)]] << " ";
+
+        ss << "| " << r + 1;
     }
 
-    ss << "  a   b   c   d   e   f   g   h\n\nFen: " << fen() << "\nKey: " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << key() << "\n";
+    ss << "\n+---+---+---+---+---+---+---+---+\n"
+       << "  a   b   c   d   e   f   g   h\n\n"
+       << "Fen: " << fen() << "\n"
+       << "Key: " << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << key() << "\n";
 
     return ss.str();
 }
 
-std::string Position::fen()
-{
+std::string Position::fen() {
+
     std::stringstream fen;
 
-    for (Rank r = RANK_8; r >= RANK_1; r--)
-    {
-        for (File f = FILE_A; f >= FILE_H; f--)
-        {
+    for (Rank r = RANK_8; r >= RANK_1; r--) {
+        for (File f = FILE_A; f >= FILE_H; f--) {
+
             if (Piece pc = piece_on(r * 8 + f))
-            {
                 fen << "  PNBRQK  pnbrqk"[pc];
-            }
-            else
-            {
+
+            else {
                 int empty = 0;
 
                 for (File fi = f++; fi >= FILE_H && !piece_on(r * 8 + fi); fi--)
@@ -135,8 +133,8 @@ std::string Position::fen()
 
     if (!state_ptr->castling_rights)
         fen << "-";
-    else
-    {
+
+    else {
         if (state_ptr->castling_rights & 8) fen << "K";
         if (state_ptr->castling_rights & 4) fen << "Q";
         if (state_ptr->castling_rights & 2) fen << "k";
@@ -148,8 +146,8 @@ std::string Position::fen()
     return fen.str();
 }
 
-void Position::commit_move(Move m)
-{
+void Position::commit_move(Move m) {
+
     if (is_capture(m) || piece_type_on(from_sq(m)) == PAWN || type_of(m) != NORMAL)
         RepetitionTable::clear();
 
